@@ -30,8 +30,8 @@ const (
 	// 1. Cluster with one shard and all replicas. Used to duplicate data over all replicas.
 	// 2. Cluster with all shards (1 replica). Used to gather/scatter data over all replicas.
 
-	oneShardAllReplicasClusterName = "all-replicated"
-	allShardsOneReplicaClusterName = "all-sharded"
+	oneShardAllReplicasClusterName = "logical_consistency_cluster"
+	allShardsOneReplicaClusterName = "physical_consistency_cluster"
 )
 
 // ClickHouseConfigGenerator generates ClickHouse configuration files content for specified CHI
@@ -265,8 +265,14 @@ func (c *ClickHouseConfigGenerator) GetRemoteServers(options *RemoteServersGener
 	b := &bytes.Buffer{}
 
 	// <yandex>
+	//      <default_on_cluster_name>my_cluster_name	</default_on_cluster_name>
 	//		<remote_servers>
 	util.Iline(b, 0, "<"+xmlTagYandex+">")
+	c.chi.WalkClusters(func(cluster *chiv1.ChiCluster) error {
+		util.Iline(b, 4, "<default_on_cluster_name>%s</default_on_cluster_name>", cluster.Name)
+		return nil
+	})
+
 	util.Iline(b, 4, "<remote_servers>")
 
 	util.Iline(b, 8, "<!-- User-specified clusters -->")
