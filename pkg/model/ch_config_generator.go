@@ -30,8 +30,8 @@ const (
 	// 1. Cluster with one shard and all replicas. Used to duplicate data over all replicas.
 	// 2. Cluster with all shards (1 replica). Used to gather/scatter data over all replicas.
 
-	oneShardAllReplicasClusterName = "logical_consistency_cluster"
-	allShardsOneReplicaClusterName = "physical_consistency_cluster"
+	oneShardAllReplicasClusterName = "physical_consistency_cluster"
+	allShardsOneReplicaClusterName = "logical_consistency_cluster"
 )
 
 // ClickHouseConfigGenerator generates ClickHouse configuration files content for specified CHI
