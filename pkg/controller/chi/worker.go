@@ -532,6 +532,7 @@ func (w *worker) reconcileHost(host *chop.ChiHost) error {
 	host.ReconcileAttributes.UnsetAdd()
 
 	if w.migrateTables(host) {
+		/*
 		w.a.V(1).
 			WithEvent(host.GetCHI(), eventActionCreate, eventReasonCreateStarted).
 			WithStatusAction(host.GetCHI()).
@@ -539,7 +540,20 @@ func (w *worker) reconcileHost(host *chop.ChiHost) error {
 			Info("Adding tables on shard/host:%d/%d cluster:%s", host.Address.ShardIndex, host.Address.ReplicaIndex, host.Address.ClusterName)
 		if err := w.schemer.HostCreateTables(host); err != nil {
 			w.a.M(host).A().Error("ERROR create tables on host %s. err: %v", host.Name, err)
+		}*/
+		// Wait ClickHouse run
+		if err := w.schemer.HostPing(host); err != nil {
+			w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
 		}
+		// Shutdown ClickHouse to reconfig DDLWorker
+		if err := w.schemer.HostShutdown(host); err != nil {
+			w.a.Error("ERROR shutdown on host %s. err: %v", host.Name, err)
+		}
+		// Wait ClickHouse run
+		if err := w.schemer.HostPing(host); err != nil {
+			w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
+		}
+
 	} else {
 		w.a.V(1).
 			M(host).F().

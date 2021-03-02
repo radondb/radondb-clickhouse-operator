@@ -87,8 +87,7 @@ func (c *Creator) CreateServiceCHI() *corev1.Service {
 					},
 				},
 				Selector:              c.labeler.getSelectorCHIScopeReady(),
-				Type:                  corev1.ServiceTypeLoadBalancer,
-				ExternalTrafficPolicy: corev1.ServiceExternalTrafficPolicyTypeLocal,
+				Type:                  corev1.ServiceTypeClusterIP,
 			},
 		}
 	}

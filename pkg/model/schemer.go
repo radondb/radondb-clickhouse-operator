@@ -309,6 +309,28 @@ func (s *Schemer) HostCreateTables(host *chop.ChiHost) error {
 	return nil
 }
 
+// HostShutdown runs `SYSTEM SHUTDOWN` over the adding CHI and Statefulsets will run CK.
+func (s *Schemer) HostShutdown(host *chop.ChiHost) error {
+	log.V(1).Info("Shutdown on %s", host.Address.ShardName)
+	sqls := []string{
+		`SYSTEM SHUTDOWN`,
+	}
+	err := s.hostApplySQLs(host, sqls, false)
+
+	if err != nil {
+		return err
+	}
+	return nil;
+}
+
+// HostPing runs 'SELECT 1' over the ADDING host
+func (s *Schemer) HostPing(host *chop.ChiHost) error {
+	sqls := []string{
+		`SELECT 1`,
+	}
+	return s.hostApplySQLs(host, sqls, true)
+}
+
 // IsHostInCluster checks whether host is a member of at least one ClickHouse cluster
 func (s *Schemer) IsHostInCluster(host *chop.ChiHost) bool {
 	sqls := []string{heredoc.Docf(
