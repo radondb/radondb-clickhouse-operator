@@ -92,9 +92,8 @@ func (c *Creator) CreateServiceCHI() *corev1.Service {
 					TargetPort: intstr.FromString(chDefaultTCPPortName),
 				},
 			},
-			Selector:              c.labeler.getSelectorCHIScopeReady(),
-			Type:                  corev1.ServiceTypeLoadBalancer,
-			ExternalTrafficPolicy: corev1.ServiceExternalTrafficPolicyTypeLocal,
+			Selector: c.labeler.getSelectorCHIScopeReady(),
+			Type:     corev1.ServiceTypeClusterIP,
 		},
 	}
 	MakeObjectVersionLabel(&svc.ObjectMeta, svc)

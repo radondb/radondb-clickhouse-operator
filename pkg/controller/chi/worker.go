@@ -901,7 +901,22 @@ func (w *worker) migrateTables(ctx context.Context, host *chiv1.ChiHost) error {
 	err := w.schemer.HostCreateTables(ctx, host)
 	if err != nil {
 		w.a.M(host).A().Error("ERROR create tables on host %s. err: %v", host.Name, err)
+		return err
 	}
+
+	// Wait ClickHouse run
+	if err := w.schemer.HostPing(ctx, host); err != nil {
+		w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
+	}
+	// Shutdown ClickHouse to reconfig DDLWorker
+	if err := w.schemer.HostShutdown(ctx, host); err != nil {
+		w.a.Error("ERROR shutdown on host %s. err: %v", host.Name, err)
+	}
+	// Wait ClickHouse run
+	if err := w.schemer.HostPing(ctx, host); err != nil {
+		w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
+	}
+
 	return err
 }
 

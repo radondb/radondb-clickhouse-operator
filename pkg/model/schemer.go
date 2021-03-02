@@ -271,6 +271,26 @@ func (s *Schemer) HostDropTables(ctx context.Context, host *chop.ChiHost) error 
 	return s.ExecHost(ctx, host, dropTableSQLs)
 }
 
+// HostShutdown runs `SYSTEM SHUTDOWN` over the adding CHI and Statefulsets will run CK.
+func (s *Schemer) HostShutdown(ctx context.Context, host *chop.ChiHost) error {
+	log.V(1).Info("Shutdown on %s", host.Address.ShardName)
+
+	sqls := []string{
+		`SYSTEM SHUTDOWN`,
+	}
+
+	return s.ExecHost(ctx, host, sqls)
+}
+
+// HostPing runs 'SELECT 1' over the ADDING host
+func (s *Schemer) HostPing(ctx context.Context, host *chop.ChiHost) error {
+	sqls := []string{
+		`SELECT 1`,
+	}
+
+	return s.ExecHost(ctx, host, sqls, clickhouse.NewQueryOptions().SetRetry(true))
+}
+
 // IsHostInCluster checks whether host is a member of at least one ClickHouse cluster
 func (s *Schemer) IsHostInCluster(ctx context.Context, host *chop.ChiHost) bool {
 	inside := false
