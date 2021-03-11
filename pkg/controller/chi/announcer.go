@@ -17,8 +17,8 @@ package chi
 import (
 	"fmt"
 
-	a "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	a "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
 	log "github.com/golang/glog"
 )
 

@@ -15,7 +15,7 @@
 package clickhouse
 
 import (
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
 
 	"sync"
 )

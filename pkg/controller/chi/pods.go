@@ -17,9 +17,9 @@ package chi
 import (
 	"k8s.io/api/core/v1"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chopmodel "github.com/TCeason/clickhouse-operator/pkg/model"
 )
 
 func (c *Controller) appendLabelReady(host *chop.ChiHost) error {

@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	"github.com/TCeason/clickhouse-operator/pkg/util"
 	log "github.com/golang/glog"
 )
 

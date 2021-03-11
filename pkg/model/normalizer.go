@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	"github.com/TCeason/clickhouse-operator/pkg/chop"
+	"github.com/TCeason/clickhouse-operator/pkg/util"
 
 	"gopkg.in/d4l3k/messagediff.v1"
 	"k8s.io/api/core/v1"

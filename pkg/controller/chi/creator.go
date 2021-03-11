@@ -18,13 +18,13 @@ package chi
 import (
 	"errors"
 	"fmt"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	"github.com/TCeason/clickhouse-operator/pkg/util"
 
 	apps "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
 )
 
 // createStatefulSet is an internal function, used in reconcileStatefulSet only

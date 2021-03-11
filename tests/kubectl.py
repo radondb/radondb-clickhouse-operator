@@ -55,7 +55,7 @@ def delete_chi(chi, ns=namespace):
 
 def delete_all_chi(ns=namespace):
     crds = launch("get crds -o=custom-columns=name:.metadata.name", ns=ns).splitlines()
-    if "clickhouseinstallations.clickhouse.altinity.com" in crds:
+    if "clickhouseinstallations.clickhouse.qingcloud.com" in crds:
         chis = get("chi", "", ns=ns)["items"]
         for chi in chis:
             # kubectl(f"patch chi {chi} --type=merge -p '\{\"metadata\":\{\"finalizers\": [null]\}\}'", ns = ns)
@@ -79,7 +79,7 @@ def create_and_check(config, check, ns=namespace, timeout=600):
         wait_objects(chi_name, check["object_counts"], ns)
 
     if "pod_count" in check:
-        wait_object("pod", "", label=f"-l clickhouse.altinity.com/chi={chi_name}", count=check["pod_count"], ns=ns)
+        wait_object("pod", "", label=f"-l clickhouse.qingcloud.com/chi={chi_name}", count=check["pod_count"], ns=ns)
 
     if "chi_status" in check:
         wait_chi_status(chi_name, check["chi_status"], ns)
@@ -156,7 +156,7 @@ def wait_objects(chi, object_counts, ns=namespace):
             f"to be available"
     ):
         for i in range(1, max_retries):
-            cur_object_counts = count_objects(label=f"-l clickhouse.altinity.com/chi={chi}", ns=ns)
+            cur_object_counts = count_objects(label=f"-l clickhouse.qingcloud.com/chi={chi}", ns=ns)
             if cur_object_counts == object_counts:
                 break
             with Then(
@@ -260,7 +260,7 @@ def get_default_storage_class(ns=namespace):
 
 
 def get_pod_spec(chi_name, ns=namespace):
-    pod = get("pod", "", ns=ns, label=f"-l clickhouse.altinity.com/chi={chi_name}")["items"][0]
+    pod = get("pod", "", ns=ns, label=f"-l clickhouse.qingcloud.com/chi={chi_name}")["items"][0]
     return pod["spec"]
 
 
@@ -271,7 +271,7 @@ def get_pod_image(chi_name, ns=namespace):
 
 def get_pod_names(chi_name, ns=namespace):
     pod_names = launch(
-        f"get pods -o=custom-columns=name:.metadata.name -l clickhouse.altinity.com/chi={chi_name}",
+        f"get pods -o=custom-columns=name:.metadata.name -l clickhouse.qingcloud.com/chi={chi_name}",
         ns=ns,
     ).splitlines()
     return pod_names[1:]
@@ -325,9 +325,9 @@ def check_pod_antiaffinity(chi_name, ns=namespace):
             {
                 "labelSelector": {
                     "matchLabels": {
-                        "clickhouse.altinity.com/app": "chop",
-                        "clickhouse.altinity.com/chi": f"{chi_name}",
-                        "clickhouse.altinity.com/namespace": f"{ns}",
+                        "clickhouse.qingcloud.com/app": "chop",
+                        "clickhouse.qingcloud.com/chi": f"{chi_name}",
+                        "clickhouse.qingcloud.com/namespace": f"{ns}",
                     },
                 },
                 "topologyKey": "kubernetes.io/hostname",

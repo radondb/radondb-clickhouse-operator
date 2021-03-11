@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	. "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
 	"github.com/r3labs/diff"
 	corev1 "k8s.io/api/core/v1"
 )

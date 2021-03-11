@@ -20,7 +20,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 
-	"github.com/altinity/clickhouse-operator/pkg/model/clickhouse"
+	"github.com/TCeason/clickhouse-operator/pkg/model/clickhouse"
 )
 
 const (

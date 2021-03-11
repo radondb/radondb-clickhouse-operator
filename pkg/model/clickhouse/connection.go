@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
 
 	_ "github.com/mailru/go-clickhouse"
 )

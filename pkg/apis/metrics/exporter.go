@@ -26,8 +26,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
+	"github.com/TCeason/clickhouse-operator/pkg/chop"
+	chopclientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
 )
 
 // Exporter implements prometheus.Collector interface

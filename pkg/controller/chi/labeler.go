@@ -17,10 +17,10 @@ package chi
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/model"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	"github.com/TCeason/clickhouse-operator/pkg/model"
+	"github.com/TCeason/clickhouse-operator/pkg/util"
 )
 
 func (c *Controller) labelMyObjectsTree() {

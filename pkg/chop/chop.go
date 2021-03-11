@@ -17,9 +17,9 @@ package chop
 import (
 	"flag"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	"github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	"github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chopclientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
 )
 
 type CHOp struct {

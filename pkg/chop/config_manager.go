@@ -24,9 +24,9 @@ import (
 	"github.com/kubernetes-sigs/yaml"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chopclientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
 )
 
 type ConfigManager struct {

@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/altinity/clickhouse-operator/dev/RnD/chopsim/parser"
+	"github.com/TCeason/clickhouse-operator/dev/RnD/chopsim/parser"
 	"gopkg.in/yaml.v2"
 )
 

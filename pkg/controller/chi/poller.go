@@ -23,9 +23,9 @@ import (
 	apps "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/model"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	"github.com/TCeason/clickhouse-operator/pkg/model"
 )
 
 const (

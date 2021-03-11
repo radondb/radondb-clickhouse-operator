@@ -15,8 +15,8 @@
 package model
 
 import (
-	chi "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	chi "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	"github.com/TCeason/clickhouse-operator/pkg/util"
 )
 
 // ClickHouseConfigFilesGenerator

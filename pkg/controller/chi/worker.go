@@ -28,9 +28,9 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/util/workqueue"
 
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chopmodel "github.com/TCeason/clickhouse-operator/pkg/model"
+	"github.com/TCeason/clickhouse-operator/pkg/util"
 )
 
 const FinalizerName = "finalizer.clickhouseinstallation.altinity.com"

@@ -18,7 +18,7 @@ import (
 	"context"
 	databasesql "database/sql"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
 )
 
 // Query

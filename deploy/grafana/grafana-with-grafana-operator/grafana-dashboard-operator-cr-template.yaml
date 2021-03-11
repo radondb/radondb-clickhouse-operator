@@ -6,7 +6,7 @@ metadata:
     app: grafana
 spec:
   name: ${GRAFANA_DASHBOARD_NAME}.json
-  url: https://raw.githubusercontent.com/TCeason/clickhouse-operator/master/grafana-dashboard/Altinity_ClickHouse_Operator_dashboard.json
+  url: https://raw.githubusercontent.com/TCeason/clickhouse-operator/chronus/grafana-dashboard/QingCloud_ClickHouse_Operator_dashboard.json
   datasources:
     - inputName: "DS_PROMETHEUS"
       datasourceName: "$GRAFANA_PROMETHEUS_DATASOURCE_NAME"

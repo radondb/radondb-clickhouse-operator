@@ -20,10 +20,10 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/model/clickhouse"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	"github.com/TCeason/clickhouse-operator/pkg/model/clickhouse"
+	"github.com/TCeason/clickhouse-operator/pkg/util"
 )
 
 const (

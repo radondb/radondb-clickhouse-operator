@@ -20,8 +20,8 @@ import (
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
 )
 
 const (
@@ -114,7 +114,7 @@ func (c *Controller) emitEvent(
 			Namespace:       namespace,
 			Name:            name,
 			UID:             uid,
-			APIVersion:      "clickhouse.altinity.com/v1",
+			APIVersion:      "clickhouse.qingcloud.com/v1",
 			ResourceVersion: resourceVersion,
 		},
 		Reason:  reason,

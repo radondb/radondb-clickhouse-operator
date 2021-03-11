@@ -20,9 +20,9 @@ import (
 	"os/user"
 	"path/filepath"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
-	"github.com/altinity/clickhouse-operator/pkg/version"
+	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
+	chopclientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
+	"github.com/TCeason/clickhouse-operator/pkg/version"
 
 	kube "k8s.io/client-go/kubernetes"
 	kuberest "k8s.io/client-go/rest"
