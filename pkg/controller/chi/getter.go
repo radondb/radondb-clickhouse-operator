@@ -23,8 +23,8 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kublabels "k8s.io/apimachinery/pkg/labels"
 
-	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
-	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	chopmodel "github.com/TCeason/clickhouse-operator/pkg/model"
 )
 

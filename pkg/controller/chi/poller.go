@@ -24,7 +24,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
-	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/model"
 )
 

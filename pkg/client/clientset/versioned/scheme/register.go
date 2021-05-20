@@ -3,7 +3,7 @@
 package scheme
 
 import (
-	clickhousev1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	clickhousev1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

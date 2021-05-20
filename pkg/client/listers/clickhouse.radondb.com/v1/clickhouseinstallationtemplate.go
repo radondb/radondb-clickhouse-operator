@@ -3,7 +3,7 @@
 package v1
 
 import (
-	v1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	v1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/cache"

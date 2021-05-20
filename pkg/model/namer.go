@@ -22,7 +22,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 
-	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/util"
 )
 

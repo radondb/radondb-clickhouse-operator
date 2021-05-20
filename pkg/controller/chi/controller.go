@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	chi "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chi "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/apis/metrics"
 	"github.com/TCeason/clickhouse-operator/pkg/chop"
 	chopclientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"

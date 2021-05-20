@@ -15,7 +15,7 @@
 package model
 
 import (
-	chi "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chi "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/util"
 )
 

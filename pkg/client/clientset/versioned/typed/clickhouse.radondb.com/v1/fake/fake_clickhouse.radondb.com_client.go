@@ -3,7 +3,7 @@
 package fake
 
 import (
-	v1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.qingcloud.com/v1"
+	v1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.radondb.com/v1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

@@ -1281,7 +1281,7 @@ def test_024(self):
     with And("Service annotations should be populated"):
         assert kubectl.get_field("service", "clickhouse-test-024", ".metadata.annotations.test") == "test"
     with And("PV annotations should be populated"):
-        assert kubectl.get_field("pv", "-l clickhouse.qingcloud.com/chi=test-024", ".metadata.annotations.test") == "test"
+        assert kubectl.get_field("pv", "-l clickhouse.radondb.com/chi=test-024", ".metadata.annotations.test") == "test"
         
     kubectl.delete_chi(chi)
     

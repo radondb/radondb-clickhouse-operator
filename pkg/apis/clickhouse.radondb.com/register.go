@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clickhouseqingcloudcom
+package clickhouseradondbcom
 
 const (
 	// GroupName is the group name of the ClickHouse Operator API.
-	GroupName = "clickhouse.qingcloud.com"
+	GroupName = "clickhouse.radondb.com"
 )

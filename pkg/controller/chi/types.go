@@ -25,10 +25,10 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
-	chi "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chi "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/chop"
 	chopclientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
-	choplisters "github.com/TCeason/clickhouse-operator/pkg/client/listers/clickhouse.qingcloud.com/v1"
+	choplisters "github.com/TCeason/clickhouse-operator/pkg/client/listers/clickhouse.radondb.com/v1"
 )
 
 // Controller defines CRO controller

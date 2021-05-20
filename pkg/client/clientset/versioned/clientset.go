@@ -3,7 +3,7 @@
 package versioned
 
 import (
-	clickhousev1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.qingcloud.com/v1"
+	clickhousev1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.radondb.com/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

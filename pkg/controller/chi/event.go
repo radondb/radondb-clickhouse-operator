@@ -21,7 +21,7 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
-	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 )
 
 const (
@@ -114,7 +114,7 @@ func (c *Controller) emitEvent(
 			Namespace:       namespace,
 			Name:            name,
 			UID:             uid,
-			APIVersion:      "clickhouse.qingcloud.com/v1",
+			APIVersion:      "clickhouse.radondb.com/v1",
 			ResourceVersion: resourceVersion,
 		},
 		Reason:  reason,

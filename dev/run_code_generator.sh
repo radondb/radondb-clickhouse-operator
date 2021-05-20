@@ -37,4 +37,4 @@ bash "${CODE_GENERATOR_DIR}/generate-groups.sh" \
     all \
     github.com/TCeason/clickhouse-operator/pkg/client \
     github.com/TCeason/clickhouse-operator/pkg/apis \
-    "clickhouse.qingcloud.com:v1"
+    "clickhouse.radondb.com:v1"

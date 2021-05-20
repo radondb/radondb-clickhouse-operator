@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: clickhouseinstallations.clickhouse.qingcloud.com
+  name: clickhouseinstallations.clickhouse.radondb.com
 spec:
-  group: clickhouse.qingcloud.com
+  group: clickhouse.radondb.com
   version: v1
   scope: Namespaced
   names:

@@ -17,7 +17,7 @@ package model
 import (
 	"k8s.io/api/core/v1"
 
-	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 )
 
 func HostCanDeletePVC(host *chiv1.ChiHost, pvcName string) bool {

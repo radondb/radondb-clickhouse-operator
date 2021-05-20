@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	a "github.com/TCeason/clickhouse-operator/pkg/announcer"
-	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chop "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	log "github.com/golang/glog"
 )
 

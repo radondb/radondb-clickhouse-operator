@@ -8,7 +8,7 @@ import (
 	time "time"
 
 	versioned "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
-	clickhouseqingcloudcom "github.com/TCeason/clickhouse-operator/pkg/client/informers/externalversions/clickhouse.qingcloud.com"
+	clickhouseradondbcom "github.com/TCeason/clickhouse-operator/pkg/client/informers/externalversions/clickhouse.radondb.com"
 	internalinterfaces "github.com/TCeason/clickhouse-operator/pkg/client/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -156,9 +156,9 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	Clickhouse() clickhouseqingcloudcom.Interface
+	Clickhouse() clickhouseradondbcom.Interface
 }
 
-func (f *sharedInformerFactory) Clickhouse() clickhouseqingcloudcom.Interface {
-	return clickhouseqingcloudcom.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) Clickhouse() clickhouseradondbcom.Interface {
+	return clickhouseradondbcom.New(f, f.namespace, f.tweakListOptions)
 }

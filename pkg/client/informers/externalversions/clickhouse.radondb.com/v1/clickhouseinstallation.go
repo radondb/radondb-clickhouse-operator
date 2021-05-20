@@ -5,10 +5,10 @@ package v1
 import (
 	time "time"
 
-	clickhouseqingcloudcomv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	clickhouseradondbcomv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	versioned "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
 	internalinterfaces "github.com/TCeason/clickhouse-operator/pkg/client/informers/externalversions/internalinterfaces"
-	v1 "github.com/TCeason/clickhouse-operator/pkg/client/listers/clickhouse.qingcloud.com/v1"
+	v1 "github.com/TCeason/clickhouse-operator/pkg/client/listers/clickhouse.radondb.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
@@ -54,7 +54,7 @@ func NewFilteredClickHouseInstallationInformer(client versioned.Interface, names
 				return client.ClickhouseV1().ClickHouseInstallations(namespace).Watch(options)
 			},
 		},
-		&clickhouseqingcloudcomv1.ClickHouseInstallation{},
+		&clickhouseradondbcomv1.ClickHouseInstallation{},
 		resyncPeriod,
 		indexers,
 	)
@@ -65,7 +65,7 @@ func (f *clickHouseInstallationInformer) defaultInformer(client versioned.Interf
 }
 
 func (f *clickHouseInstallationInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&clickhouseqingcloudcomv1.ClickHouseInstallation{}, f.defaultInformer)
+	return f.factory.InformerFor(&clickhouseradondbcomv1.ClickHouseInstallation{}, f.defaultInformer)
 }
 
 func (f *clickHouseInstallationInformer) Lister() v1.ClickHouseInstallationLister {

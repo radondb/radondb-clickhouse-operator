@@ -76,7 +76,7 @@
       }
     ]
   },
-  "description": "QingCloud Clickhouse operator metrics exported by Monitoring Agent",
+  "description": "radondb Clickhouse operator metrics exported by Monitoring Agent",
   "editable": true,
   "gnetId": 882,
   "graphTooltip": 1,

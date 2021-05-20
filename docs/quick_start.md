@@ -129,7 +129,7 @@ clickhouseinstallation.clickhouse.altinity.com/simple-01 created
 
 Installation specification is straightforward and defines 1-replica cluster:
 ```yaml
-apiVersion: "clickhouse.qingcloud.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "simple-01"
@@ -187,7 +187,7 @@ In case of having Dynamic Volume Provisioning available - ex.: running on AWS - 
 Manifest is [available in examples][03-persistent-volume-01-default-volume.yaml]
 
 ```yaml
-apiVersion: "clickhouse.qingcloud.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "pv-simple"
@@ -230,7 +230,7 @@ Let's install more complex example with:
 Manifest is [available in examples][03-persistent-volume-02-pod-template.yaml]
 
 ```yaml
-apiVersion: "clickhouse.qingcloud.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "pv-log"
@@ -287,7 +287,7 @@ spec:
 You can tell operator to configure your ClickHouse, as shown in the example below ([link to the manifest][05-settings-01-overview.yaml]):
 
 ```yaml
-apiVersion: "clickhouse.qingcloud.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "settings-01"

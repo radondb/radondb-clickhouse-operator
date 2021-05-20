@@ -19,12 +19,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	clickhouseqingcloudcom "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com"
+	clickhouseradondbcom "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com"
 )
 
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{
-	Group:   clickhouseqingcloudcom.GroupName,
+	Group:   clickhouseradondbcom.GroupName,
 	Version: "v1",
 }
 

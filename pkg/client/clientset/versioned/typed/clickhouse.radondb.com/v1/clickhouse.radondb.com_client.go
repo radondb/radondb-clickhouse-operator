@@ -3,7 +3,7 @@
 package v1
 
 import (
-	v1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	v1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
@@ -15,7 +15,7 @@ type ClickhouseV1Interface interface {
 	ClickHouseOperatorConfigurationsGetter
 }
 
-// ClickhouseV1Client is used to interact with features provided by the clickhouse.qingcloud.com group.
+// ClickhouseV1Client is used to interact with features provided by the clickhouse.radondb.com group.
 type ClickhouseV1Client struct {
 	restClient rest.Interface
 }

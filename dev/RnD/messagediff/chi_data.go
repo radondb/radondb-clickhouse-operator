@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	. "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 

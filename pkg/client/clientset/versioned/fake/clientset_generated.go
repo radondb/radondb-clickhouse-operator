@@ -4,8 +4,8 @@ package fake
 
 import (
 	clientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
-	clickhousev1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.qingcloud.com/v1"
-	fakeclickhousev1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.qingcloud.com/v1/fake"
+	clickhousev1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.radondb.com/v1"
+	fakeclickhousev1 "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned/typed/clickhouse.radondb.com/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

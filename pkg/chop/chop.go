@@ -18,7 +18,7 @@ import (
 	"flag"
 
 	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
-	"github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	"github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	chopclientset "github.com/TCeason/clickhouse-operator/pkg/client/clientset/versioned"
 )
 

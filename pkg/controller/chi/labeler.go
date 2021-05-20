@@ -18,7 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	log "github.com/TCeason/clickhouse-operator/pkg/announcer"
-	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/model"
 	"github.com/TCeason/clickhouse-operator/pkg/util"
 )

@@ -3,7 +3,7 @@
 package clickhouse
 
 import (
-	v1 "github.com/TCeason/clickhouse-operator/pkg/client/informers/externalversions/clickhouse.qingcloud.com/v1"
+	v1 "github.com/TCeason/clickhouse-operator/pkg/client/informers/externalversions/clickhouse.radondb.com/v1"
 	internalinterfaces "github.com/TCeason/clickhouse-operator/pkg/client/informers/externalversions/internalinterfaces"
 )
 

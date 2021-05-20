@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.qingcloud.com/v1"
+	. "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"gopkg.in/d4l3k/messagediff.v1"
 )
 
