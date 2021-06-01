@@ -399,6 +399,7 @@ func (c *ClickHouseConfigGenerator) GetRemoteServers(options *RemoteServersGener
 		// <my_cluster_name>
 		clusterName = allShardsOneReplicaClusterName
 		util.Iline(b, 8, "<%s>", clusterName)
+		util.Iline(b, 8, "    <shard>")
 		c.chi.WalkHosts(func(host *chiv1.ChiHost) error {
 			if options.Include(host) {
 				// <replica>
@@ -413,6 +414,7 @@ func (c *ClickHouseConfigGenerator) GetRemoteServers(options *RemoteServersGener
 			return nil
 		})
 		// </my_cluster_name>
+		util.Iline(b, 8, "    </shard>")
 		util.Iline(b, 8, "</%s>", clusterName)
 	}
 
