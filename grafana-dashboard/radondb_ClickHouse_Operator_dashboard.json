@@ -4076,7 +4076,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Altinity ClickHouse Operator Dashboard",
+  "title": "RadonDB ClickHouse Operator Dashboard",
   "uid": "80bd73d2a243583a9ec0d1b3fdf86e98",
   "version": 20201009
 }
