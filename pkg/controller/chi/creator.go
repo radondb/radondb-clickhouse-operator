@@ -86,7 +86,7 @@ func (c *Controller) updateStatefulSet(oldStatefulSet *apps.StatefulSet, newStat
 func (c *Controller) updatePersistentVolume(pv *v1.PersistentVolume) error {
 	log.V(2).M(pv).F().P()
 
-	// Apply newStatefulSet and wait for Generation to change
+	// Apply newPersistentVolume and wait for Generation to change
 	_, err := c.kubeClient.CoreV1().PersistentVolumes().Update(pv)
 	if err != nil {
 		// Update failed

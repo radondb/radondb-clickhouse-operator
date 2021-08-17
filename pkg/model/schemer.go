@@ -320,7 +320,7 @@ func (s *Schemer) HostShutdown(host *chop.ChiHost) error {
 	if err != nil {
 		return err
 	}
-	return nil;
+	return nil
 }
 
 // HostPing runs 'SELECT 1' over the ADDING host

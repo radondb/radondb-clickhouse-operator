@@ -86,14 +86,14 @@ func (c *Creator) CreateServiceCHI() *corev1.Service {
 						TargetPort: intstr.FromString(chDefaultTCPPortName),
 					},
 				},
-				Selector:              c.labeler.getSelectorCHIScopeReady(),
-				Type:                  corev1.ServiceTypeClusterIP,
+				Selector: c.labeler.getSelectorCHIScopeReady(),
+				Type:     corev1.ServiceTypeClusterIP,
 			},
 		}
 	}
 }
 
-// createServiceCluster creates new corev1.Service for specified Cluster
+// CreateServiceCluster creates new corev1.Service for specified Cluster
 func (c *Creator) CreateServiceCluster(cluster *chiv1.ChiCluster) *corev1.Service {
 	serviceName := CreateClusterServiceName(cluster)
 
@@ -112,7 +112,7 @@ func (c *Creator) CreateServiceCluster(cluster *chiv1.ChiCluster) *corev1.Servic
 	}
 }
 
-// createServiceShard creates new corev1.Service for specified Shard
+// CreateServiceShard creates new corev1.Service for specified Shard
 func (c *Creator) CreateServiceShard(shard *chiv1.ChiShard) *corev1.Service {
 	serviceName := CreateShardServiceName(shard)
 
@@ -131,7 +131,7 @@ func (c *Creator) CreateServiceShard(shard *chiv1.ChiShard) *corev1.Service {
 	}
 }
 
-// createServiceHost creates new corev1.Service for specified host
+// CreateServiceHost creates new corev1.Service for specified host
 func (c *Creator) CreateServiceHost(host *chiv1.ChiHost) *corev1.Service {
 	serviceName := CreateStatefulSetServiceName(host)
 	statefulSetName := CreateStatefulSetName(host)
