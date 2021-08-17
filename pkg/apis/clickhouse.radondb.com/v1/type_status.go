@@ -79,9 +79,19 @@ func (s *ChiStatus) PushTaskIDCompleted() {
 	}
 }
 
-// ReconcileStart marks reconcile start
-func (s *ChiStatus) ReconcileStart(DeleteHostsCount int) {
+// ReconcileUpdateStart marks reconcile update start
+func (s *ChiStatus) ReconcileUpdateStart(DeleteHostsCount int) {
 	s.Status = StatusInProgress
+	s.UpdatedHostsCount = 0
+	s.AddedHostsCount = 0
+	s.DeletedHostsCount = 0
+	s.DeleteHostsCount = DeleteHostsCount
+	s.PushTaskIDStarted()
+}
+
+// ReconcileCreateStart marks reconcile create start
+func (s *ChiStatus) ReconcileCreateStart(DeleteHostsCount int) {
+	s.Status = StatusCreating
 	s.UpdatedHostsCount = 0
 	s.AddedHostsCount = 0
 	s.DeletedHostsCount = 0
@@ -94,6 +104,22 @@ func (s *ChiStatus) ReconcileComplete() {
 	s.Status = StatusCompleted
 	s.Action = ""
 	s.PushTaskIDCompleted()
+}
+
+// Running marks running
+func (s *ChiStatus) Running() {
+	s.Status = StatusRunning
+	s.Action = ""
+}
+
+// ReconcileCreateFailed marks create failed
+func (s *ChiStatus) ReconcileCreateFailed() {
+	s.Status = StatusCreateFailed
+}
+
+// ReconcileUpdateFailed marks update failed
+func (s *ChiStatus) ReconcileUpdateFailed() {
+	s.Status = StatusUpdateFailed
 }
 
 // DeleteStart marks deletion start

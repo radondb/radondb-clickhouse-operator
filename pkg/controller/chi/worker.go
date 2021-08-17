@@ -284,7 +284,7 @@ func (w *worker) updateCHI(ctx context.Context, old, new *chiv1.ClickHouseInstal
 		return nil
 	}
 
-	w.markReconcileStart(ctx, new, actionPlan)
+	w.markReconcileStart(ctx, new, actionPlan, update)
 	w.excludeStopped(new)
 	w.walkHosts(new, actionPlan)
 
@@ -293,6 +293,13 @@ func (w *worker) updateCHI(ctx context.Context, old, new *chiv1.ClickHouseInstal
 			WithStatusError(new).
 			M(new).A().
 			Error("FAILED update: %v", err)
+
+		if update {
+			(&new.Status).ReconcileUpdateFailed()
+		} else {
+			(&new.Status).ReconcileCreateFailed()
+		}
+		_ = w.c.updateCHIObjectStatus(ctx, new, false)
 		return nil
 	}
 
@@ -327,7 +334,7 @@ func (w *worker) updateCHI(ctx context.Context, old, new *chiv1.ClickHouseInstal
 	w.clear(ctx, new)
 	w.dropReplicas(ctx, new, actionPlan)
 	w.includeStopped(new)
-	w.markReconcileComplete(ctx, new)
+	w.markReconcileComplete(ctx, new, update)
 
 	return nil
 }
@@ -396,9 +403,13 @@ func (w *worker) dropReplicas(ctx context.Context, chi *chiv1.ClickHouseInstalla
 	)
 }
 
-func (w *worker) markReconcileStart(ctx context.Context, chi *chiv1.ClickHouseInstallation, ap *chopmodel.ActionPlan) {
+func (w *worker) markReconcileStart(ctx context.Context, chi *chiv1.ClickHouseInstallation, ap *chopmodel.ActionPlan, update bool) {
 	// Write desired normalized CHI with initialized .Status, so it would be possible to monitor progress
-	(&chi.Status).ReconcileStart(ap.GetRemovedHostsNum())
+	if update {
+		(&chi.Status).ReconcileUpdateStart(ap.GetRemovedHostsNum())
+	} else {
+		(&chi.Status).ReconcileCreateStart(ap.GetRemovedHostsNum())
+	}
 	_ = w.c.updateCHIObjectStatus(ctx, chi, false)
 
 	w.a.V(1).
@@ -409,9 +420,34 @@ func (w *worker) markReconcileStart(ctx context.Context, chi *chiv1.ClickHouseIn
 	w.a.V(2).M(chi).F().Info("action plan\n%s\n", ap.String())
 }
 
-func (w *worker) markReconcileComplete(ctx context.Context, chi *chiv1.ClickHouseInstallation) {
+func (w *worker) markReconcileComplete(ctx context.Context, chi *chiv1.ClickHouseInstallation, update bool) {
 	// Update CHI object
 	(&chi.Status).ReconcileComplete()
+	_ = w.c.updateCHIObjectStatus(ctx, chi, false)
+
+	// Judge if all hosts is run
+	res := chi.WalkHosts(func(host *chiv1.ChiHost) error {
+		err := w.schemer.HostPing(ctx, host)
+		if err != nil {
+			w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
+			return err
+		}
+		return nil
+	})
+
+	for _, value := range res {
+		if value != nil {
+			if update {
+				(&chi.Status).ReconcileUpdateFailed()
+			} else {
+				(&chi.Status).ReconcileCreateFailed()
+			}
+			_ = w.c.updateCHIObjectStatus(ctx, chi, false)
+			return
+		}
+	}
+
+	(&chi.Status).Running()
 	_ = w.c.updateCHIObjectStatus(ctx, chi, false)
 
 	w.a.V(1).

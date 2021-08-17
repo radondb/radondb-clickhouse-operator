@@ -20,9 +20,13 @@ package v1
 
 // Possible CHI statuses
 const (
-	StatusInProgress  = "InProgress"
-	StatusCompleted   = "Completed"
-	StatusTerminating = "Terminating"
+	StatusCreating     = "Creating"
+	StatusInProgress   = "InProgress"
+	StatusCompleted    = "Completed"
+	StatusRunning      = "Running"
+	StatusCreateFailed = "CreateFailed"
+	StatusUpdateFailed = "UpdateFailed"
+	StatusTerminating  = "Terminating"
 )
 
 // Possible kinds of CRDs

@@ -16,7 +16,6 @@ package chop
 
 import (
 	"fmt"
-	v1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -26,6 +25,7 @@ import (
 	kubeclientcmd "k8s.io/client-go/tools/clientcmd"
 
 	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	v1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
 	"github.com/radondb/clickhouse-operator/pkg/version"
 )
