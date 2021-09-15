@@ -56,8 +56,16 @@ func (s *ChiStatus) SetAndPushError(error string) {
 	}
 }
 
-func (s *ChiStatus) ReconcileStart(DeleteHostsCount int) {
+func (s *ChiStatus) ReconcileUpdateStart(DeleteHostsCount int) {
 	s.Status = StatusInProgress
+	s.UpdatedHostsCount = 0
+	s.AddedHostsCount = 0
+	s.DeletedHostsCount = 0
+	s.DeleteHostsCount = DeleteHostsCount
+}
+
+func (s *ChiStatus) ReconcileCreateStart(DeleteHostsCount int) {
+	s.Status = StatusCreating
 	s.UpdatedHostsCount = 0
 	s.AddedHostsCount = 0
 	s.DeletedHostsCount = 0
@@ -67,6 +75,19 @@ func (s *ChiStatus) ReconcileStart(DeleteHostsCount int) {
 func (s *ChiStatus) ReconcileComplete() {
 	s.Status = StatusCompleted
 	s.Action = ""
+}
+
+func (s *ChiStatus) Running() {
+	s.Status = StatusRunning
+	s.Action = ""
+}
+
+func (s *ChiStatus) ReconcileCreateFailed() {
+	s.Status = StatusCreateFailed
+}
+
+func (s *ChiStatus) ReconcileUpdateFailed() {
+	s.Status = StatusUpdateFailed
 }
 
 func (s *ChiStatus) DeleteStart() {

@@ -67,7 +67,7 @@ type ChiSpec struct {
 	UseTemplates           []ChiUseTemplate `json:"useTemplates,omitempty"           yaml:"useTemplates"`
 }
 
-// ChiUseTemplates defines UseTemplates section of ClickHouseInstallation resource
+// ChiUseTemplate defines UseTemplates section of ClickHouseInstallation resource
 type ChiUseTemplate struct {
 	Name      string `json:"name"      yaml:"name"`
 	Namespace string `json:"namespace" yaml:"namespace"`
@@ -264,7 +264,7 @@ func (s *ChiHostReconcileAttributes) IsUnclear() bool {
 	return s.unclear
 }
 
-// CHITemplates defines templates section of .spec
+// ChiTemplates defines templates section of .spec
 type ChiTemplates struct {
 	// Templates
 	HostTemplates        []ChiHostTemplate        `json:"hostTemplates,omitempty"        yaml:"hostTemplates"`
@@ -316,7 +316,7 @@ const (
 	PVCReclaimPolicyDelete PVCReclaimPolicy = "Delete"
 )
 
-// isValid checks whether PVCReclaimPolicy is valid
+// IsValid checks whether PVCReclaimPolicy is valid
 func (v PVCReclaimPolicy) IsValid() bool {
 	switch v {
 	case PVCReclaimPolicyRetain:

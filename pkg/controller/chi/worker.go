@@ -242,7 +242,11 @@ func (w *worker) updateCHI(old, new *chop.ClickHouseInstallation) error {
 	}
 
 	// Write desired normalized CHI with initialized .Status, so it would be possible to monitor progress
-	(&new.Status).ReconcileStart(actionPlan.GetRemovedHostsNum())
+	if update {
+		(&new.Status).ReconcileUpdateStart(actionPlan.GetRemovedHostsNum())
+	} else {
+		(&new.Status).ReconcileCreateStart(actionPlan.GetRemovedHostsNum())
+	}
 	if err := w.c.updateCHIObjectStatus(new, false); err != nil {
 		w.a.V(1).M(new).A().Error("UNABLE to write normalized CHI. Can trigger update action. Err: %q", err)
 		return nil
@@ -322,6 +326,13 @@ func (w *worker) updateCHI(old, new *chop.ClickHouseInstallation) error {
 			WithStatusError(new).
 			M(new).A().
 			Error("FAILED update: %v", err)
+
+		if update {
+			(&new.Status).ReconcileUpdateFailed()
+		} else {
+			(&new.Status).ReconcileCreateFailed()
+		}
+		_ = w.c.updateCHIObjectStatus(new, false)
 		return nil
 	}
 
@@ -382,6 +393,31 @@ func (w *worker) updateCHI(old, new *chop.ClickHouseInstallation) error {
 
 	// Update CHI object
 	(&new.Status).ReconcileComplete()
+	_ = w.c.updateCHIObjectStatus(new, false)
+
+	// Judge if all hosts is run
+	res := new.WalkHosts(func(host *chop.ChiHost) error {
+		err := w.schemer.HostPing(host)
+		if err != nil {
+			w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
+			return err
+		}
+		return nil
+	})
+
+	for _, value := range res {
+		if value != nil {
+			if update {
+				(&new.Status).ReconcileUpdateFailed()
+			} else {
+				(&new.Status).ReconcileCreateFailed()
+			}
+			_ = w.c.updateCHIObjectStatus(new, false)
+			return nil
+		}
+	}
+
+	(&new.Status).Running()
 	_ = w.c.updateCHIObjectStatus(new, false)
 
 	w.a.V(1).
@@ -533,14 +569,14 @@ func (w *worker) reconcileHost(host *chop.ChiHost) error {
 
 	if w.migrateTables(host) {
 		/*
-		w.a.V(1).
-			WithEvent(host.GetCHI(), eventActionCreate, eventReasonCreateStarted).
-			WithStatusAction(host.GetCHI()).
-			M(host).F().
-			Info("Adding tables on shard/host:%d/%d cluster:%s", host.Address.ShardIndex, host.Address.ReplicaIndex, host.Address.ClusterName)
-		if err := w.schemer.HostCreateTables(host); err != nil {
-			w.a.M(host).A().Error("ERROR create tables on host %s. err: %v", host.Name, err)
-		}*/
+			w.a.V(1).
+				WithEvent(host.GetCHI(), eventActionCreate, eventReasonCreateStarted).
+				WithStatusAction(host.GetCHI()).
+				M(host).F().
+				Info("Adding tables on shard/host:%d/%d cluster:%s", host.Address.ShardIndex, host.Address.ReplicaIndex, host.Address.ClusterName)
+			if err := w.schemer.HostCreateTables(host); err != nil {
+				w.a.M(host).A().Error("ERROR create tables on host %s. err: %v", host.Name, err)
+			}*/
 		// Wait ClickHouse run
 		if err := w.schemer.HostPing(host); err != nil {
 			w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
