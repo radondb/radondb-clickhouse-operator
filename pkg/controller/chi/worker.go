@@ -15,7 +15,9 @@
 package chi
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/juliangruber/go-intersect"
@@ -33,7 +35,7 @@ import (
 	"github.com/TCeason/clickhouse-operator/pkg/util"
 )
 
-const FinalizerName = "finalizer.clickhouseinstallation.altinity.com"
+const FinalizerName = "finalizer.clickhouseinstallation.radondb.com"
 
 type worker struct {
 	c          *Controller
@@ -1414,7 +1416,7 @@ func (w *worker) reconcileResourcesList(pvc *core.PersistentVolumeClaim, pvcReso
 	}
 }
 
-// reconcileResourcesList
+// reconcileResource
 func (w *worker) reconcileResource(
 	pvc *core.PersistentVolumeClaim,
 	pvcResourceList core.ResourceList,
@@ -1448,5 +1450,48 @@ func (w *worker) reconcileResource(
 	if err != nil {
 		w.a.M(pvc).A().Error("unable to reconcileResource(%s/%s/%s) err: %v", pvc.Namespace, pvc.Name, resourceName, err)
 		return
+	}
+
+	w.waitReconcileResourceSuccess(pvc)
+}
+
+// waitReconcileResourceSuccess wait pvc's .status.conditions.status to `FileSystemResizePending`.
+func (w *worker) waitReconcileResourceSuccess(pvc *core.PersistentVolumeClaim) {
+	// get persistentVolumeClaim and judge if it is provided by qingcloud.
+	currentPVC, err := w.c.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Get(pvc.Name, newGetOptions())
+	if err != nil {
+		w.a.A().Error("unable to get PersistentVolumeClaims(%s/%s) err: %v", pvc.Namespace, pvc.Name, err)
+		return
+	}
+
+	provisioner, ok := currentPVC.ObjectMeta.Annotations["volume.beta.kubernetes.io/storage-provisioner"]
+	w.a.V(1).M(pvc).Info("get PersistentVolumeClaims(%s/%s) - provisioner: %s", pvc.Namespace, pvc.Name, provisioner)
+	if ok && strings.Contains(provisioner, "qingcloud") {
+		// provided by qingcloud, wait status changes to FileSystemResizePending.
+		maxTries := 10
+		err := util.Retry(maxTries, "check PVC's status", func() error {
+			currentPVC, err := w.c.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Get(pvc.Name, newGetOptions())
+			if err != nil {
+				w.a.A().Error("unable to get PersistentVolumeClaims(%s/%s) err: %v", pvc.Namespace, pvc.Name, err)
+				return err
+			}
+
+			conditions := currentPVC.Status.Conditions
+			if conditions == nil {
+				return errors.New("no conditions")
+			}
+
+			status := conditions[0].Type
+			if status != "FileSystemResizePending" {
+				return errors.New(string("not yet `FileSystemResizePending` status, status = " + status))
+			}
+
+			return nil
+		},
+			w.a.V(1).M(pvc).Info,
+		)
+		if err != nil {
+			w.a.A().Error("Resize PersistentVolumeClaims(%s/%s) - failed with error: %v", pvc.Namespace, pvc.Name, err)
+		}
 	}
 }
