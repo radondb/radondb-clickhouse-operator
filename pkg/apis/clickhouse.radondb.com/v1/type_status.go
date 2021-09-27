@@ -21,7 +21,7 @@ type ChiStatus struct {
 	ShardsCount       int      `json:"shards"                     yaml:"shards"`
 	ReplicasCount     int      `json:"replicas"                   yaml:"replicas"`
 	HostsCount        int      `json:"hosts"                      yaml:"hosts"`
-	Status            string   `json:"status"                     yaml:"status"`
+	Status            string   `json:"state"                     yaml:"status"`
 	TaskID            string   `json:"taskID,omitempty"           yaml:"taskID,omitempty"`
 	TaskIDsStarted    []string `json:"taskIDsStarted,omitempty"   yaml:"taskIDsStarted,omitempty"`
 	TaskIDsCompleted  []string `json:"taskIDsCompleted,omitempty" yaml:"taskIDsCompleted,omitempty"`
