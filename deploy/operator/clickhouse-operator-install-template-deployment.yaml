@@ -259,7 +259,7 @@ metadata:
 data:
   001-templates.json.example: |
     {
-      "apiVersion": "clickhouse.altinity.com/v1",
+      "apiVersion": "clickhouse.radondb.com/v1",
       "kind": "ClickHouseInstallationTemplate",
       "metadata": {
         "name": "01-default-volumeclaimtemplate"
@@ -314,7 +314,7 @@ data:
     }
 
   default-pod-template.yaml.example: |
-    apiVersion: "clickhouse.altinity.com/v1"
+    apiVersion: "clickhouse.radondb.com/v1"
     kind: "ClickHouseInstallationTemplate"
     metadata:
       name: "default-oneperhost-pod-template"
@@ -324,7 +324,7 @@ data:
           - name: default-oneperhost-pod-template
             distribution: "OnePerHost"
   default-storage-template.yaml.example: |
-    apiVersion: "clickhouse.altinity.com/v1"
+    apiVersion: "clickhouse.radondb.com/v1"
     kind: "ClickHouseInstallationTemplate"
     metadata:
       name: "default-storage-template-2Gi"

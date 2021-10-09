@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	"github.com/altinity/clickhouse-operator/pkg/util"
-	r "github.com/altinity/clickhouse-operator/pkg/util/retry"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	"github.com/radondb/clickhouse-operator/pkg/util"
+	r "github.com/radondb/clickhouse-operator/pkg/util/retry"
 )
 
 // Cluster specifies clickhouse cluster object

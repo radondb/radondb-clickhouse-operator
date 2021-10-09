@@ -23,9 +23,9 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kublabels "k8s.io/apimachinery/pkg/labels"
 
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
+	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
 )
 
 // getConfigMap gets ConfigMap either by namespaced name or by labels

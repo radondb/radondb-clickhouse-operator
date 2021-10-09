@@ -1,4 +1,4 @@
-module github.com/altinity/clickhouse-operator
+module github.com/radondb/clickhouse-operator
 
 go 1.13
 

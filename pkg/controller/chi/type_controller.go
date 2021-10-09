@@ -26,8 +26,8 @@ import (
 
 	"github.com/altinity/queue"
 
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
-	choplisters "github.com/altinity/clickhouse-operator/pkg/client/listers/clickhouse.altinity.com/v1"
+	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
+	choplisters "github.com/radondb/clickhouse-operator/pkg/client/listers/clickhouse.radondb.com/v1"
 )
 
 // Controller defines CRO controller

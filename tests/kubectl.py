@@ -62,7 +62,7 @@ def delete_chi(chi, ns=namespace, wait = True):
 
 def delete_all_chi(ns=namespace):
     crds = launch("get crds -o=custom-columns=name:.metadata.name", ns=ns).splitlines()
-    if "clickhouseinstallations.clickhouse.altinity.com" in crds:
+    if "clickhouseinstallations.clickhouse.radondb.com" in crds:
         chis = get("chi", "", ns=ns)
         if "items" in chis:
             for chi in chis["items"]:
@@ -87,7 +87,7 @@ def create_and_check(config, check, ns=namespace, timeout=600):
         wait_objects(chi_name, check["object_counts"], ns=ns)
 
     if "pod_count" in check:
-        wait_object("pod", "", label=f"-l clickhouse.altinity.com/chi={chi_name}", count=check["pod_count"], ns=ns)
+        wait_object("pod", "", label=f"-l clickhouse.radondb.com/chi={chi_name}", count=check["pod_count"], ns=ns)
 
     if "chi_status" in check:
         wait_chi_status(chi_name, check["chi_status"], ns=ns)
@@ -164,7 +164,7 @@ def wait_objects(chi, object_counts, ns=namespace):
             f"to be available"
     ):
         for i in range(1, max_retries):
-            cur_object_counts = count_objects(label=f"-l clickhouse.altinity.com/chi={chi}", ns=ns)
+            cur_object_counts = count_objects(label=f"-l clickhouse.radondb.com/chi={chi}", ns=ns)
             if cur_object_counts == object_counts:
                 break
             with Then(
@@ -268,7 +268,7 @@ def get_default_storage_class(ns=namespace):
 
 
 def get_pod_spec(chi_name, pod_name="", ns=namespace):
-    label = f"-l clickhouse.altinity.com/chi={chi_name}"
+    label = f"-l clickhouse.radondb.com/chi={chi_name}"
     if pod_name == "":
         pod = get("pod", "", ns=ns, label=label)["items"][0] 
     else:
@@ -283,7 +283,7 @@ def get_pod_image(chi_name, pod_name="", ns=namespace):
 
 def get_pod_names(chi_name, ns=namespace):
     pod_names = launch(
-        f"get pods -o=custom-columns=name:.metadata.name -l clickhouse.altinity.com/chi={chi_name}",
+        f"get pods -o=custom-columns=name:.metadata.name -l clickhouse.radondb.com/chi={chi_name}",
         ns=ns,
     ).splitlines()
     return pod_names[1:]
@@ -334,9 +334,9 @@ def check_pod_antiaffinity(chi_name, pod_name = "", match_labels = {}, topologyK
     pod_spec = get_pod_spec(chi_name, pod_name, ns)
     if match_labels == {}:
         match_labels = {
-                        "clickhouse.altinity.com/app": "chop",
-                        "clickhouse.altinity.com/chi": f"{chi_name}",
-                        "clickhouse.altinity.com/namespace": f"{ns}",
+                        "clickhouse.radondb.com/app": "chop",
+                        "clickhouse.radondb.com/chi": f"{chi_name}",
+                        "clickhouse.radondb.com/namespace": f"{ns}",
                     }
     expected = {
         "requiredDuringSchedulingIgnoredDuringExecution": [

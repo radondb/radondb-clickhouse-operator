@@ -15,8 +15,8 @@
 package model
 
 import (
-	chi "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	chi "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // ClickHouseConfigFilesGenerator specifies clickhouse configuration generator object

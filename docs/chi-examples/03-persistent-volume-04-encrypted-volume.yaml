@@ -15,7 +15,7 @@ volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 
 ---
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "pv-enc"

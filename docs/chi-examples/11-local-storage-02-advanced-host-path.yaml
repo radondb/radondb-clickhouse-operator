@@ -14,7 +14,7 @@
 #
 # kops.k8s.io/instancegroup=nodes2
 #
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "volume-hostpath"
@@ -49,7 +49,7 @@ spec:
               requiredDuringSchedulingIgnoredDuringExecution:
                 - labelSelector:
                     matchExpressions:
-                      - key: "clickhouse.altinity.com/app"
+                      - key: "clickhouse.radondb.com/app"
                         operator: In
                         values:
                           - "chop"

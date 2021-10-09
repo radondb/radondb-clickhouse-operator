@@ -18,8 +18,8 @@ import (
 	"gopkg.in/d4l3k/messagediff.v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	"github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // ActionPlan is an action plan with list of differences between two CHIs

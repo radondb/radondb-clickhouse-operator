@@ -20,55 +20,55 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kublabels "k8s.io/apimachinery/pkg/labels"
 
-	"github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com"
-	chi "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	"github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com"
+	chi "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	"github.com/radondb/clickhouse-operator/pkg/chop"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // Set of kubernetes labels used by the operator
 const (
 	// Main labels
 
-	LabelReadyName                    = clickhousealtinitycom.GroupName + "/ready"
+	LabelReadyName                    = clickhouseradondbcom.GroupName + "/ready"
 	LabelReadyValue                   = "yes"
-	LabelAppName                      = clickhousealtinitycom.GroupName + "/app"
+	LabelAppName                      = clickhouseradondbcom.GroupName + "/app"
 	LabelAppValue                     = "chop"
-	LabelCHOP                         = clickhousealtinitycom.GroupName + "/chop"
-	LabelNamespace                    = clickhousealtinitycom.GroupName + "/namespace"
-	LabelCHIName                      = clickhousealtinitycom.GroupName + "/chi"
-	LabelClusterName                  = clickhousealtinitycom.GroupName + "/cluster"
-	LabelShardName                    = clickhousealtinitycom.GroupName + "/shard"
-	LabelReplicaName                  = clickhousealtinitycom.GroupName + "/replica"
-	LabelConfigMap                    = clickhousealtinitycom.GroupName + "/ConfigMap"
+	LabelCHOP                         = clickhouseradondbcom.GroupName + "/chop"
+	LabelNamespace                    = clickhouseradondbcom.GroupName + "/namespace"
+	LabelCHIName                      = clickhouseradondbcom.GroupName + "/chi"
+	LabelClusterName                  = clickhouseradondbcom.GroupName + "/cluster"
+	LabelShardName                    = clickhouseradondbcom.GroupName + "/shard"
+	LabelReplicaName                  = clickhouseradondbcom.GroupName + "/replica"
+	LabelConfigMap                    = clickhouseradondbcom.GroupName + "/ConfigMap"
 	labelConfigMapValueCHICommon      = "ChiCommon"
 	labelConfigMapValueCHICommonUsers = "ChiCommonUsers"
 	labelConfigMapValueHost           = "Host"
-	LabelService                      = clickhousealtinitycom.GroupName + "/Service"
+	LabelService                      = clickhouseradondbcom.GroupName + "/Service"
 	labelServiceValueCHI              = "chi"
 	labelServiceValueCluster          = "cluster"
 	labelServiceValueShard            = "shard"
 	labelServiceValueHost             = "host"
-	LabelPVCReclaimPolicyName         = clickhousealtinitycom.GroupName + "/reclaimPolicy"
+	LabelPVCReclaimPolicyName         = clickhouseradondbcom.GroupName + "/reclaimPolicy"
 
 	// Supplementary service labels - used to cooperate with k8s
 
-	LabelZookeeperConfigVersion = clickhousealtinitycom.GroupName + "/zookeeper-version"
-	LabelSettingsConfigVersion  = clickhousealtinitycom.GroupName + "/settings-version"
-	LabelObjectVersion          = clickhousealtinitycom.GroupName + "/object-version"
+	LabelZookeeperConfigVersion = clickhouseradondbcom.GroupName + "/zookeeper-version"
+	LabelSettingsConfigVersion  = clickhouseradondbcom.GroupName + "/settings-version"
+	LabelObjectVersion          = clickhouseradondbcom.GroupName + "/object-version"
 
 	// Optional labels
 
-	LabelShardScopeIndex         = clickhousealtinitycom.GroupName + "/shardScopeIndex"
-	LabelReplicaScopeIndex       = clickhousealtinitycom.GroupName + "/replicaScopeIndex"
-	LabelCHIScopeIndex           = clickhousealtinitycom.GroupName + "/chiScopeIndex"
-	LabelCHIScopeCycleSize       = clickhousealtinitycom.GroupName + "/chiScopeCycleSize"
-	LabelCHIScopeCycleIndex      = clickhousealtinitycom.GroupName + "/chiScopeCycleIndex"
-	LabelCHIScopeCycleOffset     = clickhousealtinitycom.GroupName + "/chiScopeCycleOffset"
-	LabelClusterScopeIndex       = clickhousealtinitycom.GroupName + "/clusterScopeIndex"
-	LabelClusterScopeCycleSize   = clickhousealtinitycom.GroupName + "/clusterScopeCycleSize"
-	LabelClusterScopeCycleIndex  = clickhousealtinitycom.GroupName + "/clusterScopeCycleIndex"
-	LabelClusterScopeCycleOffset = clickhousealtinitycom.GroupName + "/clusterScopeCycleOffset"
+	LabelShardScopeIndex         = clickhouseradondbcom.GroupName + "/shardScopeIndex"
+	LabelReplicaScopeIndex       = clickhouseradondbcom.GroupName + "/replicaScopeIndex"
+	LabelCHIScopeIndex           = clickhouseradondbcom.GroupName + "/chiScopeIndex"
+	LabelCHIScopeCycleSize       = clickhouseradondbcom.GroupName + "/chiScopeCycleSize"
+	LabelCHIScopeCycleIndex      = clickhouseradondbcom.GroupName + "/chiScopeCycleIndex"
+	LabelCHIScopeCycleOffset     = clickhouseradondbcom.GroupName + "/chiScopeCycleOffset"
+	LabelClusterScopeIndex       = clickhouseradondbcom.GroupName + "/clusterScopeIndex"
+	LabelClusterScopeCycleSize   = clickhouseradondbcom.GroupName + "/clusterScopeCycleSize"
+	LabelClusterScopeCycleIndex  = clickhouseradondbcom.GroupName + "/clusterScopeCycleIndex"
+	LabelClusterScopeCycleOffset = clickhouseradondbcom.GroupName + "/clusterScopeCycleOffset"
 )
 
 // Labeler is an entity which can label CHI artifacts

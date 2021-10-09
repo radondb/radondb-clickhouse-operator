@@ -12,13 +12,13 @@ if  [[ "${DEPLOY_OPERATOR}" == "yes"     ]] || \
     [[ "${DEPLOY_OPERATOR}" == "latest"  ]]
 then
     # This would be release operator
-    OPERATOR_IMAGE="altinity/clickhouse-operator:latest"
-    METRICS_EXPORTER_IMAGE="altinity/metrics-exporter:latest"
+    OPERATOR_IMAGE="radondb/clickhouse-operator:latest"
+    METRICS_EXPORTER_IMAGE="radondb/metrics-exporter:latest"
     DEPLOY_OPERATOR="yes"
 elif [[ "${DEPLOY_OPERATOR}" == "dev" ]]; then
     # This would be dev operator
-    OPERATOR_IMAGE="sunsingerus/clickhouse-operator:dev"
-    METRICS_EXPORTER_IMAGE="sunsingerus/metrics-exporter:dev"
+    OPERATOR_IMAGE="suhouzhen/clickhouse-operator:dev"
+    METRICS_EXPORTER_IMAGE="suhouzhen/metrics-exporter:dev"
     DEPLOY_OPERATOR="yes"
 elif [[ -z "${DEPLOY_OPERATOR}"         ]] || \
      [[ "${DEPLOY_OPERATOR}" == "no"    ]] || \

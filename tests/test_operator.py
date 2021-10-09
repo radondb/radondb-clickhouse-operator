@@ -1411,7 +1411,7 @@ def test_024(self):
     with And("Service annotations should be populated"):
         assert kubectl.get_field("service", "clickhouse-test-024", ".metadata.annotations.test") == "test"
     with And("PVC annotations should be populated"):
-        assert kubectl.get_field("pvc", "-l clickhouse.altinity.com/chi=test-024", ".metadata.annotations.test") == "test"
+        assert kubectl.get_field("pvc", "-l clickhouse.radondb.com/chi=test-024", ".metadata.annotations.test") == "test"
         
     kubectl.delete_chi(chi)
     
@@ -1472,7 +1472,7 @@ def test_025(self):
     with Then("Query second pod using service as soon as pod is in ready state"):
         kubectl.wait_field(
             "pod", "chi-test-025-rescaling-default-0-1-0",
-            ".metadata.labels.\"clickhouse\\.altinity\\.com/ready\"", "yes",
+            ".metadata.labels.\"clickhouse\\.radondb\\.com/ready\"", "yes",
             backoff=1
         )
         start_time = time.time()
@@ -1663,9 +1663,9 @@ def test_029(self):
     kubectl.check_pod_antiaffinity(chi, "chi-test-029-distribution-t1-0-0-0", topologyKey = "kubernetes.io/hostname")
     kubectl.check_pod_antiaffinity(chi, "chi-test-029-distribution-t1-0-1-0",
                     match_labels = {
-                        "clickhouse.altinity.com/chi": f"{chi}",
-                        "clickhouse.altinity.com/namespace": f"{kubectl.namespace}",
-                        "clickhouse.altinity.com/replica": "1",
+                        "clickhouse.radondb.com/chi": f"{chi}",
+                        "clickhouse.radondb.com/namespace": f"{kubectl.namespace}",
+                        "clickhouse.radondb.com/replica": "1",
                     }, 
                     topologyKey = "kubernetes.io/os")
     

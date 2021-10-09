@@ -876,7 +876,7 @@
   "schemaVersion": 21,
   "style": "dark",
   "tags": [
-    "Altinity",
+    "RadonDB",
     "clickhouse",
     "queries",
     "performance"

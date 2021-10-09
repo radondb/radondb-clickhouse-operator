@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: clickhouseinstallations.clickhouse.altinity.com
+  name: clickhouseinstallations.clickhouse.radondb.com
 spec:
-  group: clickhouse.altinity.com
+  group: clickhouse.radondb.com
   scope: Namespaced
   names:
     kind: ClickHouseInstallation
@@ -99,7 +99,7 @@ spec:
               # x-kubernetes-preserve-unknown-fields: true
               description: |
                 Specification of the desired behavior of one or more ClickHouse clusters
-                More info: https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md"
+                More info: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md"
               properties:
                 taskID:
                   type: string
@@ -275,7 +275,7 @@ spec:
                   type: object
                   description: |
                     define default behavior for whole ClickHouseInstallation, some behavior can be re-define on cluster, shard and replica level
-                    More info: https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specdefaults
+                    More info: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specdefaults
                   # nullable: true
                   properties:
                     # Need to be StringBool
@@ -360,7 +360,7 @@ spec:
                       type: object
                       description: |
                         allows configure <yandex><zookeeper>..</zookeeper></yandex> section in each `Pod` during generate `ConfigMap` which will mounted in `/etc/clickhouse-server/config.d/`
-                        `clickhouse-operator` itself doesn't manage Zookeeper, please install Zookeeper separatelly look examples on https://github.com/Altinity/clickhouse-operator/tree/master/deploy/zookeeper/
+                        `clickhouse-operator` itself doesn't manage Zookeeper, please install Zookeeper separatelly look examples on https://github.com/RadonDB/clickhouse-operator/tree/master/deploy/zookeeper/
                         currently, zookeeper (or clickhouse-keeper replacement) used for *ReplicatedMergeTree table engines and for `distributed_ddl`
                         More details: https://clickhouse.tech/docs/en/operations/server-configuration-parameters/settings/#server-settings_zookeeper
                       # nullable: true
@@ -400,7 +400,7 @@ spec:
                         allows configure <yandex><users>..</users></yandex> section in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/users.d/`
                         you can configure password hashed, authorization restrictions, database level security row filters etc.
                         More details: https://clickhouse.tech/docs/en/operations/settings/settings-users/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationusers
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationusers
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     profiles:
@@ -409,7 +409,7 @@ spec:
                         allows configure <yandex><profiles>..</profiles></yandex> section in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/users.d/`
                         you can configure any aspect of settings profile
                         More details: https://clickhouse.tech/docs/en/operations/settings/settings-profiles/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationprofiles
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationprofiles
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     quotas:
@@ -418,7 +418,7 @@ spec:
                         allows configure <yandex><quotas>..</quotas></yandex> section in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/users.d/`
                         you can configure any aspect of resource quotas
                         More details: https://clickhouse.tech/docs/en/operations/quotas/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationquotas
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationquotas
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     settings:
@@ -426,7 +426,7 @@ spec:
                       description: |
                         allows configure `clickhouse-server` settings inside <yandex>...</yandex> tag in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/config.d/`
                         More details: https://clickhouse.tech/docs/en/operations/settings/settings/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationsettings
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationsettings
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     files:
@@ -437,7 +437,7 @@ spec:
                         every value in this object is the file content
                         you can use `!!binary |` and base64 for binary files, see details here https://yaml.org/type/binary.html
                         each key could contains prefix like USERS, COMMON, HOST or config.d, users.d, cond.d, wrong prefixes will ignored, subfolders also will ignored
-                        More details: https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
+                        More details: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     clusters:
@@ -1021,7 +1021,7 @@ spec:
                       type: array
                       description: |
                         podTemplate will use during render `Pod` inside `StatefulSet.spec` and allows define rendered `Pod.spec`, pod scheduling distribution and pod zone
-                        More information: https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatespodtemplates
+                        More information: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatespodtemplates
                       # nullable: true
                       items:
                         type: object
@@ -1033,7 +1033,7 @@ spec:
                             description: "template name, could use to link inside top-level `chi.spec.defaults.templates.podTemplate`, cluster-level `chi.spec.configuration.clusters.templates.podTemplate`, shard-level `chi.spec.configuration.clusters.layout.shards.temlates.podTemplate`, replica-level `chi.spec.configuration.clusters.layout.replicas.templates.podTemplate`"
                           generateName:
                             type: string
-                            description: "allows define format for generated `Pod` name, look to https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
+                            description: "allows define format for generated `Pod` name, look to https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
                           zone:
                             type: object
                             description: "allows define custom zone name and will separate ClickHouse `Pods` between nodes, shortcut for `chi.spec.templates.podTemplates.spec.affinity.podAntiAffinity`"
@@ -1180,7 +1180,7 @@ spec:
                               replica-level `chi.spec.configuration.clusters.layout.replicas.templates.replicaServiceTemplate` or `chi.spec.configuration.clusters.layout.shards.replicas.replicaServiceTemplate`
                           generateName:
                             type: string
-                            description: "allows define format for generated `Service` name, look to https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
+                            description: "allows define format for generated `Service` name, look to https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
                           metadata:
                             # TODO specify ObjectMeta
                             type: object
@@ -1224,9 +1224,9 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: clickhouseinstallationtemplates.clickhouse.altinity.com
+  name: clickhouseinstallationtemplates.clickhouse.radondb.com
 spec:
-  group: clickhouse.altinity.com
+  group: clickhouse.radondb.com
   scope: Namespaced
   names:
     kind: ClickHouseInstallationTemplate
@@ -1322,7 +1322,7 @@ spec:
               # x-kubernetes-preserve-unknown-fields: true
               description: |
                 Specification of the desired behavior of one or more ClickHouse clusters
-                More info: https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md"
+                More info: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md"
               properties:
                 taskID:
                   type: string
@@ -1498,7 +1498,7 @@ spec:
                   type: object
                   description: |
                     define default behavior for whole ClickHouseInstallation, some behavior can be re-define on cluster, shard and replica level
-                    More info: https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specdefaults
+                    More info: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specdefaults
                   # nullable: true
                   properties:
                     # Need to be StringBool
@@ -1583,7 +1583,7 @@ spec:
                       type: object
                       description: |
                         allows configure <yandex><zookeeper>..</zookeeper></yandex> section in each `Pod` during generate `ConfigMap` which will mounted in `/etc/clickhouse-server/config.d/`
-                        `clickhouse-operator` itself doesn't manage Zookeeper, please install Zookeeper separatelly look examples on https://github.com/Altinity/clickhouse-operator/tree/master/deploy/zookeeper/
+                        `clickhouse-operator` itself doesn't manage Zookeeper, please install Zookeeper separatelly look examples on https://github.com/RadonDB/clickhouse-operator/tree/master/deploy/zookeeper/
                         currently, zookeeper (or clickhouse-keeper replacement) used for *ReplicatedMergeTree table engines and for `distributed_ddl`
                         More details: https://clickhouse.tech/docs/en/operations/server-configuration-parameters/settings/#server-settings_zookeeper
                       # nullable: true
@@ -1623,7 +1623,7 @@ spec:
                         allows configure <yandex><users>..</users></yandex> section in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/users.d/`
                         you can configure password hashed, authorization restrictions, database level security row filters etc.
                         More details: https://clickhouse.tech/docs/en/operations/settings/settings-users/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationusers
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationusers
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     profiles:
@@ -1632,7 +1632,7 @@ spec:
                         allows configure <yandex><profiles>..</profiles></yandex> section in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/users.d/`
                         you can configure any aspect of settings profile
                         More details: https://clickhouse.tech/docs/en/operations/settings/settings-profiles/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationprofiles
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationprofiles
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     quotas:
@@ -1641,7 +1641,7 @@ spec:
                         allows configure <yandex><quotas>..</quotas></yandex> section in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/users.d/`
                         you can configure any aspect of resource quotas
                         More details: https://clickhouse.tech/docs/en/operations/quotas/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationquotas
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationquotas
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     settings:
@@ -1649,7 +1649,7 @@ spec:
                       description: |
                         allows configure `clickhouse-server` settings inside <yandex>...</yandex> tag in each `Pod` during generate `ConfigMap` which will mount in `/etc/clickhouse-server/config.d/`
                         More details: https://clickhouse.tech/docs/en/operations/settings/settings/
-                        Your yaml code will convert to XML, see examples https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationsettings
+                        Your yaml code will convert to XML, see examples https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#specconfigurationsettings
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     files:
@@ -1660,7 +1660,7 @@ spec:
                         every value in this object is the file content
                         you can use `!!binary |` and base64 for binary files, see details here https://yaml.org/type/binary.html
                         each key could contains prefix like USERS, COMMON, HOST or config.d, users.d, cond.d, wrong prefixes will ignored, subfolders also will ignored
-                        More details: https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
+                        More details: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
                       # nullable: true
                       x-kubernetes-preserve-unknown-fields: true
                     clusters:
@@ -2244,7 +2244,7 @@ spec:
                       type: array
                       description: |
                         podTemplate will use during render `Pod` inside `StatefulSet.spec` and allows define rendered `Pod.spec`, pod scheduling distribution and pod zone
-                        More information: https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatespodtemplates
+                        More information: https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatespodtemplates
                       # nullable: true
                       items:
                         type: object
@@ -2256,7 +2256,7 @@ spec:
                             description: "template name, could use to link inside top-level `chi.spec.defaults.templates.podTemplate`, cluster-level `chi.spec.configuration.clusters.templates.podTemplate`, shard-level `chi.spec.configuration.clusters.layout.shards.temlates.podTemplate`, replica-level `chi.spec.configuration.clusters.layout.replicas.templates.podTemplate`"
                           generateName:
                             type: string
-                            description: "allows define format for generated `Pod` name, look to https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
+                            description: "allows define format for generated `Pod` name, look to https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
                           zone:
                             type: object
                             description: "allows define custom zone name and will separate ClickHouse `Pods` between nodes, shortcut for `chi.spec.templates.podTemplates.spec.affinity.podAntiAffinity`"
@@ -2403,7 +2403,7 @@ spec:
                               replica-level `chi.spec.configuration.clusters.layout.replicas.templates.replicaServiceTemplate` or `chi.spec.configuration.clusters.layout.shards.replicas.replicaServiceTemplate`
                           generateName:
                             type: string
-                            description: "allows define format for generated `Service` name, look to https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
+                            description: "allows define format for generated `Service` name, look to https://github.com/RadonDB/clickhouse-operator/blob/master/docs/custom_resource_explained.md#spectemplatesservicetemplates for details about aviailable template variables"
                           metadata:
                             # TODO specify ObjectMeta
                             type: object
@@ -2447,9 +2447,9 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: clickhouseoperatorconfigurations.clickhouse.altinity.com
+  name: clickhouseoperatorconfigurations.clickhouse.radondb.com
 spec:
-  group: clickhouse.altinity.com
+  group: clickhouse.radondb.com
   scope: Namespaced
   names:
     kind: ClickHouseOperatorConfiguration
@@ -2470,7 +2470,7 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          description: "allows customize `clickhouse-operator` settings, need restart clickhouse-operator pod after adding, more details https://github.com/Altinity/clickhouse-operator/blob/master/docs/operator_configuration.md"
+          description: "allows customize `clickhouse-operator` settings, need restart clickhouse-operator pod after adding, more details https://github.com/RadonDB/clickhouse-operator/blob/master/docs/operator_configuration.md"
           x-kubernetes-preserve-unknown-fields: true
           properties:
             status:
@@ -2480,7 +2480,7 @@ spec:
               type: object
               description: |
                 allows define some of settings for `clickhouse-operator` itself,
-                More info: https://github.com/Altinity/clickhouse-operator/blob/master/config/config.yaml
+                More info: https://github.com/RadonDB/clickhouse-operator/blob/master/config/config.yaml
                 look to etc-clickhouse-operator* ConfigMaps if you need more control
               x-kubernetes-preserve-unknown-fields: true
               properties:

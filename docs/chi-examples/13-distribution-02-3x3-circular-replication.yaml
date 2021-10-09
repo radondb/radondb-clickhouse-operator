@@ -1,4 +1,4 @@
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "dist-simple-a"
@@ -22,7 +22,7 @@ spec:
             - name: clickhouse
               image: yandex/clickhouse-server:20.7
 ---
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "dist-simple-b"

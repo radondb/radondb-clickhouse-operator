@@ -85,10 +85,10 @@ OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE:-kube-system}"
 METRICS_EXPORTER_NAMESPACE="${OPERATOR_NAMESPACE}"
 
 # Operator's docker image
-RELEASE_VERSION=$(get_file https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/release)
+RELEASE_VERSION=$(get_file https://raw.githubusercontent.com/RadonDB/clickhouse-operator/master/release)
 OPERATOR_VERSION="${OPERATOR_VERSION:-$RELEASE_VERSION}"
-OPERATOR_IMAGE="${OPERATOR_IMAGE:-altinity/clickhouse-operator:$OPERATOR_VERSION}"
-METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE:-altinity/metrics-exporter:$OPERATOR_VERSION}"
+OPERATOR_IMAGE="${OPERATOR_IMAGE:-radondb/clickhouse-operator:$OPERATOR_VERSION}"
+METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE:-radondb/metrics-exporter:$OPERATOR_VERSION}"
 
 
 ##
@@ -115,7 +115,7 @@ fi
 
 # Setup clickhouse-operator into specified namespace
 kubectl apply --namespace="${OPERATOR_NAMESPACE}" -f <( \
-    get_file https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-template.yaml | \
+    get_file https://raw.githubusercontent.com/RadonDB/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-template.yaml | \
         OPERATOR_IMAGE="${OPERATOR_IMAGE}" \
         OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE}" \
         METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE}" \

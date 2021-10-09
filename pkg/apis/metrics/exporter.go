@@ -28,8 +28,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
+	"github.com/radondb/clickhouse-operator/pkg/chop"
+	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
 )
 
 const (

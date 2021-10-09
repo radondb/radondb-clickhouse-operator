@@ -1,0 +1,1 @@
+../../../../generator/github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1/zz_generated.deepcopy.go

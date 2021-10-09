@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: clickhouseoperatorconfigurations.clickhouse.altinity.com
+  name: clickhouseoperatorconfigurations.clickhouse.radondb.com
 spec:
-  group: clickhouse.altinity.com
+  group: clickhouse.radondb.com
   scope: Namespaced
   names:
     kind: ClickHouseOperatorConfiguration
@@ -24,7 +24,7 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          description: "allows customize `clickhouse-operator` settings, need restart clickhouse-operator pod after adding, more details https://github.com/Altinity/clickhouse-operator/blob/master/docs/operator_configuration.md"
+          description: "allows customize `clickhouse-operator` settings, need restart clickhouse-operator pod after adding, more details https://github.com/RadonDB/clickhouse-operator/blob/master/docs/operator_configuration.md"
           x-kubernetes-preserve-unknown-fields: true
           properties:
             status:
@@ -34,7 +34,7 @@ spec:
               type: object
               description: |
                 allows define some of settings for `clickhouse-operator` itself,
-                More info: https://github.com/Altinity/clickhouse-operator/blob/master/config/config.yaml
+                More info: https://github.com/RadonDB/clickhouse-operator/blob/master/config/config.yaml
                 look to etc-clickhouse-operator* ConfigMaps if you need more control
               x-kubernetes-preserve-unknown-fields: true
               properties:

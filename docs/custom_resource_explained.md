@@ -6,7 +6,7 @@ The best way to work with this doc is to open [99-clickhouseinstallation-max.yam
 and look into it along with reading this explanation.  
 
 ```yaml
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "clickhouse-installation-test"
@@ -14,7 +14,7 @@ metadata:
 Create resource of `kind: "ClickHouseInstallation"` named as `"clickhouse-installation-max"`.
 Accessible with `kubectl` as:
 ```bash
-kubectl get clickhouseinstallations.clickhouse.altinity.com 
+kubectl get clickhouseinstallations.clickhouse.radondb.com 
 ```
 ```text
 NAME                           AGE

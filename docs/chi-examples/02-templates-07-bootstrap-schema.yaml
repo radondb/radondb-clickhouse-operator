@@ -18,7 +18,7 @@ data:
       CREATE TABLE users.logs (x Int32) ENGINE = Log;
     EOSQL
 ---
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "bootstrap"

@@ -19,8 +19,8 @@ import (
 	"k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	chiV1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	chiV1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // newAffinity creates new Affinity struct

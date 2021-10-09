@@ -5,7 +5,8 @@
 FROM golang:1.13 AS builder
 
 # Install required packages
-RUN apt-get update && apt-get install -y apt-utils gettext-base
+RUN sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
+    && apt-get update && apt-get install -y apt-utils gettext-base
 
 # Reconstruct source tree inside docker
 WORKDIR /clickhouse-operator
@@ -25,11 +26,11 @@ RUN OPERATOR_BIN=/tmp/clickhouse-operator ./dev/go_build_operator.sh
 FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
 RUN microdnf update && microdnf clean all
 
-MAINTAINER "Altinity <support@altinity.com>"
+MAINTAINER "RadonDB <support@radondb.com>"
 
 LABEL name="ClickHouse operator" \
-      maintainer="support@altinity.com" \
-      vendor="Altinity" \
+      maintainer="support@radondb.com" \
+      vendor="RadonDB" \
       version="$VERSION" \
       release="$RELEASE" \
       summary="ClickHouse operator" \

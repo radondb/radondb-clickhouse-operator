@@ -19,8 +19,8 @@ METRICS_EXPORTER_NAMESPACE="${OPERATOR_NAMESPACE}"
 # Operator's docker image
 RELEASE_VERSION=$(cat ${PROJECT_ROOT}/release)
 OPERATOR_VERSION="${OPERATOR_VERSION:-$RELEASE_VERSION}"
-OPERATOR_IMAGE="${OPERATOR_IMAGE:-altinity/clickhouse-operator:$OPERATOR_VERSION}"
-METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE:-altinity/metrics-exporter:$OPERATOR_VERSION}"
+OPERATOR_IMAGE="${OPERATOR_IMAGE:-radondb/clickhouse-operator:$OPERATOR_VERSION}"
+METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE:-radondb/metrics-exporter:$OPERATOR_VERSION}"
 
 # Local path to operator's config file to be injected into .yaml
 OPERATOR_CONFIG_FILE="${OPERATOR_CONFIG_FILE:-${PROJECT_ROOT}/config/config.yaml}"
@@ -109,7 +109,7 @@ function download_file() {
 
     local LOCAL_FILE="${LOCAL_DIR}/${FILE}"
 
-    GITHUB_REPO_BASE_URL="https://raw.githubusercontent.com/Altinity/clickhouse-operator"
+    GITHUB_REPO_BASE_URL="https://raw.githubusercontent.com/RadonDB/clickhouse-operator"
     BRANCH="${BRANCH:-master}"
     FILE_URL="${GITHUB_REPO_BASE_URL}/${BRANCH}/${GITHUB_REPO_DIR}/${FILE}"
 

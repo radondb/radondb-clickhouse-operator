@@ -30,15 +30,15 @@ import (
 
 	"github.com/altinity/queue"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	"github.com/radondb/clickhouse-operator/pkg/chop"
+	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // FinalizerName specifies name of the finalizer to be used with CHI
-const FinalizerName = "finalizer.clickhouseinstallation.altinity.com"
+const FinalizerName = "finalizer.clickhouseinstallation.radondb.com"
 
 // worker represents worker thread which runs reconcile tasks
 type worker struct {

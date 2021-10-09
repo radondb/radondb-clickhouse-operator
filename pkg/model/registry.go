@@ -19,7 +19,7 @@ import (
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // EntityType specifies registry entity type

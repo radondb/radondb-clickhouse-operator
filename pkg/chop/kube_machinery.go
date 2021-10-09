@@ -16,7 +16,7 @@ package chop
 
 import (
 	"fmt"
-	v1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	v1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -25,9 +25,9 @@ import (
 	kuberest "k8s.io/client-go/rest"
 	kubeclientcmd "k8s.io/client-go/tools/clientcmd"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
-	"github.com/altinity/clickhouse-operator/pkg/version"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
+	"github.com/radondb/clickhouse-operator/pkg/version"
 )
 
 // getKubeConfig creates kuberest.Config object based on current environment

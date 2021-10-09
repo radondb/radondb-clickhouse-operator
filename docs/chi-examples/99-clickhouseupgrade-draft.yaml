@@ -1,4 +1,4 @@
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseUpgrade"
 metadata:
   name: "clickhouse-installation-test"
@@ -20,7 +20,7 @@ spec:
 #       scenario: Default
 #       zone:
 #         matchLabels:
-#           clickhouse.altinity.com/zone: zone1
+#           clickhouse.radondb.com/zone: zone1
 #       podTemplate: clickhouse-v18.16.1
 #
 #       values inherited from global .spec.deployment section
@@ -32,7 +32,7 @@ spec:
 #           scenario: Default
 #           zone:
 #             matchLabels:
-#               clickhouse.altinity.com/zone: zone1
+#               clickhouse.radondb.com/zone: zone1
 #           podTemplate: clickhouse-v18.16.1
 #
 #         values inherited from .spec.configuration.clusters[3].deployment section
@@ -44,7 +44,7 @@ spec:
               scenario: Default
 #             zone:
 #               matchLabels:
-#                 clickhouse.altinity.com/zone: zone1
+#                 clickhouse.radondb.com/zone: zone1
 #             podTemplate: clickhouse-v18.16.1
 #  
 #           values inherited from .spec.configuration.clusters[3].shards[2].deployment section

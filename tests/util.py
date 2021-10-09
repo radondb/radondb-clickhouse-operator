@@ -28,7 +28,7 @@ def set_operator_version(version, ns=settings.operator_namespace, timeout=60):
 
 
 def set_metrics_exporter_version(version, ns=settings.operator_namespace):
-    kubectl.launch(f"set image deployment.v1.apps/clickhouse-operator metrics-exporter=altinity/metrics-exporter:{version}", ns=ns)
+    kubectl.launch(f"set image deployment.v1.apps/clickhouse-operator metrics-exporter=radondb/metrics-exporter:{version}", ns=ns)
     kubectl.launch("rollout status deployment.v1.apps/clickhouse-operator", ns=ns)
 
 

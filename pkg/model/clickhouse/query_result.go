@@ -19,7 +19,7 @@ import (
 	databasesql "database/sql"
 	"fmt"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
 )
 
 // QueryResult specifies result of a query

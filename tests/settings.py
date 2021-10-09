@@ -22,8 +22,8 @@ operator_namespace = os.getenv('OPERATOR_NAMESPACE') if 'OPERATOR_NAMESPACE' in 
 minio_namespace = os.getenv('MINIO_NAMESPACE') if 'MINIO_NAMESPACE' in os.environ else 'minio'
 
 operator_docker_repo = os.getenv('OPERATOR_DOCKER_REPO') if 'OPERATOR_DOCKER_REPO' in os.environ else \
-    "altinity/clickhouse-operator"
-metrics_exporter_docker_repo = "altinity/metrics-exporter"
+    "radondb/clickhouse-operator"
+metrics_exporter_docker_repo = "radondb/metrics-exporter"
 
 clickhouse_template = "templates/tpl-clickhouse-stable.yaml"
 # clickhouse_template = "templates/tpl-clickhouse-19.17.yaml"

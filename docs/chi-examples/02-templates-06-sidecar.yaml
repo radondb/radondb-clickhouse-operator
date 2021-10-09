@@ -14,7 +14,7 @@ data:
         <listen_host_2>0.0.0.0</listen_host_2>
     </tag2>
 ---
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "sidecar"

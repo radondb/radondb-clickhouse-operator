@@ -21,7 +21,7 @@ import (
 	"sort"
 	"strings"
 
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 )
 
 type xmlNode struct {

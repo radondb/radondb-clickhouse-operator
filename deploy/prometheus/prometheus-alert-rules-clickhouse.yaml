@@ -341,7 +341,7 @@ spec:
               disk size: {{ with printf "chi_clickhouse_metric_DiskTotalBytes{hostname='%s',exported_namespace='%s'}" .Labels.hostname .Labels.exported_namespace | query }}{{ . | first | value | humanize1024 }}B {{ end }}
               currently k8s doesn't support resize of Persistent Volumes, but you can try add another volume to existing pod with restart pod
               please read documentation:
-              - https://github.com/Altinity/clickhouse-operator/blob/master/docs/storage.md
+              - https://github.com/RadonDB/clickhouse-operator/blob/master/docs/storage.md
               - https://clickhouse.tech/docs/en/engines/table-engines/mergetree-family/mergetree/#table_engine-mergetree-multiple-volumes
               - https://clickhouse.tech/docs/en/engines/table-engines/mergetree-family/mergetree/#mergetree-table-ttl
 

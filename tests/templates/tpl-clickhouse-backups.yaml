@@ -1,4 +1,4 @@
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallationTemplate"
 
 metadata:
@@ -31,7 +31,7 @@ spec:
                 - --config-file=/etc/clickhouse-server/config.xml
 
             - name: clickhouse-backup
-              image: altinity/clickhouse-backup:1.0.16
+              image: radondb/clickhouse-backup:1.0.16
               imagePullPolicy: Always
               command:
                 - bash

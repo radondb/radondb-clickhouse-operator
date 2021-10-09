@@ -25,9 +25,9 @@ import (
 	log "github.com/golang/glog"
 	// log "k8s.io/klog"
 
-	"github.com/altinity/clickhouse-operator/pkg/apis/metrics"
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	"github.com/altinity/clickhouse-operator/pkg/version"
+	"github.com/radondb/clickhouse-operator/pkg/apis/metrics"
+	"github.com/radondb/clickhouse-operator/pkg/chop"
+	"github.com/radondb/clickhouse-operator/pkg/version"
 )
 
 // Prometheus exporter defaults

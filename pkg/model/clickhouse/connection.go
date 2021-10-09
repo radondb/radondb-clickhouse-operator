@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 
 	// go-clickhouse is explicitly required in order to setup connection to clickhouse db
 	_ "github.com/mailru/go-clickhouse"

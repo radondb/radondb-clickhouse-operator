@@ -22,10 +22,10 @@ import (
 	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // deleteHost deletes all kubernetes resources related to replica *chop.ChiHost
@@ -54,7 +54,7 @@ func (c *Controller) deleteConfigMapsCHI(ctx context.Context, chi *chop.ClickHou
 	//
 	// chi-b3d29f-common-configd   2      61s
 	// chi-b3d29f-common-usersd    0      61s
-	// service/clickhouse-example-01         LoadBalancer   10.106.183.200   <pending>     8123:31607/TCP,9000:31492/TCP,9009:31357/TCP   33s   clickhouse.altinity.com/chi=example-01
+	// service/clickhouse-example-01         LoadBalancer   10.106.183.200   <pending>     8123:31607/TCP,9000:31492/TCP,9009:31357/TCP   33s   clickhouse.radondb.com/chi=example-01
 
 	var err error
 

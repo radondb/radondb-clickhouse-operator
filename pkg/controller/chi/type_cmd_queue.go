@@ -19,7 +19,7 @@ import (
 
 	"github.com/altinity/queue"
 
-	chi "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	chi "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 )
 
 const (
