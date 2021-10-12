@@ -46,6 +46,64 @@ func (c *Controller) deleteHost(host *chop.ChiHost) error {
 	return nil
 }
 
+// deleteZooKeeper deletes all kubernetes resources related to ZooKeeper
+func (c *Controller) deleteZooKeeper(chi *chop.ClickHouseInstallation) error {
+	// Each ZooKeeper consists of
+	// 1. StatefulSet
+	// 2. PersistentVolumeClaim
+	// 3. Service
+	// Need to delete all these item
+
+	log.V(1).M(chi).S().Info(chi.Name)
+	defer log.V(1).M(chi).E().Info(chi.Name)
+
+	var err error
+
+	// Namespaced name
+	zooKeeperName := chopmodel.CreateStatefulSetZooKeeperName(chi)
+	namespace := chi.Namespace
+
+	// delete StatefulSet
+	log.V(1).M(chi).F().Info("%s/%s", namespace, zooKeeperName)
+	if err = c.kubeClient.AppsV1().StatefulSets(namespace).Delete(zooKeeperName, newDeleteOptions()); err == nil {
+		log.V(1).M(chi).Info("OK delete StatefulSet %s/%s", namespace, zooKeeperName)
+	} else if apierrors.IsNotFound(err) {
+		log.V(1).M(chi).Info("NEUTRAL not found StatefulSet %s/%s", namespace, zooKeeperName)
+		err = nil
+	} else {
+		log.V(1).M(chi).A().Error("FAIL delete StatefulSet %s/%s err: %v", namespace, zooKeeperName, err)
+	}
+
+	// delete PDB
+	pdbName := chopmodel.CreatePodDisruptionBudgetZooKeeperName(chi)
+	log.V(1).M(chi).F().Info("%s/%s", namespace, pdbName)
+	if err = c.kubeClient.PolicyV1beta1().PodDisruptionBudgets(namespace).Delete(pdbName, newDeleteOptions()); err == nil {
+		log.V(1).M(chi).Info("OK delete PodDisruptionBudget %s/%s", namespace, pdbName)
+	} else if apierrors.IsNotFound(err) {
+		log.V(1).M(chi).Info("NEUTRAL not found PodDisruptionBudget %s/%s", namespace, pdbName)
+		err = nil
+	} else {
+		log.V(1).M(chi).A().Error("FAIL delete PodDisruptionBudget %s/%s err: %v", namespace, pdbName, err)
+	}
+
+	// delete PVC?
+
+	// delete Service
+	clientName := chopmodel.CreateStatefulSetServiceZooKeeperClientName(chi)
+	log.V(1).M(chi).F().Info("%s/%s", namespace, clientName)
+	if err = c.deleteServiceIfExists(namespace, clientName); err != nil {
+		log.V(1).M(chi).A().Error("FAIL delete Service %s/%s err: %v", namespace, clientName, err)
+	}
+
+	serverName := chopmodel.CreateStatefulSetServiceZooKeeperServerName(chi)
+	log.V(1).M(chi).F().Info("%s/%s", namespace, serverName)
+	if err = c.deleteServiceIfExists(namespace, serverName); err != nil {
+		log.V(1).M(chi).A().Error("FAIL delete Service %s/%s err: %v", namespace, serverName, err)
+	}
+
+	return err
+}
+
 // deleteConfigMapsCHI
 func (c *Controller) deleteConfigMapsCHI(chi *chop.ClickHouseInstallation) error {
 	// Delete common ConfigMap's

@@ -21,6 +21,7 @@ import (
 	kube "k8s.io/client-go/kubernetes"
 	appslisters "k8s.io/client-go/listers/apps/v1"
 	corelisters "k8s.io/client-go/listers/core/v1"
+	policylisters "k8s.io/client-go/listers/policy/v1beta1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
@@ -49,6 +50,8 @@ type Controller struct {
 	chitLister       choplisters.ClickHouseInstallationTemplateLister
 	chitListerSynced cache.InformerSynced
 
+	// pdbLister used as pdbLister.Services(namespace).Get(name)
+	pdbLister policylisters.PodDisruptionBudgetLister
 	// serviceLister used as serviceLister.Services(namespace).Get(name)
 	serviceLister corelisters.ServiceLister
 	// serviceListerSynced used in waitForCacheSync()

@@ -58,6 +58,14 @@ const (
 	labelServiceValueCluster          = "cluster"
 	labelServiceValueShard            = "shard"
 	labelServiceValueHost             = "host"
+	labelServiceValueZooKeeper        = "zookeeper"
+	LabelZooKeeper                    = clickhouseradondbcom.GroupName + "/zooKeeper"
+	labelZooKeeperValue               = "zookeeper"
+	LabelPodDisruptionBudget          = clickhouseradondbcom.GroupName + "/podDisruptionBudget"
+	labelPodDisruptionBudgetValue     = "pdb"
+	LabelServiceKind                  = clickhouseradondbcom.GroupName + "/serviceKind"
+	labelServiceKindServerValue       = "server"
+	labelServiceKindClientValue       = "client"
 
 	// Supplementary service labels - used to cooperate with k8s
 	LabelZookeeperConfigVersion = clickhouseradondbcom.GroupName + "/zookeeper-version"
@@ -117,6 +125,35 @@ func (l *Labeler) getLabelsServiceCHI() map[string]string {
 		})
 }
 
+// getLabelsServiceHost
+func (l *Labeler) getLabelsServiceZooKeeperServer() map[string]string {
+	return util.MergeStringMapsOverwrite(
+		l.getLabelsZooKeeperScope(),
+		map[string]string{
+			LabelService:     labelServiceValueZooKeeper,
+			LabelServiceKind: labelServiceKindServerValue,
+		})
+}
+
+// getLabelsServiceHost
+func (l *Labeler) getLabelsServiceZooKeeperClient() map[string]string {
+	return util.MergeStringMapsOverwrite(
+		l.getLabelsZooKeeperScope(),
+		map[string]string{
+			LabelService:     labelServiceValueZooKeeper,
+			LabelServiceKind: labelServiceKindClientValue,
+		})
+}
+
+// getLabelsPodDisruptionBudgetZooKeeper
+func (l *Labeler) getLabelsPodDisruptionBudgetZooKeeper() map[string]string {
+	return util.MergeStringMapsOverwrite(
+		l.getLabelsZooKeeperScope(),
+		map[string]string{
+			LabelPodDisruptionBudget: labelPodDisruptionBudgetValue,
+		})
+}
+
 // getLabelsServiceCluster
 func (l *Labeler) getLabelsServiceCluster(cluster *chi.ChiCluster) map[string]string {
 	return util.MergeStringMapsOverwrite(
@@ -167,6 +204,31 @@ func (l *Labeler) getSelectorCHIScope() map[string]string {
 // getSelectorCHIScopeReady gets labels to select a ready-labelled CHI-scoped object
 func (l *Labeler) getSelectorCHIScopeReady() map[string]string {
 	return l.appendReadyLabels(l.getSelectorCHIScope())
+}
+
+// getLabelsZooKeeperScope gets labels for ZooKeeper-scoped object
+func (l *Labeler) getLabelsZooKeeperScope() map[string]string {
+	// Combine generated labels and CHI-provided labels
+	return util.MergeStringMapsOverwrite(
+		l.getLabelsCHIScope(),
+		map[string]string{
+			LabelZooKeeper: labelZooKeeperValue,
+		})
+}
+
+// getSelectorZooKeeperScope gets labels to select a ZooKeeper-scoped object
+func (l *Labeler) getSelectorZooKeeperScope() map[string]string {
+	// Do not include CHI-provided labels
+	return util.MergeStringMapsOverwrite(
+		l.getSelectorCHIScope(),
+		map[string]string{
+			LabelZooKeeper: labelZooKeeperValue,
+		})
+}
+
+// getLabelsZooKeeperScope gets labels for ZooKeeper-scoped object
+func (l *Labeler) getSelectorZooKeeperScopeReady() map[string]string {
+	return l.appendReadyLabels(l.getSelectorZooKeeperScope())
 }
 
 // getLabelsClusterScope gets labels for Cluster-scoped object
@@ -260,7 +322,7 @@ func (l *Labeler) getLabelsHostScopeReady(host *chi.ChiHost, applySupplementaryS
 	return l.appendReadyLabels(l.getLabelsHostScope(host, applySupplementaryServiceLabels))
 }
 
-// getSelectorShardScope gets labels to select a Host-scoped object
+// GetSelectorHostScope gets labels to select a Host-scoped object
 func (l *Labeler) GetSelectorHostScope(host *chi.ChiHost) map[string]string {
 	// Do not include CHI-provided labels
 	return map[string]string{
@@ -285,6 +347,14 @@ func (l *Labeler) appendReadyLabels(dst map[string]string) map[string]string {
 	return util.MergeStringMapsOverwrite(dst, map[string]string{
 		LabelReadyName: LabelReadyValue,
 	})
+}
+
+// getAnnotationZooKeeperScope gets annotations for ZooKeeper-scoped object
+func (l *Labeler) getAnnotationsZooKeeperScope() map[string]string {
+	// We may want to append some annotations in here
+	return map[string]string{
+		"backup.velero.io/backup-volumes": "data",
+	}
 }
 
 // getAnnotationsHostScope gets annotations for Host-scoped object
@@ -426,6 +496,9 @@ func makeSetFromObjectMeta(objMeta *meta.ObjectMeta) (kublabels.Set, error) {
 		LabelReplicaName,
 		LabelConfigMap,
 		LabelService,
+		LabelZooKeeper,
+		LabelServiceKind,
+		LabelPodDisruptionBudget,
 	}
 
 	set := kublabels.Set{}

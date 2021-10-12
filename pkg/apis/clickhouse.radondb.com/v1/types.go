@@ -348,6 +348,9 @@ type ChiZookeeperConfig struct {
 	OperationTimeoutMs int                `json:"operation_timeout_ms,omitempty" yaml:"operation_timeout_ms"`
 	Root               string             `json:"root,omitempty"                 yaml:"root"`
 	Identity           string             `json:"identity,omitempty"             yaml:"identity"`
+	Install            bool               `json:"install,omitempty"              yaml:"install"`
+	Replica            int32              `json:"replica,omitempty"              yaml:"replica"`
+	Port               int32              `json:"port,omitempty"                 yaml:"port"`
 }
 
 // ChiZookeeperNode defines item of nodes section of .spec.configuration.zookeeper
