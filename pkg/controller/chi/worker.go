@@ -24,6 +24,7 @@ import (
 	"gopkg.in/d4l3k/messagediff.v1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
+	policy "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -438,6 +439,7 @@ func (w *worker) reconcile(chi *chop.ClickHouseInstallation) error {
 
 	w.creator = chopmodel.NewCreator(w.c.chop, chi)
 	return chi.WalkTillError(
+		w.reconcileZooKeeper,
 		w.reconcileCHIAuxObjectsPreliminary,
 		w.reconcileCluster,
 		w.reconcileShard,
@@ -463,9 +465,9 @@ func (w *worker) reconcileCHIAuxObjectsPreliminary(chi *chop.ClickHouseInstallat
 	}
 
 	// 2. CHI common ConfigMap without update - create only
-	w.reconcileCHIConfigMapCommon(chi, nil, false)
+	_ = w.reconcileCHIConfigMapCommon(chi, nil, false)
 	// 3. CHI users ConfigMap
-	w.reconcileCHIConfigMapUsers(chi, nil, true)
+	_ = w.reconcileCHIConfigMapUsers(chi, nil, true)
 
 	return nil
 }
@@ -495,6 +497,78 @@ func (w *worker) reconcileCHIConfigMapUsers(chi *chop.ClickHouseInstallation, op
 	if err := w.reconcileConfigMap(chi, configMapUsers, update); err != nil {
 		return err
 	}
+	return nil
+}
+
+// reconcileZooKeeper reconciles zookeeper
+func (w *worker) reconcileZooKeeper(chi *chop.ClickHouseInstallation) error {
+	w.a.V(2).M(chi).S().P()
+	defer w.a.V(2).M(chi).E().P()
+
+	// Only handle create.
+	// That is, once the number of zookeeper nodes is specified, modifications are no longer supported.
+	// Same as the other zookeeper info, such as port.
+	zookeeperConfig := chi.Spec.Configuration.Zookeeper
+	if !zookeeperConfig.Install || len(zookeeperConfig.Nodes) > 0 {
+		w.a.V(1).
+			WithEvent(chi, eventActionReconcile, eventReasonReconcileStarted).
+			WithStatusAction(chi).
+			M(chi).F().
+			Info("no need to reconcile zookeeper")
+
+		return nil
+	}
+
+	w.a.V(1).
+		WithEvent(chi, eventActionReconcile, eventReasonReconcileStarted).
+		WithStatusAction(chi).
+		M(chi).F().
+		Info("reconcile zookeeper started")
+
+	// Create zookeeper artifacts
+	statefulSetZooKeeper := w.creator.CreateStatefulSetZooKeeper(chi)
+
+	// Check if zookeeper has been installed.
+	curStatefulSet, _ := w.c.getStatefulSet(&statefulSetZooKeeper.ObjectMeta, false)
+	if curStatefulSet != nil {
+		w.a.V(1).
+			WithEvent(chi, eventActionReconcile, eventReasonReconcileStarted).
+			WithStatusAction(chi).
+			M(chi).F().
+			Info("zookeeper has installed")
+
+		// Updates are not processed, return.
+		return nil
+	}
+
+	serviceZooKeeperServer := w.creator.CreateServiceZooKeeperServer(chi)
+	serviceZooKeeperClient := w.creator.CreateServiceZooKeeperClient(chi)
+	podDistruptionBudgetZooKeeper := w.creator.CreatePodDisruptionBudgetZooKeeper(chi)
+
+	// Reconclie zookeeper's Service first. Because the successful operation of ZooKeeper
+	// depends on successful communication with other nodes.
+	if err := w.reconcileService(chi, serviceZooKeeperServer); err != nil {
+		return err
+	}
+	if err := w.reconcileService(chi, serviceZooKeeperClient); err != nil {
+		return err
+	}
+
+	// Reconcile zookeeper's PodDisruptionBudget
+	if err := w.reconcilePodDisruptionBudgetZooKeeper(chi, podDistruptionBudgetZooKeeper); err != nil {
+		return err
+	}
+
+	// Reconcile zookeeper's StatefulSet
+	if err := w.reconcileStatefulSetZooKeeper(chi, statefulSetZooKeeper); err != nil {
+		return err
+	}
+
+	w.a.V(1).
+		WithEvent(chi, eventActionReconcile, eventReasonReconcileCompleted).
+		WithStatusAction(chi).
+		M(chi).F().
+		Info("reconcile zookeeper completed")
 	return nil
 }
 
@@ -578,7 +652,8 @@ func (w *worker) reconcileHost(host *chop.ChiHost) error {
 				Info("Adding tables on shard/host:%d/%d cluster:%s", host.Address.ShardIndex, host.Address.ReplicaIndex, host.Address.ClusterName)
 			if err := w.schemer.HostCreateTables(host); err != nil {
 				w.a.M(host).A().Error("ERROR create tables on host %s. err: %v", host.Name, err)
-			}*/
+			}
+		*/
 		// Wait ClickHouse run
 		if err := w.schemer.HostPing(host); err != nil {
 			w.a.Error("ERROR ping on host %s. err: %v", host.Name, err)
@@ -648,11 +723,11 @@ func (w *worker) includeHost(host *chop.ChiHost) error {
 }
 
 func (w *worker) excludeHostFromService(host *chop.ChiHost) {
-	w.c.deleteLabelReady(host)
+	_ = w.c.deleteLabelReady(host)
 }
 
 func (w *worker) includeHostIntoService(host *chop.ChiHost) {
-	w.c.appendLabelReady(host)
+	_ = w.c.appendLabelReady(host)
 }
 
 // excludeHostFromClickHouseCluster excludes host from ClickHouse configuration
@@ -817,6 +892,9 @@ func (w *worker) deleteCHI(chi *chop.ClickHouseInstallation) error {
 	chi.WalkClusters(func(cluster *chop.ChiCluster) error {
 		return w.deleteCluster(cluster)
 	})
+
+	// Delete zookeeper
+	err = w.c.deleteZooKeeper(chi)
 
 	// Delete ConfigMap(s)
 	err = w.c.deleteConfigMapsCHI(chi)
@@ -1241,6 +1319,145 @@ func (w *worker) getStatefulSetStatus(statefulSet *apps.StatefulSet, host *chop.
 	}
 
 	return chop.StatefulSetStatusUnknown
+}
+
+// reconcilePodDisruptionBudgetZooKeeper reconciles core.PodDisruptionBudget
+func (w *worker) reconcilePodDisruptionBudgetZooKeeper(
+	chi *chop.ClickHouseInstallation,
+	pdb *policy.PodDisruptionBudget,
+) error {
+	w.a.V(2).M(chi).S().Info(pdb.Name)
+	defer w.a.V(2).M(chi).E().Info(pdb.Name)
+
+	// Check whether this object already exists
+	curPodDisruptionBudget, err := w.c.getPodDisruptionBudget(&pdb.ObjectMeta, false)
+
+	// Only handle create
+	if curPodDisruptionBudget != nil {
+		return nil
+	}
+
+	// PodDisruptionBudget not found, try to create it
+	if apierrors.IsNotFound(err) {
+		err = w.createPodDisruptionBudgetZooKeeper(chi, pdb)
+	}
+
+	if err != nil {
+		w.a.WithEvent(chi, eventActionReconcile, eventReasonReconcileFailed).
+			WithStatusAction(chi).
+			WithStatusError(chi).
+			M(chi).A().
+			Error("FAILED to reconcile PodDisruptionBudget: %s CHI: %s ", pdb.Name, chi.Name)
+	}
+
+	return err
+}
+
+// createPodDisruptionBudgetZooKeeper create core.PodDisruptionBudget
+func (w *worker) createPodDisruptionBudgetZooKeeper(
+	chi *chop.ClickHouseInstallation,
+	pdb *policy.PodDisruptionBudget,
+) error {
+	_, err := w.c.kubeClient.PolicyV1beta1().PodDisruptionBudgets(pdb.Namespace).Create(pdb)
+
+	if err == nil {
+		w.a.V(1).
+			WithEvent(chi, eventActionCreate, eventReasonCreateCompleted).
+			WithStatusAction(chi).
+			M(chi).F().
+			Info("Create PodDisruptionBudget %s/%s", pdb.Namespace, pdb.Name)
+	} else {
+		w.a.WithEvent(chi, eventActionCreate, eventReasonCreateFailed).
+			WithStatusAction(chi).
+			WithStatusError(chi).
+			M(chi).A().
+			Error("Create PodDisruptionBudget %s/%s failed with error %v", pdb.Namespace, pdb.Name, err)
+	}
+
+	return err
+}
+
+// reconcileStatefulSetZooKeeper reconciles apps.StatefulSet
+func (w *worker) reconcileStatefulSetZooKeeper(chi *chop.ClickHouseInstallation, newStatefulSet *apps.StatefulSet) error {
+	w.a.V(2).M(chi).S().Info(util.NamespaceNameString(newStatefulSet.ObjectMeta))
+	defer w.a.V(2).M(chi).E().Info(util.NamespaceNameString(newStatefulSet.ObjectMeta))
+
+	// Check whether this object already exists in k8s
+	curStatefulSet, err := w.c.getStatefulSet(&newStatefulSet.ObjectMeta, false)
+
+	// Only handle create
+	if curStatefulSet != nil {
+		return nil
+	}
+
+	// StatefulSet not found, try to create it
+	if apierrors.IsNotFound(err) {
+		err = w.createStatefulSetZooKeeper(newStatefulSet, chi)
+
+		// Write zookeeper node info to status
+		if err == nil {
+			var zooKeeperNode []chop.ChiZookeeperNode
+			zookeeperConfig := chi.Spec.Configuration.Zookeeper
+
+			// Create zookeeper node info
+			replica := int(zookeeperConfig.Replica)
+
+			for i := 0; i < replica; i++ {
+				host := chopmodel.CreatePodFQDNOfZooKeeper(chi, i)
+				zooKeeperNode = append(zooKeeperNode, chop.ChiZookeeperNode{
+					Host: host,
+					Port: zookeeperConfig.Port,
+				})
+			}
+
+			normalizedZKConfig := &chi.Status.NormalizedCHI.Configuration.Zookeeper
+			// Write zookeeper node info to status.chi
+			normalizedZKConfig.Nodes = make([]chop.ChiZookeeperNode, replica)
+			copy(normalizedZKConfig.Nodes, zooKeeperNode)
+
+			// Update change to kubernetes
+			if err = w.c.updateCHIObjectStatus(chi, false); err != nil {
+				w.a.V(1).M(chi).A().Error("UNABLE to update CHI ZooKeeper. Err: %q", err)
+			}
+		}
+	}
+
+	if err != nil {
+		w.a.WithEvent(chi, eventActionReconcile, eventReasonReconcileFailed).
+			WithStatusAction(chi).
+			WithStatusError(chi).
+			M(chi).A().
+			Error("FAILED to reconcile ZooKeeper StatefulSet: %s CHI: %s ", newStatefulSet.Name, chi.Name)
+	}
+
+	return err
+}
+
+// createStatefulSetZooKeeper
+func (w *worker) createStatefulSetZooKeeper(statefulSet *apps.StatefulSet, chi *chop.ClickHouseInstallation) error {
+	w.a.V(1).
+		WithEvent(chi, eventActionCreate, eventReasonCreateStarted).
+		WithStatusAction(chi).
+		M(chi).F().
+		Info("Create StatefulSet ZooKeeper %s/%s - started", statefulSet.Namespace, statefulSet.Name)
+
+	err := w.c.createStatefulSetZooKeeper(statefulSet, chi)
+
+	if err == nil {
+		w.a.V(1).
+			WithEvent(chi, eventActionCreate, eventReasonCreateCompleted).
+			WithStatusAction(chi).
+			M(chi).F().
+			Info("Create StatefulSet ZooKeeper %s/%s - completed", statefulSet.Namespace, statefulSet.Name)
+	} else {
+		w.a.WithEvent(chi, eventActionCreate, eventReasonCreateFailed).
+			WithStatusAction(chi).
+			WithStatusError(chi).
+			M(chi).A().
+			Error("Create StatefulSet ZooKeeper %s/%s - failed with error %v", statefulSet.Namespace, statefulSet.Name, err)
+	}
+
+	return err
 }
 
 // reconcileStatefulSet reconciles apps.StatefulSet

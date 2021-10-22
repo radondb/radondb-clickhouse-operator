@@ -75,6 +75,19 @@ const (
 )
 
 const (
+	// Default ZooKeeper docker image to be used
+	defaultZooKeeperDockerImage = "docker.io/zookeeper:3.6.3"
+
+	// zooKeeperContainerName Name of container within Pod with ZooKeeper instance.
+	zooKeeperContainerName = "zookeeper"
+)
+
+const (
+	defaultPrometheusPortName   = "prometheus"
+	defaultPrometheusPortNumber = 7000
+)
+
+const (
 	chPortNumberMustBeAssignedLater = 0
 
 	// ClickHouse open ports
@@ -87,7 +100,14 @@ const (
 )
 
 const (
-	zkDefaultPort = 2181
+	// ZooKeeper open ports
+	zkDefaultClientPortName           = "client"
+	zkDefaultClientPortNumber         = int32(2181)
+	zkDefaultServerPortName           = "server"
+	zkDefaultServerPortNumber         = int32(2888)
+	zkDefaultLeaderElectionPortName   = "leader-election"
+	zkDefaultLeaderElectionPortNumber = int32(3888)
+
 	// zkDefaultRootTemplate specifies default ZK root - /clickhouse/{namespace}/{chi name}
 	zkDefaultRootTemplate = "/clickhouse/%s/%s"
 )

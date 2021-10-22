@@ -1203,12 +1203,24 @@ func (n *Normalizer) calcFingerprints(host *chiv1.ChiHost) error {
 
 // normalizeConfigurationZookeeper normalizes .spec.configuration.zookeeper
 func (n *Normalizer) normalizeConfigurationZookeeper(zk *chiv1.ChiZookeeperConfig) {
+	// ZooKeeper Cluster Node must larger than zero.
+	// ZooKeeper Cluster Node must be odd.
+	if zk.Install && zk.Replica <= 0 {
+		zk.Replica = 1
+	} else if zk.Install && zk.Replica%2 == 0 {
+		zk.Replica--
+	}
+
 	// In case no ZK port specified - assign default
+	if zk.Port == 0 {
+		zk.Port = zkDefaultClientPortNumber
+	}
+
 	for i := range zk.Nodes {
 		// Convenience wrapper
 		node := &zk.Nodes[i]
 		if node.Port == 0 {
-			node.Port = zkDefaultPort
+			node.Port = zkDefaultClientPortNumber
 		}
 	}
 
@@ -1285,8 +1297,8 @@ func (n *Normalizer) normalizeConfigurationUsers(users *chiv1.Settings) {
 		_, okPasswordDoubleSHA1 := (*users)[username+"/password_double_sha1_hex"]
 		// if SHA256 or DoubleSHA1 are not set, initialize SHA256 from the password
 		if pass != "" && !okPasswordSHA256 && !okPasswordDoubleSHA1 {
-			pass_sha256 := sha256.Sum256([]byte(pass))
-			(*users)[username+"/password_sha256_hex"] = chiv1.NewScalarSetting(hex.EncodeToString(pass_sha256[:]))
+			passSha256 := sha256.Sum256([]byte(pass))
+			(*users)[username+"/password_sha256_hex"] = chiv1.NewScalarSetting(hex.EncodeToString(passSha256[:]))
 			okPasswordSHA256 = true
 		}
 

@@ -404,12 +404,17 @@ func (chi *ClickHouseInstallation) WalkHostsTillError(
 
 // WalkTillError
 func (chi *ClickHouseInstallation) WalkTillError(
+	fZooKeeper func(chi *ClickHouseInstallation) error,
 	fCHIPreliminary func(chi *ClickHouseInstallation) error,
 	fCluster func(cluster *ChiCluster) error,
 	fShard func(shard *ChiShard) error,
 	fHost func(host *ChiHost) error,
 	fCHI func(chi *ClickHouseInstallation) error,
 ) error {
+
+	if err := fZooKeeper(chi); err != nil {
+		return err
+	}
 
 	if err := fCHIPreliminary(chi); err != nil {
 		return err

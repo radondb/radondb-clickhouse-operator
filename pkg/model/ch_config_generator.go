@@ -92,10 +92,25 @@ func (c *ClickHouseConfigGenerator) GetFiles(section chiv1.SettingsSection, incl
 // GetHostZookeeper creates data for "zookeeper.xml"
 func (c *ClickHouseConfigGenerator) GetHostZookeeper(host *chiv1.ChiHost) string {
 	zk := host.GetZookeeper()
+	nodes := zk.Nodes
 
 	if zk.IsEmpty() {
 		// No Zookeeper nodes provided
-		return ""
+		if zk.Install {
+			var zooKeeperNode []chiv1.ChiZookeeperNode
+			replica := int(zk.Replica)
+
+			for i := 0; i < replica; i++ {
+				zkHost := CreatePodFQDNOfZooKeeper(host.CHI, i)
+				zooKeeperNode = append(zooKeeperNode, chiv1.ChiZookeeperNode{
+					Host: zkHost,
+					Port: zk.Port,
+				})
+			}
+			nodes = zooKeeperNode
+		} else {
+			return ""
+		}
 	}
 
 	b := &bytes.Buffer{}
@@ -105,9 +120,9 @@ func (c *ClickHouseConfigGenerator) GetHostZookeeper(host *chiv1.ChiHost) string
 	util.Iline(b, 4, "<zookeeper>")
 
 	// Append Zookeeper nodes
-	for i := range zk.Nodes {
+	for i := range nodes {
 		// Convenience wrapper
-		node := &zk.Nodes[i]
+		node := &nodes[i]
 		// <node>
 		//		<host>HOST</host>
 		//		<port>PORT</port>
