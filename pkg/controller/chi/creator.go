@@ -18,6 +18,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+
 	apps "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 
@@ -25,6 +27,7 @@ import (
 	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/radondb/clickhouse-operator/pkg/chop"
 	"github.com/radondb/clickhouse-operator/pkg/util"
+	"github.com/radondb/clickhouse-operator/pkg/util/retry"
 )
 
 // createStatefulSet is an internal function, used in reconcileStatefulSet only
@@ -119,6 +122,7 @@ func (c *Controller) updatePersistentVolumeClaim(ctx context.Context, pvc *v1.Pe
 		log.V(2).Info("ctx is done")
 		return nil, fmt.Errorf("ctx is done")
 	}
+	old, getErr := c.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Get(ctx, pvc.Name, newGetOptions())
 
 	_, err := c.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Update(ctx, pvc, newUpdateOptions())
 	if err != nil {
@@ -129,7 +133,12 @@ func (c *Controller) updatePersistentVolumeClaim(ctx context.Context, pvc *v1.Pe
 		log.V(1).M(pvc).A().Error("unable to update PVC %v", err)
 		//	return nil, err
 		//}
+	} else if getErr == nil {
+		if old.Spec.Resources.Requests.Storage().Cmp(*pvc.Spec.Resources.Requests.Storage()) == -1 {
+			c.waitUpdatePersistentVolumeClaimSuccess(ctx, pvc)
+		}
 	}
+
 	return pvc, err
 }
 
@@ -250,4 +259,44 @@ func (c *Controller) shouldContinueOnUpdateFailed() error {
 
 	// Do not continue update
 	return errStop
+}
+
+// waitUpdatePersistentVolumeClaimSuccess wait pvc's .status.conditions.status to `FileSystemResizePending`.
+func (c *Controller) waitUpdatePersistentVolumeClaimSuccess(ctx context.Context, pvc *v1.PersistentVolumeClaim) {
+	// get persistentVolumeClaim and judge if it is provided by qingcloud.
+	currentPVC, err := c.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Get(ctx, pvc.Name, newGetOptions())
+	if err != nil {
+		log.A().Error("unable to get PersistentVolumeClaims(%s/%s) err: %v", pvc.Namespace, pvc.Name, err)
+		return
+	}
+
+	provisioner, ok := currentPVC.ObjectMeta.Annotations["volume.beta.kubernetes.io/storage-provisioner"]
+	log.V(1).M(pvc).Info("get PersistentVolumeClaims(%s/%s) - provisioner: %s", pvc.Namespace, pvc.Name, provisioner)
+	if ok && strings.Contains(provisioner, "qingcloud") {
+		// provided by qingcloud, wait status changes to FileSystemResizePending.
+		maxTries := 10
+		err := retry.Retry(ctx, maxTries, "check PVC's status", log.A(), func() error {
+			currentPVC, err := c.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Get(ctx, pvc.Name, newGetOptions())
+			if err != nil {
+				log.A().Error("unable to get PersistentVolumeClaims(%s/%s) err: %v", pvc.Namespace, pvc.Name, err)
+				return err
+			}
+
+			conditions := currentPVC.Status.Conditions
+			if conditions == nil {
+				return errors.New("no conditions")
+			}
+
+			status := conditions[0].Type
+			if status != "FileSystemResizePending" {
+				return errors.New(string("not yet `FileSystemResizePending` status, status = " + status))
+			}
+
+			return nil
+		},
+		)
+		if err != nil {
+			log.A().Error("Resize PersistentVolumeClaims(%s/%s) - failed with error: %v", pvc.Namespace, pvc.Name, err)
+		}
+	}
 }
