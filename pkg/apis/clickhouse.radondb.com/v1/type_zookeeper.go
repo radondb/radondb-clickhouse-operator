@@ -71,5 +71,11 @@ func (zkc *ChiZookeeperConfig) MergeFrom(from *ChiZookeeperConfig, _type MergeTy
 	if from.Port > 0 {
 		zkc.Port = from.Port
 	}
+	if from.Image != "" {
+		zkc.Image = from.Image
+	}
+	if from.ImagePullPolicy == "Always" || from.ImagePullPolicy == "IfNotPresent" || from.ImagePullPolicy == "Never" {
+		zkc.ImagePullPolicy = from.ImagePullPolicy
+	}
 	zkc.Install = from.Install
 }
