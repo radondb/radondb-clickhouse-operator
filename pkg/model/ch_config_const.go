@@ -76,7 +76,7 @@ const (
 
 const (
 	// Default ZooKeeper docker image to be used
-	defaultZooKeeperDockerImage = "docker.io/zookeeper:3.6.3"
+	defaultZooKeeperDockerImage = "radondb/zookeeper:3.6.2"
 
 	// zooKeeperContainerName Name of container within Pod with ZooKeeper instance.
 	zooKeeperContainerName = "zookeeper"

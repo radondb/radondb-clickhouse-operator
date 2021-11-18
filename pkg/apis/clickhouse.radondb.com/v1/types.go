@@ -350,6 +350,8 @@ type ChiZookeeperConfig struct {
 	Identity           string             `json:"identity,omitempty"             yaml:"identity"`
 	Install            bool               `json:"install,omitempty"              yaml:"install"`
 	Replica            int32              `json:"replica,omitempty"              yaml:"replica"`
+	Image              string             `json:"image,omitempty"                yaml:"image"`
+	ImagePullPolicy    string             `json:"imagePullPolicy,omitempty"      yaml:"imagePullPolicy"`
 	Port               int32              `json:"port,omitempty"                 yaml:"port"`
 }
 

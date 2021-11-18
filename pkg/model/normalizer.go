@@ -24,7 +24,6 @@ import (
 	chiv1 "github.com/TCeason/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/TCeason/clickhouse-operator/pkg/chop"
 	"github.com/TCeason/clickhouse-operator/pkg/util"
-
 	"gopkg.in/d4l3k/messagediff.v1"
 	"k8s.io/api/core/v1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -1214,6 +1213,16 @@ func (n *Normalizer) normalizeConfigurationZookeeper(zk *chiv1.ChiZookeeperConfi
 	// In case no ZK port specified - assign default
 	if zk.Port == 0 {
 		zk.Port = zkDefaultClientPortNumber
+	}
+
+	// In case no ZK image specified - assign default
+	if zk.Image == "" {
+		zk.Image = defaultZooKeeperDockerImage
+	}
+
+	// In case no ZK imagePullPolicy specified - assign default
+	if zk.ImagePullPolicy == "" {
+		zk.ImagePullPolicy = "Always"
 	}
 
 	for i := range zk.Nodes {
