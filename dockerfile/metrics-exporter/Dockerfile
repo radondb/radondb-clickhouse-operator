@@ -32,7 +32,7 @@ MAINTAINER "RadonDB <support@radondb.com>"
 LABEL name="ClickHouse operator. Metrics exporter" \
       maintainer="support@radondb.com" \
       vendor="RadonDB" \
-      version="0.16.0" \
+      version="2.1" \
       release="1" \
       summary="Metrics Exporter" \
       description="Metrics exporter for RadonDB ClickHouse operator"

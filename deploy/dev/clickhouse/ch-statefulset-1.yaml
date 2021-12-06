@@ -84,7 +84,7 @@ spec:
       containers:
       - name: clickhouse
         imagePullPolicy: Always
-        image: yandex/clickhouse-server
+        image: radondb/clickhouse-server
         livenessProbe:
           tcpSocket:
             port: 8123

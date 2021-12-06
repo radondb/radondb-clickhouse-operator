@@ -1,7 +1,7 @@
 # Possible Template Parameters:
 #
 # -
-# radondb/clickhouse-operator:0.16.0
+# radondb/chronus-operator:2.1
 # etc-clickhouse-operator-files
 #
 apiVersion: v1
@@ -172,7 +172,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/clickhouse-operator:0.16.0
+# radondb/chronus-operator:2.1
 # etc-clickhouse-operator-confd-files
 #
 apiVersion: v1
@@ -186,7 +186,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/clickhouse-operator:0.16.0
+# radondb/chronus-operator:2.1
 # etc-clickhouse-operator-configd-files
 #
 apiVersion: v1
@@ -208,7 +208,7 @@ data:
     <yandex>
         <logger>
             <!-- Possible levels: https://github.com/pocoproject/poco/blob/develop/Foundation/include/Poco/Logger.h#L105 -->
-            <level>debug</level>
+            <level>information</level>
             <log>/var/log/clickhouse-server/clickhouse-server.log</log>
             <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
             <size>1000M</size>
@@ -243,7 +243,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/clickhouse-operator:0.16.0
+# radondb/chronus-operator:2.1
 # etc-clickhouse-operator-templatesd-files
 #
 apiVersion: v1
@@ -285,7 +285,7 @@ data:
                 "containers" : [
                   {
                     "name": "clickhouse",
-                    "image": "yandex/clickhouse-server:19.3.7",
+                    "image": "radondb/clickhouse-server:latest",
                     "ports": [
                       {
                         "name": "http",
@@ -341,7 +341,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/clickhouse-operator:0.16.0
+# radondb/chronus-operator:2.1
 # etc-clickhouse-operator-usersd-files
 #
 apiVersion: v1
@@ -398,8 +398,8 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/clickhouse-operator:0.16.0
-# radondb/metrics-exporter:0.16.0
+# radondb/chronus-operator:2.1
+# radondb/chronus-metrics-operator:2.1
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -441,7 +441,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: radondb/clickhouse-operator:0.16.0
+          image: radondb/chronus-operator:2.1
           imagePullPolicy: Always
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -506,7 +506,7 @@ spec:
                   resource: limits.memory
 
         - name: metrics-exporter
-          image: radondb/metrics-exporter:0.16.0
+          image: radondb/chronus-metrics-operator:2.1
           imagePullPolicy: Always
           volumeMounts:
             - name: etc-clickhouse-operator-folder

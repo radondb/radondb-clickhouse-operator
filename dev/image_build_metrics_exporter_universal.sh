@@ -3,7 +3,7 @@
 # Universal docker image builder
 
 # Externally configurable build-dependent options
-TAG="${TAG:-sunsingerus/metrics-exporter:dev}"
+TAG="${TAG:-suhouzhen/chronus-metrics-operator:dev}"
 DOCKERHUB_LOGIN="${DOCKERHUB_LOGIN}"
 DOCKERHUB_PUBLISH="${DOCKERHUB_PUBLISH:-yes}"
 MINIKUBE="${MINIKUBE:-no}"
