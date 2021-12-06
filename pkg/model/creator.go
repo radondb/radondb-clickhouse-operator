@@ -1353,8 +1353,8 @@ func (c *Creator) newDefaultZooKeeperContainer(zookeeperConfig *chiv1.ChiZookeep
 
 	return corev1.Container{
 		Name:            zooKeeperContainerName,
-		Image:           defaultZooKeeperDockerImage,
-		ImagePullPolicy: corev1.PullIfNotPresent,
+		Image:           zookeeperConfig.Image,
+		ImagePullPolicy: corev1.PullPolicy(zookeeperConfig.ImagePullPolicy),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          zkDefaultClientPortName,

@@ -814,6 +814,16 @@ func (n *Normalizer) normalizeConfigurationZookeeper(zk *chiV1.ChiZookeeperConfi
 		zk.Port = zkDefaultClientPortNumber
 	}
 
+	// In case no ZK image specified - assign default
+	if zk.Image == "" {
+		zk.Image = defaultZooKeeperDockerImage
+	}
+
+	// In case no ZK imagePullPolicy specified - assign default
+	if zk.ImagePullPolicy == "" {
+		zk.ImagePullPolicy = "Always"
+	}
+
 	for i := range zk.Nodes {
 		// Convenience wrapper
 		node := &zk.Nodes[i]
