@@ -64,7 +64,7 @@ const (
 
 const (
 	// defaultClickHouseDockerImage specifies default ClickHouse docker image to be used
-	defaultClickHouseDockerImage = "yandex/clickhouse-server:latest"
+	defaultClickHouseDockerImage = "radondb/clickhouse-server:latest"
 
 	// defaultBusyBoxDockerImage specifies default BusyBox docker image to be used
 	defaultBusyBoxDockerImage = "busybox"
@@ -76,6 +76,19 @@ const (
 	ClickHouseContainerName = "clickhouse"
 	// ClickHouseLogContainerName specifies name of the logger container in the pod
 	ClickHouseLogContainerName = "clickhouse-log"
+)
+
+const (
+	// Default ZooKeeper docker image to be used
+	defaultZooKeeperDockerImage = "docker.io/zookeeper:3.6.1"
+
+	// zooKeeperContainerName Name of container within Pod with ZooKeeper instance.
+	zooKeeperContainerName = "zookeeper"
+)
+
+const (
+	defaultPrometheusPortName   = "prometheus"
+	defaultPrometheusPortNumber = 7000
 )
 
 const (
@@ -93,8 +106,14 @@ const (
 )
 
 const (
-	// zkDefaultPort specifies Zookeeper default port
-	zkDefaultPort = 2181
+	// ZooKeeper open ports
+	zkDefaultClientPortName           = "client"
+	zkDefaultClientPortNumber         = int32(2181)
+	zkDefaultServerPortName           = "server"
+	zkDefaultServerPortNumber         = int32(2888)
+	zkDefaultLeaderElectionPortName   = "leader-election"
+	zkDefaultLeaderElectionPortNumber = int32(3888)
+
 	// zkDefaultRootTemplate specifies default ZK root - /clickhouse/{namespace}/{chi name}
 	zkDefaultRootTemplate = "/clickhouse/%s/%s"
 )

@@ -82,6 +82,37 @@ func (c *Controller) waitHostReady(ctx context.Context, host *chiv1.ChiHost) err
 	)
 }
 
+// waitZooKeeperReady polls zookeeper's StatefulSet until it is ready
+func (c *Controller) waitZooKeeperReady(ctx context.Context, statefulSet *apps.StatefulSet) error {
+	// Wait for StatefulSet to reach generation
+	err := c.pollStatefulSet(
+		ctx,
+		statefulSet,
+		nil,
+		func(sts *apps.StatefulSet) bool {
+			if sts == nil {
+				return false
+			}
+			return model.IsStatefulSetGeneration(sts, sts.Generation)
+		},
+		func() {},
+	)
+	if err != nil {
+		return err
+	}
+
+	// Wait StatefulSet to reach ready status
+	return c.pollStatefulSet(
+		ctx,
+		statefulSet,
+		nil,
+		func(sts *apps.StatefulSet) bool {
+			return model.IsStatefulSetReady(sts)
+		},
+		func() {},
+	)
+}
+
 // waitHostDeleted polls host's StatefulSet until it is not available
 func (c *Controller) waitHostDeleted(host *chiv1.ChiHost) {
 	for {

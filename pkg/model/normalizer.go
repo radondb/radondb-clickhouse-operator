@@ -801,12 +801,24 @@ func (n *Normalizer) normalizeConfigurationZookeeper(zk *chiV1.ChiZookeeperConfi
 		return nil
 	}
 
+	// ZooKeeper Cluster Node must larger than zero.
+	// ZooKeeper Cluster Node must be odd.
+	if zk.Install && zk.Replica <= 0 {
+		zk.Replica = 1
+	} else if zk.Install && zk.Replica%2 == 0 {
+		zk.Replica--
+	}
+
 	// In case no ZK port specified - assign default
+	if zk.Port == 0 {
+		zk.Port = zkDefaultClientPortNumber
+	}
+
 	for i := range zk.Nodes {
 		// Convenience wrapper
 		node := &zk.Nodes[i]
 		if node.Port == 0 {
-			node.Port = zkDefaultPort
+			node.Port = zkDefaultClientPortNumber
 		}
 	}
 

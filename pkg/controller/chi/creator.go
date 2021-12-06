@@ -30,6 +30,32 @@ import (
 	"github.com/radondb/clickhouse-operator/pkg/util/retry"
 )
 
+// createStatefulSetZooKeeper is an internal function, used in reconcileStatefulSet only
+func (c *Controller) createStatefulSetZooKeeper(ctx context.Context, statefulSet *apps.StatefulSet, chi *chiv1.ClickHouseInstallation) error {
+	log.V(1).M(chi).F().P()
+
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	log.V(1).Info("Create StatefulSet %s/%s", statefulSet.Namespace, statefulSet.Name)
+	if _, err := c.kubeClient.AppsV1().StatefulSets(statefulSet.Namespace).Create(ctx, statefulSet, newCreateOptions()); err != nil {
+		// Unable to create StatefulSet at all
+		return err
+	}
+
+	// StatefulSet created, wait until it is ready
+
+	if err := c.waitZooKeeperReady(ctx, statefulSet); err == nil {
+		// Target generation reached, StatefulSet created successfully
+		return nil
+	}
+
+	// Unable to run StatefulSet, StatefulSet create failed, time to rollback?
+	return c.onStatefulSetZooKeeperCreateFailed(ctx, statefulSet, chi)
+}
+
 // createStatefulSet is an internal function, used in reconcileStatefulSet only
 func (c *Controller) createStatefulSet(ctx context.Context, statefulSet *apps.StatefulSet, host *chiv1.ChiHost) error {
 	log.V(1).M(host).F().P()
@@ -175,6 +201,40 @@ func (c *Controller) onStatefulSetCreateFailed(ctx context.Context, failedStatef
 
 	default:
 		log.V(1).M(host).A().Error("Unknown c.chop.Config().OnStatefulSetCreateFailureAction=%s", chop.Config().OnStatefulSetCreateFailureAction)
+		return errIgnore
+	}
+
+	return errUnexpectedFlow
+}
+
+// onStatefulSetZooKeeperCreateFailed handles situation when StatefulSet create failed
+// It can just delete failed StatefulSet or do nothing
+func (c *Controller) onStatefulSetZooKeeperCreateFailed(ctx context.Context, failedStatefulSet *apps.StatefulSet, chi *chiv1.ClickHouseInstallation) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return errIgnore
+	}
+
+	// What to do with StatefulSet - look into chop configuration settings
+	switch chop.Config().OnStatefulSetCreateFailureAction {
+	case chiv1.OnStatefulSetCreateFailureActionAbort:
+		// Report appropriate error, it will break reconcile loop
+		log.V(1).M(chi).F().Info("abort")
+		return errAbort
+
+	case chiv1.OnStatefulSetCreateFailureActionDelete:
+		// Delete gracefully failed StatefulSet
+		log.V(1).M(chi).F().Info("going to DELETE FAILED StatefulSet %s", util.NamespaceNameString(failedStatefulSet.ObjectMeta))
+		_ = c.deleteZooKeeper(ctx, chi)
+		return c.shouldContinueOnCreateFailed()
+
+	case chiv1.OnStatefulSetCreateFailureActionIgnore:
+		// Ignore error, continue reconcile loop
+		log.V(1).M(chi).F().Info("going to ignore error %s", util.NamespaceNameString(failedStatefulSet.ObjectMeta))
+		return errIgnore
+
+	default:
+		log.V(1).M(chi).A().Error("Unknown c.chop.Config().OnStatefulSetCreateFailureAction=%s", chop.Config().OnStatefulSetCreateFailureAction)
 		return errIgnore
 	}
 

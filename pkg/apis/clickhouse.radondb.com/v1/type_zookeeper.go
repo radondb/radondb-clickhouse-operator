@@ -28,6 +28,10 @@ func (zkc *ChiZookeeperConfig) IsEmpty() bool {
 	return len(zkc.Nodes) == 0
 }
 
+func (zkc *ChiZookeeperConfig) GetStatefulSetReplicasNum() int32 {
+	return zkc.Replica
+}
+
 // MergeFrom merges from provided object
 func (zkc *ChiZookeeperConfig) MergeFrom(from *ChiZookeeperConfig, _type MergeType) *ChiZookeeperConfig {
 	if from == nil {
@@ -76,6 +80,13 @@ func (zkc *ChiZookeeperConfig) MergeFrom(from *ChiZookeeperConfig, _type MergeTy
 	if from.Identity != "" {
 		zkc.Identity = from.Identity
 	}
+	if from.Replica > 0 {
+		zkc.Replica = from.Replica
+	}
+	if from.Port > 0 {
+		zkc.Port = from.Port
+	}
+	zkc.Install = from.Install
 
 	return zkc
 }

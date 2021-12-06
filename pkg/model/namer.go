@@ -69,6 +69,8 @@ const (
 	macrosReplicaID = "{replicaID}"
 	// macrosReplicaIndex is an index of the replica in the cluster - integer number, converted into string
 	macrosReplicaIndex = "{replicaIndex}"
+	// macrosZooKeeperIndex is a sanitized zooKeeper name
+	macrosZooKeeperIndex = "{zooKeeperIndex}"
 
 	// macrosHostName is a sanitized host name
 	macrosHostName = "{host}"
@@ -121,6 +123,21 @@ const (
 
 	// configMapDeploymentNamePattern is a template of macros ConfigMap. "chi-{chi}-deploy-confd-{cluster}-{shard}-{host}"
 	configMapDeploymentNamePattern = "chi-" + macrosChiName + "-deploy-confd-" + macrosClusterName + "-" + macrosHostName
+
+	// zooKeeperStatefulSetNamePattern is a template of zooKeepers's StatefulSet's name. "zk-{chi}"
+	zooKeeperStatefulSetNamePattern = "zk-" + macrosChiName
+
+	// zooKeeperServerStatefulSetServiceNamePattern is a template of zooKeepers's StatefulSet's Service name. "zk-server-{chi}"
+	zooKeeperServerStatefulSetServiceNamePattern = "zk-server-" + macrosChiName
+
+	// zooKeeperClientStatefulSetServiceNamePattern is a template of zooKeepers's StatefulSet's Service name. "zk-client-{chi}"
+	zooKeeperClientStatefulSetServiceNamePattern = "zk-client-" + macrosChiName
+
+	// zooKeeperPodDisruptionBudgetNamePattern is a template of zooKeepers's PodDisruptionBudget's name. "zk-pdb-{chi}"
+	zooKeeperPodDisruptionBudgetNamePattern = "zk-pdb-" + macrosChiName
+
+	// zooKeeperPodNamePattern is a template of zooKeepers's Pod's name. "zk-{chi}-{index}"
+	zooKeeperPodNamePattern = zooKeeperStatefulSetNamePattern + "-" + macrosZooKeeperIndex
 
 	// namespaceDomainPattern presents Domain Name pattern of a namespace
 	// In this pattern "%s" is substituted namespace name's value
@@ -286,6 +303,26 @@ func (n *namer) namePartHostNameID(name string) string {
 	return util.CreateStringID(name, _len)
 }
 
+func (n *namer) namePartZooKeeperName(name string) string {
+	var _len int
+	if n.ctx == namerContextLabels {
+		_len = namePartReplicaMaxLenLabelsCtx
+	} else {
+		_len = namePartReplicaMaxLenNamesCtx
+	}
+	return util.StringHead(name, _len)
+}
+
+func (n *namer) namePartZooKeeperIndex(index int) string {
+	var _len int
+	if n.ctx == namerContextLabels {
+		_len = namePartReplicaMaxLenLabelsCtx
+	} else {
+		_len = namePartReplicaMaxLenNamesCtx
+	}
+	return util.StringHead(strconv.Itoa(index), _len)
+}
+
 // getNamePartNamespace
 func (n *namer) getNamePartNamespace(obj interface{}) string {
 	switch obj.(type) {
@@ -426,6 +463,25 @@ func newNameMacroReplacerChi(chi *chop.ClickHouseInstallation) *strings.Replacer
 		macrosNamespace, n.namePartNamespace(chi.Namespace),
 		macrosChiName, n.namePartChiName(chi.Name),
 		macrosChiID, n.namePartChiNameID(chi.Name),
+	)
+}
+
+func newNameMacroReplacerZooKeeper(chi *chop.ClickHouseInstallation) *strings.Replacer {
+	n := newNamer(namerContextNames)
+	return strings.NewReplacer(
+		macrosNamespace, n.namePartNamespace(chi.Namespace),
+		macrosChiName, n.namePartChiName(chi.Name),
+		macrosChiID, n.namePartChiNameID(chi.Name),
+	)
+}
+
+func newNameMacroReplacerZooKeeperPod(chi *chop.ClickHouseInstallation, index int) *strings.Replacer {
+	n := newNamer(namerContextNames)
+	return strings.NewReplacer(
+		macrosNamespace, n.namePartNamespace(chi.Namespace),
+		macrosChiName, n.namePartChiName(chi.Name),
+		macrosChiID, n.namePartChiNameID(chi.Name),
+		macrosZooKeeperIndex, n.namePartZooKeeperIndex(index),
 	)
 }
 
@@ -728,6 +784,72 @@ func CreateStatefulSetServiceName(host *chop.ChiHost) string {
 	return newNameMacroReplacerHost(host).Replace(pattern)
 }
 
+// CreateStatefulSetZooKeeperName creates a name of a StatefulSet for ZooKeeper instance
+func CreateStatefulSetZooKeeperName(chi *chop.ClickHouseInstallation) string {
+	// Name can be generated either from default name pattern,
+	// or from personal name pattern provided in PodTemplate
+
+	// Start with default name pattern
+	pattern := zooKeeperStatefulSetNamePattern
+
+	// PodTemplate may have personal name pattern specified
+
+	// Create StatefulSet name based on name pattern available
+	return newNameMacroReplacerZooKeeper(chi).Replace(pattern)
+}
+
+// CreateStatefulSetServiceZooKeeperServerName returns a name of a StatefulSet-related Service for zooKeeper instance
+func CreateStatefulSetServiceZooKeeperServerName(chi *chop.ClickHouseInstallation) string {
+	// Name can be generated either from default name pattern,
+	// or from personal name pattern provided in ServiceTemplate
+
+	// Start with default name pattern
+	pattern := zooKeeperServerStatefulSetServiceNamePattern
+
+	// ServiceTemplate may have personal name pattern specified
+
+	// Create Service name based on name pattern available
+	return newNameMacroReplacerZooKeeper(chi).Replace(pattern)
+}
+
+// CreateStatefulSetServiceZooKeeperClientName returns a name of a StatefulSet-related Service for zooKeeper instance
+func CreateStatefulSetServiceZooKeeperClientName(chi *chop.ClickHouseInstallation) string {
+	// Name can be generated either from default name pattern,
+	// or from personal name pattern provided in ServiceTemplate
+
+	// Start with default name pattern
+	pattern := zooKeeperClientStatefulSetServiceNamePattern
+
+	// ServiceTemplate may have personal name pattern specified
+
+	// Create Service name based on name pattern available
+	return newNameMacroReplacerZooKeeper(chi).Replace(pattern)
+}
+
+// CreatePodDisruptionBudgetZooKeeperName returns a name of a PodDisruptionBudget for zooKeeper instance
+func CreatePodDisruptionBudgetZooKeeperName(chi *chop.ClickHouseInstallation) string {
+	// Name can be generated either from default name pattern,
+	// or from personal name pattern provided in ServiceTemplate
+
+	// Start with default name pattern
+	pattern := zooKeeperPodDisruptionBudgetNamePattern
+
+	// ServiceTemplate may have personal name pattern specified
+
+	// Create Service name based on name pattern available
+	return newNameMacroReplacerZooKeeper(chi).Replace(pattern)
+}
+
+// CreatePodZooKeepername returns a name of a Pod of a ZooKeeper instance
+func CreatePodZooKeepername(chi *chop.ClickHouseInstallation, index int) string {
+	// Name can be generated either from default name pattern,
+	// or from personal name pattern provided in ServiceTemplate
+
+	// Start with default name pattern
+	pattern := zooKeeperPodNamePattern
+	return newNameMacroReplacerZooKeeperPod(chi, index).Replace(pattern)
+}
+
 // CreatePodHostname returns a name of a Pod of a ClickHouse instance
 func CreatePodHostname(host *chop.ChiHost) string {
 	// Do not use Pod own hostname - point to appropriate StatefulSet's Service
@@ -753,6 +875,28 @@ func createPodFQDN(host *chop.ChiHost) string {
 		pattern,
 		CreatePodHostname(host),
 		host.Address.Namespace,
+	)
+}
+
+// CreatePodFQDNOfZooKeeper creates a fully qualified domain name of a zookeeper pod
+func CreatePodFQDNOfZooKeeper(chi *chop.ClickHouseInstallation, index int) string {
+	// FQDN can be generated either from default pattern,
+	// or from personal pattern provided
+
+	// Start with default pattern
+	pattern := podFQDNPattern
+
+	if chi.Spec.NamespaceDomainPattern != "" {
+		// NamespaceDomainPattern has been explicitly specified
+		pattern = "%s." + chi.Spec.NamespaceDomainPattern
+	}
+
+	// Create FQDN based on pattern available
+	// {pod}.{svc}.{namespace}.svc.cluster.local
+	return fmt.Sprintf(
+		pattern,
+		CreatePodZooKeepername(chi, index)+"."+CreateStatefulSetServiceZooKeeperServerName(chi),
+		chi.Namespace,
 	)
 }
 

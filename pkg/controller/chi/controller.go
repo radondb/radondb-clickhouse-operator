@@ -79,6 +79,7 @@ func NewController(
 		chiListerSynced:         chopInformerFactory.Clickhouse().V1().ClickHouseInstallations().Informer().HasSynced,
 		chitLister:              chopInformerFactory.Clickhouse().V1().ClickHouseInstallationTemplates().Lister(),
 		chitListerSynced:        chopInformerFactory.Clickhouse().V1().ClickHouseInstallationTemplates().Informer().HasSynced,
+		pdbLister:               kubeInformerFactory.Policy().V1beta1().PodDisruptionBudgets().Lister(),
 		serviceLister:           kubeInformerFactory.Core().V1().Services().Lister(),
 		serviceListerSynced:     kubeInformerFactory.Core().V1().Services().Informer().HasSynced,
 		endpointsLister:         kubeInformerFactory.Core().V1().Endpoints().Lister(),
