@@ -18,9 +18,9 @@ import (
 	"bytes"
 	"fmt"
 
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	xmlbuilder "github.com/altinity/clickhouse-operator/pkg/model/builder/xml"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	xmlbuilder "github.com/radondb/clickhouse-operator/pkg/model/builder/xml"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 const (
@@ -30,6 +30,9 @@ const (
 	// Special auto-generated clusters. Each of these clusters lay over all replicas in CHI
 	// 1. Cluster with one shard and all replicas. Used to duplicate data over all replicas.
 	// 2. Cluster with all shards (1 replica). Used to gather/scatter data over all replicas.
+
+	physicalConsistencyClusterName = "physical_consistency_cluster"
+	logicalConsistencyClusterName  = "logical_consistency_cluster"
 	oneShardAllReplicasClusterName = "all-replicated"
 	allShardsOneReplicaClusterName = "all-sharded"
 )
@@ -66,10 +69,11 @@ func (c *ClickHouseConfigGenerator) GetQuotas() string {
 // GetSettings creates data for "settings.xml"
 func (c *ClickHouseConfigGenerator) GetSettings(host *chiv1.ChiHost) string {
 	if host == nil {
+		// No host specified means request to generate common config
 		return c.generateXMLConfig(c.chi.Spec.Configuration.Settings, "")
-	} else {
-		return c.generateXMLConfig(host.Settings, "")
 	}
+	// Generate config for the specified host
+	return c.generateXMLConfig(host.Settings, "")
 }
 
 // GetFiles creates data for custom common config files
@@ -90,10 +94,25 @@ func (c *ClickHouseConfigGenerator) GetFiles(section chiv1.SettingsSection, incl
 // GetHostZookeeper creates data for "zookeeper.xml"
 func (c *ClickHouseConfigGenerator) GetHostZookeeper(host *chiv1.ChiHost) string {
 	zk := host.GetZookeeper()
+	nodes := zk.Nodes
 
 	if zk.IsEmpty() {
 		// No Zookeeper nodes provided
-		return ""
+		if zk.Install {
+			var zooKeeperNode []chiv1.ChiZookeeperNode
+			replica := int(zk.Replica)
+
+			for i := 0; i < replica; i++ {
+				zkHost := CreatePodFQDNOfZooKeeper(host.CHI, i)
+				zooKeeperNode = append(zooKeeperNode, chiv1.ChiZookeeperNode{
+					Host: zkHost,
+					Port: zk.Port,
+				})
+			}
+			nodes = zooKeeperNode
+		} else {
+			return ""
+		}
 	}
 
 	b := &bytes.Buffer{}
@@ -103,9 +122,9 @@ func (c *ClickHouseConfigGenerator) GetHostZookeeper(host *chiv1.ChiHost) string
 	util.Iline(b, 4, "<zookeeper>")
 
 	// Append Zookeeper nodes
-	for i := range zk.Nodes {
+	for i := range nodes {
 		// Convenience wrapper
-		node := &zk.Nodes[i]
+		node := &nodes[i]
 		// <node>
 		//		<host>HOST</host>
 		//		<port>PORT</port>
@@ -155,6 +174,7 @@ func (c *ClickHouseConfigGenerator) GetHostZookeeper(host *chiv1.ChiHost) string
 	return b.String()
 }
 
+// RemoteServersGeneratorOptions specifies options for remote-servers generator
 type RemoteServersGeneratorOptions struct {
 	exclude struct {
 		reconcileAttributes *chiv1.ChiHostReconcileAttributes
@@ -162,10 +182,12 @@ type RemoteServersGeneratorOptions struct {
 	}
 }
 
+// NewRemoteServersGeneratorOptions creates new remote-servers generator options
 func NewRemoteServersGeneratorOptions() *RemoteServersGeneratorOptions {
 	return &RemoteServersGeneratorOptions{}
 }
 
+// ExcludeHost specifies to exclude host
 func (o *RemoteServersGeneratorOptions) ExcludeHost(host *chiv1.ChiHost) *RemoteServersGeneratorOptions {
 	if (o == nil) || (host == nil) {
 		return o
@@ -175,6 +197,7 @@ func (o *RemoteServersGeneratorOptions) ExcludeHost(host *chiv1.ChiHost) *Remote
 	return o
 }
 
+// ExcludeReconcileAttributes specifies to exclude reconcile attributes
 func (o *RemoteServersGeneratorOptions) ExcludeReconcileAttributes(attrs *chiv1.ChiHostReconcileAttributes) *RemoteServersGeneratorOptions {
 	if (o == nil) || (attrs == nil) {
 		return o
@@ -184,6 +207,7 @@ func (o *RemoteServersGeneratorOptions) ExcludeReconcileAttributes(attrs *chiv1.
 	return o
 }
 
+// Skip specifies to skip the host
 func (o *RemoteServersGeneratorOptions) Skip(host *chiv1.ChiHost) bool {
 	if o == nil {
 		return false
@@ -202,6 +226,7 @@ func (o *RemoteServersGeneratorOptions) Skip(host *chiv1.ChiHost) bool {
 	return false
 }
 
+// Include specifies to include the host
 func (o *RemoteServersGeneratorOptions) Include(host *chiv1.ChiHost) bool {
 	if o == nil {
 		return false
@@ -220,10 +245,12 @@ func (o *RemoteServersGeneratorOptions) Include(host *chiv1.ChiHost) bool {
 	return true
 }
 
+// defaultRemoteServersGeneratorOptions
 func defaultRemoteServersGeneratorOptions() *RemoteServersGeneratorOptions {
 	return NewRemoteServersGeneratorOptions()
 }
 
+// CHIHostsNum count hosts according to the options
 func (c *ClickHouseConfigGenerator) CHIHostsNum(options *RemoteServersGeneratorOptions) int {
 	num := 0
 	c.chi.WalkHosts(func(host *chiv1.ChiHost) error {
@@ -235,6 +262,7 @@ func (c *ClickHouseConfigGenerator) CHIHostsNum(options *RemoteServersGeneratorO
 	return num
 }
 
+// ClusterHostsNum count hosts according to the options
 func (c *ClickHouseConfigGenerator) ClusterHostsNum(cluster *chiv1.ChiCluster, options *RemoteServersGeneratorOptions) int {
 	num := 0
 	// Build each shard XML
@@ -245,6 +273,7 @@ func (c *ClickHouseConfigGenerator) ClusterHostsNum(cluster *chiv1.ChiCluster, o
 	return num
 }
 
+// ShardHostsNum count hosts according to the options
 func (c *ClickHouseConfigGenerator) ShardHostsNum(shard *chiv1.ChiShard, options *RemoteServersGeneratorOptions) int {
 	num := 0
 	shard.WalkHosts(func(host *chiv1.ChiHost) error {
@@ -267,6 +296,15 @@ func (c *ClickHouseConfigGenerator) GetRemoteServers(options *RemoteServersGener
 	// <yandex>
 	//		<remote_servers>
 	util.Iline(b, 0, "<"+xmlTagYandex+">")
+
+	// <default_on_cluster_name> is a custom configuration of ChronusDB，
+	// it can not appear multiple times in the same configuration file.
+	// But in the logic of ClickHouse Operator, a CR can deploy multiple ClickHouse clusters at the same time.
+	// At the same time, multiple clusters will share the same configuration file.
+	// Therefore, there may be multiple <default_on_cluster_name>. this is not right.
+	// So remove WalkClusters.
+	util.Iline(b, 4, "<default_on_cluster_name>%s</default_on_cluster_name>", allShardsOneReplicaClusterName)
+
 	util.Iline(b, 4, "<remote_servers>")
 
 	util.Iline(b, 8, "<!-- User-specified clusters -->")
@@ -279,8 +317,6 @@ func (c *ClickHouseConfigGenerator) GetRemoteServers(options *RemoteServersGener
 		}
 		// <my_cluster_name>
 		util.Iline(b, 8, "<%s>", cluster.Name)
-
-		// Build each shard XML
 		cluster.WalkShards(func(index int, shard *chiv1.ChiShard) error {
 			if c.ShardHostsNum(shard, options) < 1 {
 				// Skip empty shard
@@ -328,38 +364,10 @@ func (c *ClickHouseConfigGenerator) GetRemoteServers(options *RemoteServersGener
 		util.Iline(b, 8, "<!-- Autogenerated clusters are skipped due to absence of hots -->")
 	} else {
 		util.Iline(b, 8, "<!-- Autogenerated clusters -->")
-		// One Shard All Replicas
-
-		// <my_cluster_name>
-		//     <shard>
-		//         <internal_replication>
-		clusterName := oneShardAllReplicasClusterName
-		util.Iline(b, 8, "<%s>", clusterName)
-		util.Iline(b, 8, "    <shard>")
-		util.Iline(b, 8, "        <internal_replication>true</internal_replication>")
-		c.chi.WalkHosts(func(host *chiv1.ChiHost) error {
-			if options.Include(host) {
-				// <replica>
-				//		<host>XXX</host>
-				//		<port>XXX</port>
-				// </replica>
-				util.Iline(b, 16, "<replica>")
-				util.Iline(b, 16, "    <host>%s</host>", c.getRemoteServersReplicaHostname(host))
-				util.Iline(b, 16, "    <port>%d</port>", host.TCPPort)
-				util.Iline(b, 16, "</replica>")
-			}
-			return nil
-		})
-
-		//     </shard>
-		// </my_cluster_name>
-		util.Iline(b, 8, "    </shard>")
-		util.Iline(b, 8, "</%s>", clusterName)
-
 		// All Shards One Replica
 
 		// <my_cluster_name>
-		clusterName = allShardsOneReplicaClusterName
+		clusterName := allShardsOneReplicaClusterName
 		util.Iline(b, 8, "<%s>", clusterName)
 		c.chi.WalkHosts(func(host *chiv1.ChiHost) error {
 			if options.Include(host) {
@@ -383,6 +391,117 @@ func (c *ClickHouseConfigGenerator) GetRemoteServers(options *RemoteServersGener
 			return nil
 		})
 		// </my_cluster_name>
+		util.Iline(b, 8, "</%s>", clusterName)
+
+		// Physical Consistency Cluster
+
+		// <physical_consistency_cluster>
+		clusterName = physicalConsistencyClusterName
+		util.Iline(b, 8, "<%s>", clusterName)
+		c.chi.WalkShards(func(shard *chiv1.ChiShard) error {
+			if c.ShardHostsNum(shard, options) < 1 {
+				// Skip empty shard
+				return nil
+			}
+
+			// <shard>
+			//		<internal_replication>VALUE(true/false)</internal_replication>
+			util.Iline(b, 12, "<shard>")
+			util.Iline(b, 16, "<internal_replication>%s</internal_replication>", shard.InternalReplication)
+
+			//		<weight>X</weight>
+			if shard.Weight > 0 {
+				util.Iline(b, 16, "<weight>%d</weight>", shard.Weight)
+			}
+
+			shard.WalkHosts(func(host *chiv1.ChiHost) error {
+				if options.Include(host) {
+					// <replica>
+					//		<host>XXX</host>
+					//		<port>XXX</port>
+					// </replica>
+					util.Iline(b, 16, "<replica>")
+					util.Iline(b, 16, "    <host>%s</host>", c.getRemoteServersReplicaHostname(host))
+					util.Iline(b, 16, "    <port>%d</port>", host.TCPPort)
+					util.Iline(b, 16, "</replica>")
+				}
+				return nil
+			})
+
+			// </shard>
+			util.Iline(b, 12, "</shard>")
+
+			return nil
+		})
+		// </physical_consistency_cluster>
+		util.Iline(b, 8, "</%s>", clusterName)
+
+		// Logical Consistency Cluster
+
+		// <logical_consistency_cluster>
+		clusterName = logicalConsistencyClusterName
+		util.Iline(b, 8, "<%s>", clusterName)
+		c.chi.WalkShards(func(shard *chiv1.ChiShard) error {
+			if c.ShardHostsNum(shard, options) < 1 {
+				// Skip empty shard
+				return nil
+			}
+
+			// <shard>
+			util.Iline(b, 12, "<shard>")
+
+			//		<weight>X</weight>
+			if shard.Weight > 0 {
+				util.Iline(b, 16, "<weight>%d</weight>", shard.Weight)
+			}
+
+			shard.WalkHosts(func(host *chiv1.ChiHost) error {
+				if options.Include(host) {
+					// <replica>
+					//		<host>XXX</host>
+					//		<port>XXX</port>
+					// </replica>
+					util.Iline(b, 16, "<replica>")
+					util.Iline(b, 16, "    <host>%s</host>", c.getRemoteServersReplicaHostname(host))
+					util.Iline(b, 16, "    <port>%d</port>", host.TCPPort)
+					util.Iline(b, 16, "</replica>")
+				}
+				return nil
+			})
+			// </shard>
+			util.Iline(b, 12, "</shard>")
+
+			return nil
+		})
+		// </logical_consistency_cluster>
+		util.Iline(b, 8, "</%s>", clusterName)
+
+		// One Shard All Replicas
+
+		// <my_cluster_name>
+		//     <shard>
+		//         <internal_replication>
+		clusterName = oneShardAllReplicasClusterName
+		util.Iline(b, 8, "<%s>", clusterName)
+		util.Iline(b, 8, "    <shard>")
+		util.Iline(b, 8, "        <internal_replication>true</internal_replication>")
+		c.chi.WalkHosts(func(host *chiv1.ChiHost) error {
+			if options.Include(host) {
+				// <replica>
+				//		<host>XXX</host>
+				//		<port>XXX</port>
+				// </replica>
+				util.Iline(b, 16, "<replica>")
+				util.Iline(b, 16, "    <host>%s</host>", c.getRemoteServersReplicaHostname(host))
+				util.Iline(b, 16, "    <port>%d</port>", host.TCPPort)
+				util.Iline(b, 16, "</replica>")
+			}
+			return nil
+		})
+
+		//     </shard>
+		// </my_cluster_name>
+		util.Iline(b, 8, "    </shard>")
 		util.Iline(b, 8, "</%s>", clusterName)
 	}
 
@@ -432,6 +551,7 @@ func (c *ClickHouseConfigGenerator) GetHostMacros(host *chiv1.ChiHost) string {
 	return b.String()
 }
 
+// noCustomPorts
 func noCustomPorts(host *chiv1.ChiHost) bool {
 	if host.TCPPort != chDefaultTCPPortNumber {
 		return false
@@ -505,14 +625,7 @@ func (c *ClickHouseConfigGenerator) getDistributedDDLPath() string {
 // getRemoteServersReplicaHostname returns hostname (podhostname + service or FQDN) for "remote_servers.xml"
 // based on .Spec.Defaults.ReplicasUseFQDN
 func (c *ClickHouseConfigGenerator) getRemoteServersReplicaHostname(host *chiv1.ChiHost) string {
-	if util.IsStringBoolTrue(c.chi.Spec.Defaults.ReplicasUseFQDN) {
-		// In case .Spec.Defaults.ReplicasUseFQDN is set replicas would use FQDN pod hostname,
-		// otherwise hostname+service name (unique within namespace) would be used
-		// .my-dev-namespace.svc.cluster.local
-		return CreatePodFQDN(host)
-	} else {
-		return CreatePodHostname(host)
-	}
+	return CreateReplicaHostname(host)
 }
 
 // getMacrosInstallation returns macros value for <installation-name> macros

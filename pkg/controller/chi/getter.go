@@ -19,13 +19,14 @@ import (
 
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
+	policy "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kublabels "k8s.io/apimachinery/pkg/labels"
 
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
+	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
 )
 
 // getConfigMap gets ConfigMap either by namespaced name or by labels
@@ -113,6 +114,53 @@ func (c *Controller) getService(objMeta *meta.ObjectMeta, byNameOnly bool) (*cor
 
 	if len(objects) == 0 {
 		return nil, apierrors.NewNotFound(apps.Resource("Service"), objMeta.Name)
+	}
+
+	if len(objects) == 1 {
+		// Exactly one object found by labels
+		return objects[0], nil
+	}
+
+	// Too much objects found by labels
+	return nil, fmt.Errorf("too much objects found %d expecting 1", len(objects))
+}
+
+// getPodDisruptionBudget gets getPodDisruptionBudget either by namespaced name or by labels
+func (c *Controller) getPodDisruptionBudget(objMeta *meta.ObjectMeta, byNameOnly bool) (*policy.PodDisruptionBudget, error) {
+	get := c.pdbLister.PodDisruptionBudgets(objMeta.Namespace).Get
+	list := c.pdbLister.PodDisruptionBudgets(objMeta.Namespace).List
+	var objects []*policy.PodDisruptionBudget
+
+	// Check whether object with such name already exists
+	obj, err := get(objMeta.Name)
+
+	if (obj != nil) && (err == nil) {
+		// Object found by name
+		return obj, nil
+	}
+
+	if !apierrors.IsNotFound(err) {
+		// Error, which is not related to "Object not found"
+		return nil, err
+	}
+
+	// Object not found by name. Try to find by labels
+
+	if byNameOnly {
+		return nil, fmt.Errorf("object not found by name %s/%s and no label search allowed ", objMeta.Namespace, objMeta.Name)
+	}
+
+	var selector kublabels.Selector
+	if selector, err = chopmodel.MakeSelectorFromObjectMeta(objMeta); err != nil {
+		return nil, err
+	}
+
+	if objects, err = list(selector); err != nil {
+		return nil, err
+	}
+
+	if len(objects) == 0 {
+		return nil, apierrors.NewNotFound(apps.Resource("PodDisruptionBudget"), objMeta.Name)
 	}
 
 	if len(objects) == 1 {

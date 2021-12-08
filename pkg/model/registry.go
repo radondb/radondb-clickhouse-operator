@@ -16,35 +16,49 @@ package model
 
 import (
 	"fmt"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
+// EntityType specifies registry entity type
 type EntityType string
 
-const StatefulSet EntityType = "StatefulSet"
-const ConfigMap EntityType = "ConfigMap"
-const Service EntityType = "Service"
-const PVC EntityType = "PVC"
-const PV EntityType = "PV"
+// Possible entity types
+const (
+	StatefulSet EntityType = "StatefulSet"
+	ConfigMap   EntityType = "ConfigMap"
+	Service     EntityType = "Service"
+	PVC         EntityType = "PVC"
+	PV          EntityType = "PV"
+)
 
+// Registry specifies registry struct
 type Registry struct {
 	r map[EntityType][]v1.ObjectMeta
 }
 
+// NewRegistry creates new registry
 func NewRegistry() *Registry {
 	return &Registry{
 		r: make(map[EntityType][]v1.ObjectMeta),
 	}
 }
 
-func (r *Registry) Len() int {
+// Len return len of the whole registry or specified entity types
+func (r *Registry) Len(_what ...EntityType) int {
 	if r == nil {
 		return 0
 	}
-	return len(r.r)
+	if len(_what) == 0 {
+		return len(r.r)
+	}
+	what := _what[0]
+	return len(r.r[what])
 }
 
+// Walk walks over registry
 func (r *Registry) Walk(f func(entityType EntityType, meta v1.ObjectMeta)) {
 	if r == nil {
 		return
@@ -56,6 +70,7 @@ func (r *Registry) Walk(f func(entityType EntityType, meta v1.ObjectMeta)) {
 	}
 }
 
+// String makes string representation of the registry
 func (r *Registry) String() string {
 	if r == nil {
 		return ""
@@ -67,6 +82,7 @@ func (r *Registry) String() string {
 	return s
 }
 
+// registerEntity register entity
 func (r *Registry) registerEntity(entityType EntityType, meta v1.ObjectMeta) {
 	if r == nil {
 		return
@@ -85,26 +101,82 @@ func (r *Registry) registerEntity(entityType EntityType, meta v1.ObjectMeta) {
 	r.r[entityType] = append(r.r[entityType], m)
 }
 
+// RegisterStatefulSet registers StatefulSet
 func (r *Registry) RegisterStatefulSet(meta v1.ObjectMeta) {
 	r.registerEntity(StatefulSet, meta)
 }
 
+// HasStatefulSet checks whether registry has specified StatefulSet
+func (r *Registry) HasStatefulSet(meta v1.ObjectMeta) bool {
+	return r.hasEntity(StatefulSet, meta)
+}
+
+// NumStatefulSet gets number of StatefulSet
+func (r *Registry) NumStatefulSet() int {
+	return r.Len(StatefulSet)
+}
+
+// RegisterConfigMap register ConfigMap
 func (r *Registry) RegisterConfigMap(meta v1.ObjectMeta) {
 	r.registerEntity(ConfigMap, meta)
 }
 
+// HasConfigMap checks whether registry has specified ConfigMap
+func (r *Registry) HasConfigMap(meta v1.ObjectMeta) bool {
+	return r.hasEntity(ConfigMap, meta)
+}
+
+// NumConfigMap gets number of ConfigMap
+func (r *Registry) NumConfigMap() int {
+	return r.Len(ConfigMap)
+}
+
+// RegisterService register Service
 func (r *Registry) RegisterService(meta v1.ObjectMeta) {
 	r.registerEntity(Service, meta)
 }
 
+// HasService checks whether registry has specified Service
+func (r *Registry) HasService(meta v1.ObjectMeta) bool {
+	return r.hasEntity(Service, meta)
+}
+
+// NumService gets number of Service
+func (r *Registry) NumService() int {
+	return r.Len(Service)
+}
+
+// RegisterPVC register PVC
 func (r *Registry) RegisterPVC(meta v1.ObjectMeta) {
 	r.registerEntity(PVC, meta)
 }
 
+// HasPVC checks whether registry has specified PVC
+func (r *Registry) HasPVC(meta v1.ObjectMeta) bool {
+	return r.hasEntity(PVC, meta)
+}
+
+// NumPVC gets number of PVC
+func (r *Registry) NumPVC() int {
+	return r.Len(PVC)
+}
+
+// RegisterPV register PV
 func (r *Registry) RegisterPV(meta v1.ObjectMeta) {
 	r.registerEntity(PV, meta)
 }
 
+// HasPV checks whether registry has specified PV
+func (r *Registry) HasPV(meta v1.ObjectMeta) bool {
+	return r.hasEntity(PV, meta)
+}
+
+// NumPV gets number of PV
+func (r *Registry) NumPV() int {
+	return r.Len(PV)
+}
+
+// hasEntity
 func (r *Registry) hasEntity(entityType EntityType, meta v1.ObjectMeta) bool {
 	if r.Len() == 0 {
 		return false
@@ -126,10 +198,12 @@ func (r *Registry) hasEntity(entityType EntityType, meta v1.ObjectMeta) bool {
 	return false
 }
 
+// isEqual
 func (r *Registry) isEqual(a, b v1.ObjectMeta) bool {
 	return (a.Namespace == b.Namespace) && (a.Name == b.Name)
 }
 
+// deleteEntity
 func (r *Registry) deleteEntity(entityType EntityType, meta v1.ObjectMeta) bool {
 	if r.Len() == 0 {
 		return false
@@ -159,6 +233,7 @@ func (r *Registry) deleteEntity(entityType EntityType, meta v1.ObjectMeta) bool 
 	return false
 }
 
+// Subtract subtracts specified registry from main
 func (r *Registry) Subtract(sub *Registry) *Registry {
 	if sub.Len() == 0 {
 		// Nothing to subtract, return base

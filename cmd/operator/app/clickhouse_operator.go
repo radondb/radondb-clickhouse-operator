@@ -26,11 +26,11 @@ import (
 
 	kubeinformers "k8s.io/client-go/informers"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	chopinformers "github.com/altinity/clickhouse-operator/pkg/client/informers/externalversions"
-	"github.com/altinity/clickhouse-operator/pkg/controller/chi"
-	"github.com/altinity/clickhouse-operator/pkg/version"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	"github.com/radondb/clickhouse-operator/pkg/chop"
+	chopinformers "github.com/radondb/clickhouse-operator/pkg/client/informers/externalversions"
+	"github.com/radondb/clickhouse-operator/pkg/controller/chi"
+	"github.com/radondb/clickhouse-operator/pkg/version"
 )
 
 // Prometheus exporter defaults
@@ -98,8 +98,7 @@ func Run() {
 	kubeClient, chopClient := chop.GetClientset(kubeConfigFile, masterURL)
 
 	// Create operator instance
-	chop := chop.GetCHOp(kubeClient, chopClient, chopConfigFile)
-	chop.SetupLog()
+	chop.New(kubeClient, chopClient, chopConfigFile)
 	log.V(1).A().Info("Log options parsed")
 	log.Info(chop.Config().String(true))
 
@@ -117,7 +116,6 @@ func Run() {
 
 	// Create Controller
 	chiController := chi.NewController(
-		chop,
 		chopClient,
 		kubeClient,
 		chopInformerFactory,

@@ -22,24 +22,17 @@ import (
 	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
-	"github.com/altinity/clickhouse-operator/pkg/util"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
+	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
 // deleteHost deletes all kubernetes resources related to replica *chop.ChiHost
 func (c *Controller) deleteHost(ctx context.Context, host *chop.ChiHost) error {
-	// Each host consists of
-	// 1. Tables on host - we need to delete tables on the host in order to clean Zookeeper data
-	// 2. StatefulSet
-	// 3. PersistentVolumeClaim
-	// 4. ConfigMap
-	// 5. Service
-	// Need to delete all these item
-
 	log.V(1).M(host).S().Info(host.Address.ClusterNameString())
 
+	// Each host consists of:
 	_ = c.deleteStatefulSet(ctx, host)
 	_ = c.deletePVC(ctx, host)
 	_ = c.deleteConfigMap(ctx, host)
@@ -48,6 +41,68 @@ func (c *Controller) deleteHost(ctx context.Context, host *chop.ChiHost) error {
 	log.V(1).M(host).E().Info(host.Address.ClusterNameString())
 
 	return nil
+}
+
+// deleteZooKeeper deletes all kubernetes resources related to ZooKeeper
+func (c *Controller) deleteZooKeeper(ctx context.Context, chi *chop.ClickHouseInstallation) error {
+	log.V(1).M(chi).S().Info(chi.Name)
+	defer log.V(1).M(chi).E().Info(chi.Name)
+
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	// Each ZooKeeper consists of
+	// 1. StatefulSet
+	// 2. PersistentVolumeClaim
+	// 3. Service
+	// Need to delete all these item
+	var err error
+
+	// Namespaced name
+	zooKeeperName := chopmodel.CreateStatefulSetZooKeeperName(chi)
+	namespace := chi.Namespace
+
+	// delete StatefulSet
+	log.V(1).M(chi).F().Info("%s/%s", namespace, zooKeeperName)
+	if err = c.kubeClient.AppsV1().StatefulSets(namespace).Delete(ctx, zooKeeperName, newDeleteOptions()); err == nil {
+		log.V(1).M(chi).Info("OK delete StatefulSet %s/%s", namespace, zooKeeperName)
+	} else if apierrors.IsNotFound(err) {
+		log.V(1).M(chi).Info("NEUTRAL not found StatefulSet %s/%s", namespace, zooKeeperName)
+		err = nil
+	} else {
+		log.V(1).M(chi).A().Error("FAIL delete StatefulSet %s/%s err: %v", namespace, zooKeeperName, err)
+	}
+
+	// delete PDB
+	pdbName := chopmodel.CreatePodDisruptionBudgetZooKeeperName(chi)
+	log.V(1).M(chi).F().Info("%s/%s", namespace, pdbName)
+	if err = c.kubeClient.PolicyV1beta1().PodDisruptionBudgets(namespace).Delete(ctx, pdbName, newDeleteOptions()); err == nil {
+		log.V(1).M(chi).Info("OK delete PodDisruptionBudget %s/%s", namespace, pdbName)
+	} else if apierrors.IsNotFound(err) {
+		log.V(1).M(chi).Info("NEUTRAL not found PodDisruptionBudget %s/%s", namespace, pdbName)
+		err = nil
+	} else {
+		log.V(1).M(chi).A().Error("FAIL delete PodDisruptionBudget %s/%s err: %v", namespace, pdbName, err)
+	}
+
+	// delete PVC?
+
+	// delete Service
+	clientName := chopmodel.CreateStatefulSetServiceZooKeeperClientName(chi)
+	log.V(1).M(chi).F().Info("%s/%s", namespace, clientName)
+	if err = c.deleteServiceIfExists(ctx, namespace, clientName); err != nil {
+		log.V(1).M(chi).A().Error("FAIL delete Service %s/%s err: %v", namespace, clientName, err)
+	}
+
+	serverName := chopmodel.CreateStatefulSetServiceZooKeeperServerName(chi)
+	log.V(1).M(chi).F().Info("%s/%s", namespace, serverName)
+	if err = c.deleteServiceIfExists(ctx, namespace, serverName); err != nil {
+		log.V(1).M(chi).A().Error("FAIL delete Service %s/%s err: %v", namespace, serverName, err)
+	}
+
+	return err
 }
 
 // deleteConfigMapsCHI
@@ -61,7 +116,7 @@ func (c *Controller) deleteConfigMapsCHI(ctx context.Context, chi *chop.ClickHou
 	//
 	// chi-b3d29f-common-configd   2      61s
 	// chi-b3d29f-common-usersd    0      61s
-	// service/clickhouse-example-01         LoadBalancer   10.106.183.200   <pending>     8123:31607/TCP,9000:31492/TCP,9009:31357/TCP   33s   clickhouse.altinity.com/chi=example-01
+	// service/clickhouse-example-01         LoadBalancer   10.106.183.200   <pending>     8123:31607/TCP,9000:31492/TCP,9009:31357/TCP   33s   clickhouse.radondb.com/chi=example-01
 
 	var err error
 
@@ -70,22 +125,23 @@ func (c *Controller) deleteConfigMapsCHI(ctx context.Context, chi *chop.ClickHou
 
 	// Delete ConfigMap
 	err = c.kubeClient.CoreV1().ConfigMaps(chi.Namespace).Delete(ctx, configMapCommon, newDeleteOptions())
-	if err == nil {
+	switch {
+	case err == nil:
 		log.V(1).M(chi).Info("OK delete ConfigMap %s/%s", chi.Namespace, configMapCommon)
-	} else if apierrors.IsNotFound(err) {
+	case apierrors.IsNotFound(err):
 		log.V(1).M(chi).Info("NEUTRAL not found ConfigMap %s/%s", chi.Namespace, configMapCommon)
-		err = nil
-	} else {
+	default:
 		log.V(1).M(chi).A().Error("FAIL delete ConfigMap %s/%s err:%v", chi.Namespace, configMapCommon, err)
 	}
 
 	err = c.kubeClient.CoreV1().ConfigMaps(chi.Namespace).Delete(ctx, configMapCommonUsersName, newDeleteOptions())
-	if err == nil {
+	switch {
+	case err == nil:
 		log.V(1).M(chi).Info("OK delete ConfigMap %s/%s", chi.Namespace, configMapCommonUsersName)
-	} else if apierrors.IsNotFound(err) {
+	case apierrors.IsNotFound(err):
 		log.V(1).M(chi).Info("NEUTRAL not found ConfigMap %s/%s", chi.Namespace, configMapCommonUsersName)
 		err = nil
-	} else {
+	default:
 		log.V(1).M(chi).A().Error("FAIL delete ConfigMap %s/%s err:%v", chi.Namespace, configMapCommonUsersName, err)
 	}
 
@@ -161,7 +217,6 @@ func (c *Controller) deleteStatefulSet(ctx context.Context, host *chop.ChiHost) 
 		c.waitHostDeleted(host)
 	} else if apierrors.IsNotFound(err) {
 		log.V(1).M(host).Info("NEUTRAL not found StatefulSet %s/%s", namespace, name)
-		err = nil
 	} else {
 		log.V(1).M(host).A().Error("FAIL delete StatefulSet %s/%s err: %v", namespace, name, err)
 	}
@@ -199,7 +254,7 @@ func (c *Controller) deletePVC(ctx context.Context, host *chop.ChiHost) error {
 	defer log.V(2).M(host).E().P()
 
 	namespace := host.Address.Namespace
-	c.walkActualPVCs(host, func(pvc *v1.PersistentVolumeClaim) {
+	c.walkDiscoveredPVCs(host, func(pvc *v1.PersistentVolumeClaim) {
 		if util.IsContextDone(ctx) {
 			log.V(2).Info("ctx is done")
 			return
@@ -216,7 +271,6 @@ func (c *Controller) deletePVC(ctx context.Context, host *chop.ChiHost) error {
 			log.V(1).M(host).Info("OK delete PVC %s/%s", namespace, pvc.Name)
 		} else if apierrors.IsNotFound(err) {
 			log.V(1).M(host).Info("NEUTRAL not found PVC %s/%s", namespace, pvc.Name)
-			err = nil
 		} else {
 			log.M(host).A().Error("FAIL to delete PVC %s/%s err:%v", namespace, pvc.Name, err)
 		}
@@ -232,7 +286,7 @@ func (c *Controller) deleteConfigMap(ctx context.Context, host *chop.ChiHost) er
 		return nil
 	}
 
-	name := chopmodel.CreateConfigMapPodName(host)
+	name := chopmodel.CreateConfigMapPersonalName(host)
 	namespace := host.Address.Namespace
 	log.V(1).M(host).F().Info("%s/%s", namespace, name)
 
@@ -240,7 +294,6 @@ func (c *Controller) deleteConfigMap(ctx context.Context, host *chop.ChiHost) er
 		log.V(1).M(host).Info("OK delete ConfigMap %s/%s", namespace, name)
 	} else if apierrors.IsNotFound(err) {
 		log.V(1).M(host).Info("NEUTRAL not found ConfigMap %s/%s", namespace, name)
-		err = nil
 	} else {
 		log.V(1).M(host).A().Error("FAIL delete ConfigMap %s/%s err:%v", namespace, name, err)
 	}

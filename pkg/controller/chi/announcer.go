@@ -20,8 +20,8 @@ import (
 
 	log "github.com/golang/glog"
 
-	a "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	a "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 )
 
 // Announcer handler all log/event/status messages going outside of controller/worker
@@ -51,11 +51,18 @@ type Announcer struct {
 	writeStatusError bool
 }
 
-// New creates new announcer
+// NewAnnouncer creates new announcer
 func NewAnnouncer() Announcer {
 	return Announcer{
 		Announcer: a.New(),
 	}
+}
+
+// Silence produces silent announcer
+func (a Announcer) Silence() Announcer {
+	b := a
+	b.Announcer = b.Announcer.Silence()
+	return b
 }
 
 // V is inspired by log.V()
@@ -247,7 +254,7 @@ func (a Announcer) WithStatusActions(chi *chop.ClickHouseInstallation) Announcer
 	return b
 }
 
-// WithStatusAction is used in chained calls in order to produce error in ClickHouseInstallation.Status.Error
+// WithStatusError is used in chained calls in order to produce error in ClickHouseInstallation.Status.Error
 func (a Announcer) WithStatusError(chi *chop.ClickHouseInstallation) Announcer {
 	b := a
 	if chi == nil {

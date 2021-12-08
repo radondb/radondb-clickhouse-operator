@@ -1,11 +1,11 @@
+# main test runner
 import kubectl
 import settings
-import test_operator
 import test_clickhouse
+import test_operator
 import util
 
-from testflows.core import TestScenario, Name, When, Then, Given, And, main, Scenario, Module, TE, args, Fail, Error
-from testflows.asserts import error
+from testflows.core import Given, main, Scenario, Module, Fail, Error
 
 if main():
     with Module("main"):
@@ -16,7 +16,7 @@ if main():
 
         with Given(f"clickhouse-operator version {settings.operator_version} is installed"):
             if kubectl.get_count("pod", ns=settings.operator_namespace, label="-l app=clickhouse-operator") == 0:
-                config = util.get_full_path('../deploy/operator/clickhouse-operator-install-template.yaml')
+                config = util.get_full_path(settings.clickhouse_operator_install)
                 kubectl.apply(
                     ns=settings.operator_namespace,
                     config=f"<(cat {config} | "
@@ -27,7 +27,7 @@ if main():
                     f"envsubst)",
                     validate=False
                 )
-            test_operator.set_operator_version(settings.operator_version)
+            util.set_operator_version(settings.operator_version)
 
         with Given(f"Install ClickHouse template {settings.clickhouse_template}"):
             kubectl.apply(util.get_full_path(settings.clickhouse_template), settings.test_namespace)
@@ -41,16 +41,17 @@ if main():
              "/main/operator/test_022. Test that chi with broken image can be deleted": [(Error, "Not supported yet. Timeout")],
              "/main/operator/test_024. Test annotations for various template types/PV annotations should be populated": [(Fail, "Not supported yet")],
         }
-        with Module("operator", xfails = xfails):
+        with Module("operator", xfails=xfails):
             all_tests = [
                 test_operator.test_001,
                 test_operator.test_002,
+                test_operator.test_003,
                 test_operator.test_004,
                 test_operator.test_005,
                 test_operator.test_006,
                 test_operator.test_007,
                 test_operator.test_008,
-                (test_operator.test_009, {"version_from": "0.13.5"}),
+                (test_operator.test_009, {"version_from": "0.15.0"}),
                 test_operator.test_010,
                 test_operator.test_011,
                 test_operator.test_011_1,
@@ -60,15 +61,18 @@ if main():
                 test_operator.test_015,
                 test_operator.test_016,
                 test_operator.test_017,
-                # test_operator.test_018, # Obsolete, covered by test_016
+                test_operator.test_018,
                 test_operator.test_019,
                 test_operator.test_020,
                 test_operator.test_021,
+                test_operator.test_022,
                 test_operator.test_023,
                 test_operator.test_024,
                 test_operator.test_025,
                 test_operator.test_026,
-                test_operator.test_022, # this should go last while failing
+                test_operator.test_027,
+                test_operator.test_028,
+                test_operator.test_029,
             ]
             run_tests = all_tests
 

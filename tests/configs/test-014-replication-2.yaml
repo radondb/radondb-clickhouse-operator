@@ -1,4 +1,4 @@
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 
 kind: "ClickHouseInstallation"
 
@@ -19,6 +19,5 @@ spec:
     clusters:
       - name: default
         layout:
-          shardsCount: 1
-          replicasCount: 3
+          replicasCount: 5
 

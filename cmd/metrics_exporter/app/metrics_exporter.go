@@ -25,9 +25,9 @@ import (
 	log "github.com/golang/glog"
 	// log "k8s.io/klog"
 
-	"github.com/altinity/clickhouse-operator/pkg/apis/metrics"
-	"github.com/altinity/clickhouse-operator/pkg/chop"
-	"github.com/altinity/clickhouse-operator/pkg/version"
+	"github.com/radondb/clickhouse-operator/pkg/apis/metrics"
+	"github.com/radondb/clickhouse-operator/pkg/chop"
+	"github.com/radondb/clickhouse-operator/pkg/version"
 )
 
 // Prometheus exporter defaults
@@ -93,8 +93,7 @@ func Run() {
 	kubeClient, chopClient := chop.GetClientset(kubeConfigFile, masterURL)
 
 	// Create operator instance
-	chop := chop.GetCHOp(kubeClient, chopClient, chopConfigFile)
-	chop.SetupLog()
+	chop.New(kubeClient, chopClient, chopConfigFile)
 	log.Info(chop.Config().String(true))
 
 	exporter := metrics.StartMetricsREST(
@@ -111,7 +110,7 @@ func Run() {
 		chiListPath,
 	)
 
-	exporter.DiscoveryWatchedCHIs(chop, chopClient)
+	exporter.DiscoveryWatchedCHIs(chopClient)
 
 	<-ctx.Done()
 }

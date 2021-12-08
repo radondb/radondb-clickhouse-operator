@@ -1,4 +1,4 @@
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallationTemplate"
 
 metadata:
@@ -12,5 +12,5 @@ spec:
       - name: default
         spec:
           containers:
-            - name: clickhouse
+            - name: clickhouse-pod
               image: yandex/clickhouse-server:20.5

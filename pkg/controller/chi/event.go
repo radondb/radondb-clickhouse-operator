@@ -20,8 +20,8 @@ import (
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 )
 
 const (
@@ -59,6 +59,7 @@ const (
 	eventReasonDeleteFailed        = "DeleteFailed"
 )
 
+// EventInfo emits event Info
 func (c *Controller) EventInfo(
 	chi *chop.ClickHouseInstallation,
 	action string,
@@ -68,6 +69,7 @@ func (c *Controller) EventInfo(
 	c.emitEvent(chi, eventTypeInfo, action, reason, message)
 }
 
+// EventWarning emits event Warning
 func (c *Controller) EventWarning(
 	chi *chop.ClickHouseInstallation,
 	action string,
@@ -77,6 +79,7 @@ func (c *Controller) EventWarning(
 	c.emitEvent(chi, eventTypeWarning, action, reason, message)
 }
 
+// EventError emits event Error
 func (c *Controller) EventError(
 	chi *chop.ClickHouseInstallation,
 	action string,
@@ -114,7 +117,7 @@ func (c *Controller) emitEvent(
 			Namespace:       namespace,
 			Name:            name,
 			UID:             uid,
-			APIVersion:      "clickhouse.altinity.com/v1",
+			APIVersion:      "clickhouse.radondb.com/v1",
 			ResourceVersion: resourceVersion,
 		},
 		Reason:  reason,

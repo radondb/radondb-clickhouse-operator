@@ -1,4 +1,4 @@
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: test-015-host-network
@@ -39,5 +39,10 @@ spec:
         #  - type: CircularReplication
         spec:
           hostNetwork: true
+          containers:
+            - name: clickhouse-pod
+              image: yandex/clickhouse-server:latest
+
+
           # dnsPolicy: ClusterFirstWithHostNet
 

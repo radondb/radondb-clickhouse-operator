@@ -14,7 +14,7 @@
 
 package model
 
-import "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+import "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 
 const (
 	xmlTagYandex = "yandex"
@@ -63,21 +63,40 @@ const (
 )
 
 const (
-	// Default ClickHouse docker image to be used
-	defaultClickHouseDockerImage = "yandex/clickhouse-server:latest"
+	// defaultClickHouseDockerImage specifies default ClickHouse docker image to be used
+	defaultClickHouseDockerImage = "radondb/clickhouse-server:latest"
 
-	// Default BusyBox docker image to be used
+	// defaultBusyBoxDockerImage specifies default BusyBox docker image to be used
 	defaultBusyBoxDockerImage = "busybox"
 
-	// Name of container within Pod with ClickHouse instance. Pod may have other containers included, such as monitoring
-	ClickHouseContainerName    = "clickhouse"
+	// Name of container within Pod with ClickHouse instance.
+	// Pod may have other containers included, such as monitoring, logging
+
+	// ClickHouseContainerName specifies name of the clickhouse container in the pod
+	ClickHouseContainerName = "clickhouse"
+	// ClickHouseLogContainerName specifies name of the logger container in the pod
 	ClickHouseLogContainerName = "clickhouse-log"
 )
 
 const (
-	chPortNumberMustBeAssignedLater = 0
+	// Default ZooKeeper docker image to be used
+	defaultZooKeeperDockerImage = "radondb/zookeeper:3.6.2"
 
-	// ClickHouse open ports
+	// zooKeeperContainerName Name of container within Pod with ZooKeeper instance.
+	zooKeeperContainerName = "zookeeper"
+)
+
+const (
+	defaultPrometheusPortName   = "prometheus"
+	defaultPrometheusPortNumber = 7000
+)
+
+const (
+	// chPortNumberMustBeAssignedLater value means that port
+	// is not assigned yet and is expected to be assigned later.
+	chPortNumberMustBeAssignedLater = int32(0)
+
+	// ClickHouse open ports names and values
 	chDefaultTCPPortName               = "tcp"
 	chDefaultTCPPortNumber             = int32(9000)
 	chDefaultHTTPPortName              = "http"
@@ -87,7 +106,14 @@ const (
 )
 
 const (
-	zkDefaultPort = 2181
+	// ZooKeeper open ports
+	zkDefaultClientPortName           = "client"
+	zkDefaultClientPortNumber         = int32(2181)
+	zkDefaultServerPortName           = "server"
+	zkDefaultServerPortNumber         = int32(2888)
+	zkDefaultLeaderElectionPortName   = "leader-election"
+	zkDefaultLeaderElectionPortNumber = int32(3888)
+
 	// zkDefaultRootTemplate specifies default ZK root - /clickhouse/{namespace}/{chi name}
 	zkDefaultRootTemplate = "/clickhouse/%s/%s"
 )

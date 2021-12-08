@@ -111,7 +111,7 @@ More [Grafana docs][grafana-docs]
 [grafana_manifest_yaml_secret]:  ../deploy/grafana/grafana-manually/grafana.yaml#L56
 [create_grafana_script]: ../deploy/grafana/grafana-manually/create-grafana.sh 
 [prometheus_setup_doc]: ./prometheus_setup.md 
-[altinity_recommended_dashboard]: ../grafana-dashboard/Altinity_ClickHouse_Operator_dashboard.json 
+[altinity_recommended_dashboard]: ../grafana-dashboard/RadonDB_ClickHouse_Operator_dashboard.json 
 [install_grafana_operator_script]: ../deploy/grafana/grafana-with-grafana-operator/install-grafana-operator.sh
 [install_grafana_dashboard_script]: ../deploy/grafana/grafana-with-grafana-operator/install-grafana-with-operator.sh
 [grafana-docs]: http://docs.grafana.org/

@@ -17,9 +17,10 @@ package model
 import (
 	"k8s.io/api/core/v1"
 
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
+	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 )
 
+// HostCanDeletePVC checks whether PVC on a host can be deleted
 func HostCanDeletePVC(host *chiv1.ChiHost, pvcName string) bool {
 	// In any unknown cases just delete PVC with unclear bindings
 	policy := chiv1.PVCReclaimPolicyDelete

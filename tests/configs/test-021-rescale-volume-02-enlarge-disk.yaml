@@ -1,4 +1,4 @@
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
   name: "test-021-rescale-volume"
@@ -19,7 +19,7 @@ spec:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 200Mi
+              storage: 2Gi
     podTemplates:
       - name: multi-volume
         spec:

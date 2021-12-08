@@ -20,7 +20,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 
-	"github.com/altinity/clickhouse-operator/pkg/model/clickhouse"
+	"github.com/radondb/clickhouse-operator/pkg/model/clickhouse"
 )
 
 const (
@@ -138,23 +138,26 @@ const (
     `
 )
 
+// ClickHouseFetcher specifies clickhouse fetcher object
 type ClickHouseFetcher struct {
-	chConnectionParams *clickhouse.CHConnectionParams
+	connectionParams *clickhouse.ConnectionParams
 }
 
+// NewClickHouseFetcher creates new clickhouse fetcher object
 func NewClickHouseFetcher(hostname, username, password string, port int) *ClickHouseFetcher {
 	return &ClickHouseFetcher{
-		chConnectionParams: clickhouse.NewCHConnectionParams(hostname, username, password, port),
+		connectionParams: clickhouse.NewConnectionParams(hostname, username, password, port),
 	}
 }
 
-func (f *ClickHouseFetcher) SetTimeout(timeout time.Duration) *ClickHouseFetcher {
-	f.chConnectionParams.SetTimeout(timeout)
+// SetQueryTimeout sets query timeout
+func (f *ClickHouseFetcher) SetQueryTimeout(timeout time.Duration) *ClickHouseFetcher {
+	f.connectionParams.SetQueryTimeout(timeout)
 	return f
 }
 
-func (f *ClickHouseFetcher) getCHConnection() *clickhouse.CHConnection {
-	return clickhouse.GetPooledDBConnection(f.chConnectionParams)
+func (f *ClickHouseFetcher) getConnection() *clickhouse.Connection {
+	return clickhouse.GetPooledDBConnection(f.connectionParams)
 }
 
 // getClickHouseQueryMetrics requests metrics data from ClickHouse
@@ -204,9 +207,9 @@ func (f *ClickHouseFetcher) getClickHouseQueryMutations() ([][]string, error) {
 	return f.clickHouseQueryScanRows(
 		queryMutationsSQL,
 		func(rows *sqlmodule.Rows, data *[][]string) error {
-			var database, table, mutations, parts_to_do string
-			if err := rows.Scan(&database, &table, &mutations, &parts_to_do); err == nil {
-				*data = append(*data, []string{database, table, mutations, parts_to_do})
+			var database, table, mutations, partsToDo string
+			if err := rows.Scan(&database, &table, &mutations, &partsToDo); err == nil {
+				*data = append(*data, []string{database, table, mutations, partsToDo})
 			}
 			return nil
 		},
@@ -249,7 +252,7 @@ func (f *ClickHouseFetcher) clickHouseQueryScanRows(
 		data *[][]string,
 	) error,
 ) ([][]string, error) {
-	query, err := f.getCHConnection().Query(heredoc.Doc(sql))
+	query, err := f.getConnection().Query(heredoc.Doc(sql))
 	if err != nil {
 		return nil, err
 	}

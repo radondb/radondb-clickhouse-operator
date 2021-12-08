@@ -17,9 +17,9 @@ package chi
 import (
 	"k8s.io/api/core/v1"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chop "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopmodel "github.com/altinity/clickhouse-operator/pkg/model"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
 )
 
 func (c *Controller) walkPVCs(host *chop.ChiHost, f func(pvc *v1.PersistentVolumeClaim)) {
@@ -48,11 +48,10 @@ func (c *Controller) walkPVCs(host *chop.ChiHost, f func(pvc *v1.PersistentVolum
 	}
 }
 
-func (c *Controller) walkActualPVCs(host *chop.ChiHost, f func(pvc *v1.PersistentVolumeClaim)) {
+func (c *Controller) walkDiscoveredPVCs(host *chop.ChiHost, f func(pvc *v1.PersistentVolumeClaim)) {
 	namespace := host.Address.Namespace
-	labeler := chopmodel.NewLabeler(c.chop, host.CHI)
 
-	pvcList, err := c.kubeClient.CoreV1().PersistentVolumeClaims(namespace).List(newContext(), newListOptions(labeler.GetSelectorHostScope(host)))
+	pvcList, err := c.kubeClient.CoreV1().PersistentVolumeClaims(namespace).List(newContext(), newListOptions(chopmodel.GetSelectorHostScope(host)))
 	if err != nil {
 		log.M(host).A().Error("FAIL get list of PVC for host %s/%s err:%v", namespace, host.Name, err)
 		return

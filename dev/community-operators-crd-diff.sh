@@ -5,7 +5,7 @@ CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source "${CUR_DIR}/go_build_config.sh"
 
 # Where community-operators sources are located
-CO_PATH=~/dev/community-operators/upstream-community-operators/clickhouse/${VERSION}
+CO_PATH=~/dev/community-operators/operators/clickhouse/${VERSION}
 
 # Ask to prepare copy of required files
 echo "Please ensure new version ${VERSION} is already available by the following path:"
@@ -19,6 +19,6 @@ if [[ ! -d "${CO_PATH}" ]]; then
 fi
 
 # Compare
-meld "${MANIFESTS_ROOT}"/dev/clickhouse-operator-install-yaml-template-01-section-crd-01-chi.yaml      "${CO_PATH}"/clickhouseinstallations.clickhouse.altinity.com.crd.yaml
-meld "${MANIFESTS_ROOT}"/dev/clickhouse-operator-install-yaml-template-01-section-crd-02-chit.yaml     "${CO_PATH}"/clickhouseinstallationtemplates.clickhouse.altinity.com.crd.yaml
-meld "${MANIFESTS_ROOT}"/dev/clickhouse-operator-install-yaml-template-01-section-crd-03-chopconf.yaml "${CO_PATH}"/clickhouseoperatorconfigurations.clickhouse.altinity.com.crd.yaml
+meld "${MANIFESTS_ROOT}"/dev/clickhouse-operator-install-yaml-template-01-section-crd-01-chi.yaml      "${CO_PATH}"/clickhouseinstallations.clickhouse.radondb.com.crd.yaml
+meld "${MANIFESTS_ROOT}"/dev/clickhouse-operator-install-yaml-template-01-section-crd-02-chit.yaml     "${CO_PATH}"/clickhouseinstallationtemplates.clickhouse.radondb.com.crd.yaml
+meld "${MANIFESTS_ROOT}"/dev/clickhouse-operator-install-yaml-template-01-section-crd-03-chopconf.yaml "${CO_PATH}"/clickhouseoperatorconfigurations.clickhouse.radondb.com.crd.yaml

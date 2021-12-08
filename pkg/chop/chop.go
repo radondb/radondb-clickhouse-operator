@@ -16,11 +16,13 @@ package chop
 
 import (
 	"flag"
+	"fmt"
+
 	kube "k8s.io/client-go/kubernetes"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	"github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	"github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
 )
 
 // CHOp defines ClickHouse Operator
@@ -31,7 +33,7 @@ type CHOp struct {
 	ConfigManager *ConfigManager
 }
 
-// NewCHOp
+// NewCHOp creates new CHOp
 func NewCHOp(
 	version string,
 	kubeClient *kube.Clientset,
@@ -44,33 +46,39 @@ func NewCHOp(
 	}
 }
 
-// Init
+// Init initializes CHOp
 func (c *CHOp) Init() error {
+	if c == nil {
+		return fmt.Errorf("chop not created")
+	}
 	return c.ConfigManager.Init()
 }
 
-// Config
+// Config returns operator config
 func (c *CHOp) Config() *v1.OperatorConfig {
+	if c == nil {
+		return nil
+	}
 	return c.ConfigManager.Config()
 }
 
-// SetupLog
+// SetupLog sets up loggging options
 func (c *CHOp) SetupLog() {
 	updated := false
-	if c.Config().Logtostderr != "" {
-		c.logUpdate("logtostderr", c.Config().Logtostderr)
+	if c.Config().LogToStderr != "" {
+		c.logUpdate("logtostderr", c.Config().LogToStderr)
 		updated = true
-		_ = flag.Set("logtostderr", c.Config().Logtostderr)
+		_ = flag.Set("logtostderr", c.Config().LogToStderr)
 	}
-	if c.Config().Alsologtostderr != "" {
-		c.logUpdate("alsologtostderr", c.Config().Alsologtostderr)
+	if c.Config().AlsoLogToStderr != "" {
+		c.logUpdate("alsologtostderr", c.Config().AlsoLogToStderr)
 		updated = true
-		_ = flag.Set("alsologtostderr", c.Config().Alsologtostderr)
+		_ = flag.Set("alsologtostderr", c.Config().AlsoLogToStderr)
 	}
-	if c.Config().Stderrthreshold != "" {
-		c.logUpdate("stderrthreshold", c.Config().Stderrthreshold)
+	if c.Config().StderrThreshold != "" {
+		c.logUpdate("stderrthreshold", c.Config().StderrThreshold)
 		updated = true
-		_ = flag.Set("stderrthreshold", c.Config().Stderrthreshold)
+		_ = flag.Set("stderrthreshold", c.Config().StderrThreshold)
 	}
 	if c.Config().V != "" {
 		c.logUpdate("v", c.Config().V)

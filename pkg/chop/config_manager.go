@@ -26,9 +26,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kube "k8s.io/client-go/kubernetes"
 
-	log "github.com/altinity/clickhouse-operator/pkg/announcer"
-	chiv1 "github.com/altinity/clickhouse-operator/pkg/apis/clickhouse.altinity.com/v1"
-	chopclientset "github.com/altinity/clickhouse-operator/pkg/client/clientset/versioned"
+	log "github.com/radondb/clickhouse-operator/pkg/announcer"
+	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
+	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
 )
 
 // ConfigManager specifies configuration manager in charge of operator's configuration
@@ -177,7 +177,7 @@ func (cm *ConfigManager) buildUnifiedConfig() {
 
 	// Merge all the rest CR-based configs into base config
 	for _, chOperatorConfiguration := range cm.crConfigs {
-		cm.config.MergeFrom(chOperatorConfiguration, chiv1.MergeTypeOverrideByNonEmptyValues)
+		_ = cm.config.MergeFrom(chOperatorConfiguration, chiv1.MergeTypeOverrideByNonEmptyValues)
 	}
 }
 
@@ -202,21 +202,21 @@ func (cm *ConfigManager) getFileBasedConfig(configFilePath string) (*chiv1.Opera
 	// In case we have config file specified - that's it
 	if len(configFilePath) > 0 {
 		// Config file explicitly specified as CLI flag
-		if conf, err := cm.buildConfigFromFile(configFilePath); err == nil {
-			return conf, nil
-		} else {
+		conf, err := cm.buildConfigFromFile(configFilePath)
+		if err != nil {
 			return nil, err
 		}
+		return conf, nil
 	}
 
 	// No file specified - look for ENV var config file path specification
 	if len(os.Getenv(chiv1.CHOP_CONFIG)) > 0 {
 		// Config file explicitly specified as ENV var
-		if conf, err := cm.buildConfigFromFile(os.Getenv(chiv1.CHOP_CONFIG)); err == nil {
-			return conf, nil
-		} else {
+		conf, err := cm.buildConfigFromFile(os.Getenv(chiv1.CHOP_CONFIG))
+		if err != nil {
 			return nil, err
 		}
+		return conf, nil
 	}
 
 	// No ENV var specified - look into user's homedir
@@ -244,7 +244,7 @@ func (cm *ConfigManager) getFileBasedConfig(configFilePath string) (*chiv1.Opera
 // buildConfigFromFile returns OperatorConfig struct built out of specified file path
 func (cm *ConfigManager) buildConfigFromFile(configFilePath string) (*chiv1.OperatorConfig, error) {
 	// Read config file content
-	yamlText, err := ioutil.ReadFile(configFilePath)
+	yamlText, err := ioutil.ReadFile(filepath.Clean(configFilePath))
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func (cm *ConfigManager) buildConfigFromFile(configFilePath string) (*chiv1.Oper
 	}
 
 	// Fill OperatorConfig's paths
-	config.ConfigFilePath, err = filepath.Abs(configFilePath)
+	config.ConfigFilePath, _ = filepath.Abs(configFilePath)
 	config.ConfigFolderPath = filepath.Dir(config.ConfigFilePath)
 
 	return config, nil
@@ -355,10 +355,8 @@ func (cm *ConfigManager) fetchSecretCredentials() {
 	if namespace == "" {
 		// No namespace explicitly specified, let's look into namespace where pod is running
 		if cm.HasRuntimeParam(chiv1.OPERATOR_POD_NAMESPACE) {
-			// Unable to figure out namespace where pod is running, can not continue
-			return
+			namespace, _ = cm.GetRuntimeParam(chiv1.OPERATOR_POD_NAMESPACE)
 		}
-		namespace, _ = cm.GetRuntimeParam(chiv1.OPERATOR_POD_NAMESPACE)
 	}
 
 	// Sanity check
@@ -382,7 +380,7 @@ func (cm *ConfigManager) fetchSecretCredentials() {
 	}
 }
 
-// Postprocess
+// Postprocess performs postprocessing of the configuration
 func (cm *ConfigManager) Postprocess() {
 	cm.config.Postprocess()
 }
