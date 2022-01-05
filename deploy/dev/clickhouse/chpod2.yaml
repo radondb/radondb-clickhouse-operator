@@ -23,7 +23,7 @@ spec:
   subdomain: chpod-hs
   containers:
   - name: chpod2
-    image: yandex/clickhouse-server
+    image: radondb/clickhouse-server
     livenessProbe:
       tcpSocket:
         port: 8123

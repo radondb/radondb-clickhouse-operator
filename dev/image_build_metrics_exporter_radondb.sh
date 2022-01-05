@@ -7,8 +7,9 @@ CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source "${CUR_DIR}/go_build_config.sh"
 
 # Externally configurable build-dependent options
-TAG="radondb/metrics-exporter:${TAG:-latest}"
-DOCKERHUB_LOGIN="${DOCKERHUB_LOGIN:-radondbbuilds}"
+PROJECT_ROOT="$(realpath "${CUR_DIR}/..")"
+TAG="radondb/chronus-metrics-operator:$(cat ${PROJECT_ROOT}/release)"
+DOCKERHUB_LOGIN="${DOCKERHUB_LOGIN}"
 DOCKERHUB_PUBLISH="${DOCKERHUB_PUBLISH:-yes}"
 MINIKUBE="${MINIKUBE:-no}"
 

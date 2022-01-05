@@ -1,7 +1,10 @@
 #!/bin/bash
 
-OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE:-clickhouse-operator}"
-OPERATOR_IMAGE="${OPERATOR_IMAGE:-radondb/clickhouse-operator:latest}"
+CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+PROJECT_ROOT="$(realpath "${CUR_DIR}/../..")"
+TAG=$(cat ${PROJECT_ROOT}/release)
+OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE:-kube-system}"
+OPERATOR_IMAGE="${OPERATOR_IMAGE:-radondb/chronus-operator}:${TAG}"
 
 CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
@@ -49,7 +52,7 @@ function download_file() {
 
     local LOCAL_FILE="${LOCAL_DIR}/${FILE}"
 
-    REPO_URL="${REPO_URL:-https://raw.githubusercontent.com/RadonDB/clickhouse-operator}"
+    REPO_URL="${REPO_URL:-https://raw.githubusercontent.com/RadonDB/radondb-clickhouse-operator}"
     BRANCH="${BRANCH:-master}"
     FILE_URL="${REPO_URL}/${BRANCH}/${REPO_DIR}/${FILE}"
 
