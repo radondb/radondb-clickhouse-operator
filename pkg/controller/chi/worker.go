@@ -638,7 +638,7 @@ func (w *worker) reconcileZooKeeper(ctx context.Context, chi *chiv1.ClickHouseIn
 
 	// Only handle create. So judge if need to install first
 	zookeeperConfig := chi.Spec.Configuration.Zookeeper
-	if !zookeeperConfig.Install || len(zookeeperConfig.Nodes) > 0 {
+	if zookeeperConfig == nil || !zookeeperConfig.Install || len(zookeeperConfig.Nodes) > 0 {
 		w.a.V(1).
 			WithEvent(chi, eventActionReconcile, eventReasonReconcileStarted).
 			WithStatusAction(chi).

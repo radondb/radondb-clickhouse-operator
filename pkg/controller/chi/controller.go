@@ -396,7 +396,7 @@ func (c *Controller) addEventHandlers(
 
 // isTrackedObject checks whether operator is interested in changes of this object
 func (c *Controller) isTrackedObject(objectMeta *meta.ObjectMeta) bool {
-	return chop.Config().IsWatchedNamespace(objectMeta.Namespace) && chopmodels.IsCHOPGeneratedObject(objectMeta)
+	return chop.Config().IsWatchedNamespace(objectMeta.Namespace) && chopmodels.IsCHOPGeneratedObject(objectMeta) && !chopmodels.IsCHOPGeneratedZooKeeperObject(objectMeta)
 }
 
 // Run syncs caches, starts workers

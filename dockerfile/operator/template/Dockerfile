@@ -13,6 +13,7 @@ WORKDIR /clickhouse-operator
 ADD . .
 
 # ./vendor is excluded in .dockerignore, reconstruct it with 'mod' tool
+ENV GOPROXY=https://goproxy.cn,direct
 RUN GO111MODULE=on go mod tidy
 RUN GO111MODULE=on go mod vendor
 

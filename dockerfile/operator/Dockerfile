@@ -32,7 +32,7 @@ MAINTAINER "RadonDB <support@radondb.com>"
 LABEL name="ClickHouse operator" \
       maintainer="support@radondb.com" \
       vendor="RadonDB" \
-      version="0.16.0" \
+      version="2.1.1" \
       release="1" \
       summary="ClickHouse operator" \
       description="ClickHouse operator operates ClickHouse clusters in kubernetes"
