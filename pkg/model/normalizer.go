@@ -821,7 +821,7 @@ func (n *Normalizer) normalizeConfigurationZookeeper(zk *chiV1.ChiZookeeperConfi
 
 	// In case no ZK imagePullPolicy specified - assign default
 	if zk.ImagePullPolicy == "" {
-		zk.ImagePullPolicy = "Always"
+		zk.ImagePullPolicy = "IfNotPresent"
 	}
 
 	for i := range zk.Nodes {
