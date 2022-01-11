@@ -189,6 +189,14 @@ if [[ "${MANIFEST_PRINT_CRD}" == "yes" ]]; then
         OPERATOR_IMAGE="${OPERATOR_IMAGE}" \
         OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE}" \
         envsubst
+
+    SECTION_FILE_NAME="clickhouse-operator-install-yaml-template-01-section-crd-04-chbackup.yaml"
+    ensure_file "${CUR_DIR}" "${SECTION_FILE_NAME}" "${REPO_PATH_DEPLOY_DEV_FOLDER}"
+    render_separator
+    cat "${CUR_DIR}/${SECTION_FILE_NAME}" | \
+        OPERATOR_IMAGE="${OPERATOR_IMAGE}" \
+        OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE}" \
+        envsubst
 fi
 
 # Render RBAC section

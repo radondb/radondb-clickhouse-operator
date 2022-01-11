@@ -48,6 +48,8 @@ func init() {
 // Adds a list of known types to the api.Scheme object
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
+		&ClickHouseBackup{},
+		&ClickHouseBackupList{},
 		&ClickHouseInstallation{},
 		&ClickHouseInstallationList{},
 		&ClickHouseInstallationTemplate{},

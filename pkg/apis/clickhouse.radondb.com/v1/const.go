@@ -113,3 +113,11 @@ const (
 	UsernameReplacer = "***"
 	PasswordReplacer = "***"
 )
+
+const (
+	ClickHouseBackupBackup  = "backup"
+	ClickHouseBackupRestore = "restore"
+
+	ClickHouseBackupKindSingle   = "single"
+	ClickHouseBackupKindSchedule = "schedule"
+)

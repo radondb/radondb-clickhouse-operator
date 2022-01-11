@@ -18,6 +18,8 @@ limitations under the License.
 
 package v1
 
+type ClickHouseBackupExpansion interface{}
+
 type ClickHouseInstallationExpansion interface{}
 
 type ClickHouseInstallationTemplateExpansion interface{}

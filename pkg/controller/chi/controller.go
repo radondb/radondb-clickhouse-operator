@@ -79,6 +79,8 @@ func NewController(
 		chiListerSynced:         chopInformerFactory.Clickhouse().V1().ClickHouseInstallations().Informer().HasSynced,
 		chitLister:              chopInformerFactory.Clickhouse().V1().ClickHouseInstallationTemplates().Lister(),
 		chitListerSynced:        chopInformerFactory.Clickhouse().V1().ClickHouseInstallationTemplates().Informer().HasSynced,
+		chbLister:               chopInformerFactory.Clickhouse().V1().ClickHouseBackups().Lister(),
+		chbListerSynced:         chopInformerFactory.Clickhouse().V1().ClickHouseBackups().Informer().HasSynced,
 		pdbLister:               kubeInformerFactory.Policy().V1beta1().PodDisruptionBudgets().Lister(),
 		serviceLister:           kubeInformerFactory.Core().V1().Services().Lister(),
 		serviceListerSynced:     kubeInformerFactory.Core().V1().Services().Informer().HasSynced,
@@ -172,6 +174,30 @@ func (c *Controller) addEventHandlersCHIT(
 			}
 			log.V(2).M(chit).Info("chitInformer.DeleteFunc")
 			c.enqueueObject(NewReconcileCHIT(reconcileDelete, chit, nil))
+		},
+	})
+}
+
+// BUGS
+func (c *Controller) addEventHandlersCHB(
+	chopInformerFactory chopinformers.SharedInformerFactory,
+) {
+	chopInformerFactory.Clickhouse().V1().ClickHouseBackups().Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			chb := obj.(*chi.ClickHouseBackup)
+			log.V(2).M(chb).Info("chbInformer.AddFunc")
+			c.enqueueObject(NewReconcileCHB(reconcileAdd, nil, chb))
+		},
+		UpdateFunc: func(old, new interface{}) {
+			oldChb := old.(*chi.ClickHouseBackup)
+			newChb := new.(*chi.ClickHouseBackup)
+			log.V(2).M(newChb).Info("chbInformer.UpdateFunc")
+			c.enqueueObject(NewReconcileCHB(reconcileUpdate, oldChb, newChb))
+		},
+		DeleteFunc: func(obj interface{}) {
+			chb := obj.(*chi.ClickHouseBackup)
+			log.V(2).M(chb).Info("chbInformer.DeleteFunc")
+			c.enqueueObject(NewReconcileCHB(reconcileDelete, chb, nil))
 		},
 	})
 }
@@ -385,6 +411,7 @@ func (c *Controller) addEventHandlers(
 	kubeInformerFactory kubeinformers.SharedInformerFactory,
 ) {
 	c.addEventHandlersCHI(chopInformerFactory)
+	c.addEventHandlersCHB(chopInformerFactory)
 	c.addEventHandlersCHIT(chopInformerFactory)
 	c.addEventHandlersChopConfig(chopInformerFactory)
 	c.addEventHandlersService(kubeInformerFactory)
@@ -517,6 +544,7 @@ func (c *Controller) enqueueObject(obj queue.PriorityQueueItem) {
 		}
 
 	case
+		*ReconcileCHB,
 		*ReconcileCHIT,
 		*ReconcileChopConfig,
 		*DropDns:

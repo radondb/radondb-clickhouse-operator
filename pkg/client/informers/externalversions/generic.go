@@ -53,6 +53,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=clickhouse.radondb.com, Version=v1
+	case v1.SchemeGroupVersion.WithResource("clickhousebackups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Clickhouse().V1().ClickHouseBackups().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("clickhouseinstallations"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Clickhouse().V1().ClickHouseInstallations().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("clickhouseinstallationtemplates"):
