@@ -179,7 +179,7 @@ for LINE in $(kubectl get --all-namespaces chi -o custom-columns=NAMESPACE:.meta
     PORT=$(kubectl --namespace="${NAMESPACE}" get service -l "clickhouse.radondb.com/app=chop,clickhouse.radondb.com/Service=chi,clickhouse.radondb.com/chi=${CHI}" -o='custom-columns=PORT:.spec.ports[?(@.name=="http")].port' | tail -n 1)
 
     echo "Ensure system.query_log is in place on each pod in ClickHouseInstallation ${NAMESPACE}/${CHI}"
-    for POD in $(kubectl --namespace="${NAMESPACE}" get pods -l "clickhouse.radondb.com/app=chop,clickhouse.radondb.com/chi=${CHI}" -o='custom-columns=NAME:.metadata.name' | tail -n +2); do
+    for POD in $(kubectl --namespace="${NAMESPACE}" get pods -l "clickhouse.radondb.com/app=chop,clickhouse.radondb.com/clickhouse=clickhouse,clickhouse.radondb.com/chi=${CHI}" -o='custom-columns=NAME:.metadata.name' | tail -n +2); do
         echo "Ensure system.query_log on pod ${NAMESPACE}/${POD}"
         kubectl --namespace="${NAMESPACE}" exec "${POD}" -- \
             clickhouse-client --echo -mn -q 'SELECT hostName(), dummy FROM system.one SETTINGS log_queries=1; SYSTEM FLUSH LOGS'
