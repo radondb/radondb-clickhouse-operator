@@ -5,6 +5,8 @@ metadata:
 spec:
   ingress:
     enabled: False
+  service:
+    type: NodePort
   client:
     timeout: 30
     preferService: True
