@@ -38,6 +38,7 @@ import (
 	chiv1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	"github.com/radondb/clickhouse-operator/pkg/chop"
 	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
+	backupmodel "github.com/radondb/clickhouse-operator/pkg/model/backup"
 	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
@@ -49,11 +50,13 @@ type worker struct {
 	c *Controller
 	a Announcer
 	//queue workqueue.RateLimitingInterface
-	queue      queue.PriorityQueue
-	normalizer *chopmodel.Normalizer
-	schemer    *chopmodel.Schemer
-	creator    *chopmodel.Creator
-	start      time.Time
+	queue         queue.PriorityQueue
+	normalizer    *chopmodel.Normalizer
+	chbNormalizer *backupmodel.Normalizer
+	schemer       *chopmodel.Schemer
+	creator       *chopmodel.Creator
+	chbCreator    *backupmodel.Creator
+	start         time.Time
 
 	registryReconciled *chopmodel.Registry
 	registryFailed     *chopmodel.Registry
@@ -64,17 +67,19 @@ type worker struct {
 //func (c *Controller) newWorker(q workqueue.RateLimitingInterface) *worker {
 func (c *Controller) newWorker(q queue.PriorityQueue) *worker {
 	return &worker{
-		c:          c,
-		a:          NewAnnouncer().WithController(c),
-		queue:      q,
-		normalizer: chopmodel.NewNormalizer(c.kubeClient),
+		c:             c,
+		a:             NewAnnouncer().WithController(c),
+		queue:         q,
+		normalizer:    chopmodel.NewNormalizer(c.kubeClient),
+		chbNormalizer: backupmodel.NewNormalizer(c.kubeClient, c.chopClient),
 		schemer: chopmodel.NewSchemer(
 			chop.Config().CHUsername,
 			chop.Config().CHPassword,
 			chop.Config().CHPort,
 		),
-		creator: nil,
-		start:   time.Now().Add(chiv1.DefaultReconcileThreadsWarmup),
+		creator:    nil,
+		chbCreator: nil,
+		start:      time.Now().Add(chiv1.DefaultReconcileThreadsWarmup),
 	}
 }
 
@@ -124,6 +129,21 @@ func (w *worker) processReconcileCHI(ctx context.Context, cmd *ReconcileCHI) err
 		return w.updateCHI(ctx, cmd.old, cmd.new)
 	case reconcileDelete:
 		return w.discoveryAndDeleteCHI(ctx, cmd.old)
+	}
+
+	// Unknown item type, don't know what to do with it
+	// Just skip it and behave like it never existed
+	utilruntime.HandleError(fmt.Errorf("unexpected reconcile - %#v", cmd))
+	return nil
+}
+
+func (w *worker) processReconcileCHB(ctx context.Context, cmd *ReconcileCHB) error {
+	switch cmd.cmd {
+	case reconcileAdd:
+		return w.createCHB(ctx, cmd.new)
+	case reconcileDelete:
+	case reconcileUpdate:
+		return nil
 	}
 
 	// Unknown item type, don't know what to do with it
@@ -185,6 +205,8 @@ func (w *worker) processItem(ctx context.Context, item interface{}) error {
 	defer w.a.V(3).E().P()
 
 	switch cmd := item.(type) {
+	case *ReconcileCHB:
+		return w.processReconcileCHB(ctx, cmd)
 	case *ReconcileCHI:
 		return w.processReconcileCHI(ctx, cmd)
 	case *ReconcileCHIT:
@@ -2422,4 +2444,66 @@ func (w *worker) applyResource(
 	// Update resource
 	curResourceList[resourceName] = desiredResourceList[resourceName]
 	return true
+}
+
+// updateCHB sync CHB which was already created earlier
+func (w *worker) createCHB(ctx context.Context, chb *chiv1.ClickHouseBackup) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	w.a.V(3).M(chb).S().P()
+	defer w.a.V(3).M(chb).E().P()
+
+	if chb == nil {
+		w.a.V(3).M(chb).F().Info("ClickHouseBackup is nil")
+		return nil
+	}
+
+	if c, err := w.normalizeClickHouseBackup(chb); err != nil {
+		w.a.V(1).M(chb).F().Error("ERROR %v", err)
+		return nil
+	} else {
+		chb = c
+	}
+
+	w.chbCreator = backupmodel.NewCreator(chb)
+
+	if !chb.Spec.Restore.IsEmpty() {
+		if restoreJob := w.chbCreator.CreateJobCHBRestore(); restoreJob != nil {
+			if err := w.c.createJob(ctx, restoreJob); err != nil {
+				w.a.V(1).M(chb).F().Error("ERROR: %v", err)
+			}
+		}
+	} else if !chb.Spec.Backup.IsEmpty() {
+		switch chb.Spec.Backup.Kind {
+		case chiv1.ClickHouseBackupKindSingle:
+			if backupJob := w.chbCreator.CreateJobCHBBackup(); backupJob != nil {
+				if err := w.c.createJob(ctx, backupJob); err != nil {
+					w.a.V(1).M(chb).F().Error("ERROR: %v", err)
+				}
+			}
+		case chiv1.ClickHouseBackupKindSchedule:
+			if backupCronJob := w.chbCreator.CreateCronJobCHBBackup(); backupCronJob != nil {
+				if err := w.c.createCronJob(ctx, backupCronJob); err != nil {
+					w.a.V(1).M(chb).F().Error("ERROR: %v", err)
+				}
+			}
+		default:
+			w.a.V(1).F().Error("ClickHouseBackup backup kind %s do not support", chb.Spec.Backup.Kind)
+		}
+	} else {
+		w.a.V(1).F().Warning("Backup & restore is not specified, nothing to do.")
+	}
+
+	return nil
+}
+
+// normalize
+func (w *worker) normalizeClickHouseBackup(c *chiv1.ClickHouseBackup) (*chiv1.ClickHouseBackup, error) {
+	w.a.V(3).M(c).S().P()
+	defer w.a.V(3).M(c).E().P()
+
+	return w.chbNormalizer.CreateTemplatedCHB(c)
 }

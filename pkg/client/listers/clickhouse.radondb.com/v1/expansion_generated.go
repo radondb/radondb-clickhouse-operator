@@ -18,6 +18,14 @@ limitations under the License.
 
 package v1
 
+// ClickHouseBackupListerExpansion allows custom methods to be added to
+// ClickHouseBackupLister.
+type ClickHouseBackupListerExpansion interface{}
+
+// ClickHouseBackupNamespaceListerExpansion allows custom methods to be added to
+// ClickHouseBackupNamespaceLister.
+type ClickHouseBackupNamespaceListerExpansion interface{}
+
 // ClickHouseInstallationListerExpansion allows custom methods to be added to
 // ClickHouseInstallationLister.
 type ClickHouseInstallationListerExpansion interface{}

@@ -46,6 +46,9 @@ type Controller struct {
 	chitLister       choplisters.ClickHouseInstallationTemplateLister
 	chitListerSynced cache.InformerSynced
 
+	chbLister       choplisters.ClickHouseBackupLister
+	chbListerSynced cache.InformerSynced
+
 	// pdbLister used as pdbLister.Services(namespace).Get(name)
 	pdbLister policylisters.PodDisruptionBudgetLister
 	// serviceLister used as serviceLister.Services(namespace).Get(name)

@@ -28,6 +28,10 @@ type FakeClickhouseV1 struct {
 	*testing.Fake
 }
 
+func (c *FakeClickhouseV1) ClickHouseBackups(namespace string) v1.ClickHouseBackupInterface {
+	return &FakeClickHouseBackups{c, namespace}
+}
+
 func (c *FakeClickhouseV1) ClickHouseInstallations(namespace string) v1.ClickHouseInstallationInterface {
 	return &FakeClickHouseInstallations{c, namespace}
 }

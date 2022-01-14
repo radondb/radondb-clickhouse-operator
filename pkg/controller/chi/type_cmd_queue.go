@@ -39,6 +39,7 @@ func (i PriorityQueueItem) Priority() int {
 }
 
 const (
+	priorityReconcileCHB        int = 12
 	priorityReconcileCHI        int = 10
 	priorityReconcileCHIT       int = 5
 	priorityReconcileChopConfig int = 3
@@ -185,5 +186,38 @@ func NewDropDns(initiator *v1.ObjectMeta) *DropDns {
 			priority: priorityDropDNS,
 		},
 		initiator: initiator,
+	}
+}
+
+// ReconcileCHB specifies reconcile request queue item
+type ReconcileCHB struct {
+	PriorityQueueItem
+	cmd string
+	old *chi.ClickHouseBackup
+	new *chi.ClickHouseBackup
+}
+
+var _ queue.PriorityQueueItem = &ReconcileCHB{}
+
+// Handle returns handle of the queue item
+func (r ReconcileCHB) Handle() queue.T {
+	if r.new != nil {
+		return "ReconcileCHB" + ":" + r.new.Namespace + "/" + r.new.Name
+	}
+	if r.old != nil {
+		return "ReconcileCHB" + ":" + r.old.Namespace + "/" + r.old.Name
+	}
+	return ""
+}
+
+// NewReconcileCHB creates new reconcile CHI template queue item
+func NewReconcileCHB(cmd string, old, new *chi.ClickHouseBackup) *ReconcileCHB {
+	return &ReconcileCHB{
+		PriorityQueueItem: PriorityQueueItem{
+			priority: priorityReconcileCHB,
+		},
+		cmd: cmd,
+		old: old,
+		new: new,
 	}
 }

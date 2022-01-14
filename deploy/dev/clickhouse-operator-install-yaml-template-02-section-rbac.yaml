@@ -109,6 +109,19 @@ rules:
     - list
     - watch
 - apiGroups:
+    - batch
+  resources:
+    - jobs
+    - cronjobs
+  verbs:
+    - create
+    - delete
+    - get
+    - patch
+    - update
+    - list
+    - watch
+- apiGroups:
     - clickhouse.radondb.com
   resources:
     - clickhouseinstallations
@@ -120,6 +133,16 @@ rules:
 - apiGroups:
     - clickhouse.radondb.com
   resources:
+    - clickhousebackups
+  verbs:
+    - delete
+    - get
+    - patch
+    - update
+- apiGroups:
+    - clickhouse.radondb.com
+  resources:
+    - clickhousebackups
     - clickhouseinstallations
     - clickhouseinstallationtemplates
     - clickhouseoperatorconfigurations
@@ -130,6 +153,7 @@ rules:
 - apiGroups:
     - clickhouse.radondb.com
   resources:
+    - clickhousebackups/finalizers
     - clickhouseinstallations/finalizers
     - clickhouseinstallationtemplates/finalizers
     - clickhouseoperatorconfigurations/finalizers
