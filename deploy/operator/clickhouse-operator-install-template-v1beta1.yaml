@@ -165,6 +165,9 @@ spec:
                 - "disabled"
                 - "Enabled"
                 - "enabled"
+            imagePrefix:
+              type: string
+              description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
             namespaceDomainPattern:
               type: string
               description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -1424,6 +1427,9 @@ spec:
                 - "disabled"
                 - "Enabled"
                 - "enabled"
+            imagePrefix:
+              type: string
+              description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
             namespaceDomainPattern:
               type: string
               description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -2695,6 +2701,9 @@ spec:
                 - "LabelClusterScopeCycleSize"
                 - "LabelClusterScopeCycleIndex"
                 - "LabelClusterScopeCycleOffset"
+            imagePrefix:
+              type: string
+              description: "custom image prefix which will add to the front of the image used by the clickhouse cluster, if the parameter is also defined in CHI, CHI has higher priority"
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -3139,6 +3148,8 @@ data:
     #  LabelClusterScopeCycleIndex
     #  LabelClusterScopeCycleOffset
     appendScopeLabels: "no"
+
+    imagePrefix: docker.ioo
 ---
 # Possible Template Parameters:
 #
