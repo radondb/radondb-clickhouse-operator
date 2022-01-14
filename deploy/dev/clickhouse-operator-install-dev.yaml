@@ -201,6 +201,9 @@ spec:
                     - "disabled"
                     - "Enabled"
                     - "enabled"
+                imagePrefix:
+                  type: string
+                  description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
                 namespaceDomainPattern:
                   type: string
                   description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -1497,6 +1500,9 @@ spec:
                     - "disabled"
                     - "Enabled"
                     - "enabled"
+                imagePrefix:
+                  type: string
+                  description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
                 namespaceDomainPattern:
                   type: string
                   description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -2786,6 +2792,9 @@ spec:
                 defaultMetricsExporterContainerImagePullPolicy:
                   type: string
                   description: "ClickHouse metrics exporter container image pull policy, default `IfNotPresent`"
+                imagePrefix:
+                  type: string
+                  description: "custom image prefix which will add to the front of the image used by the clickhouse cluster, if the parameter is also defined in CHI, CHI has higher priority"
 ---
 # Possible Template Parameters:
 #
@@ -2950,7 +2959,7 @@ subjects:
 # Possible Template Parameters:
 #
 # dev
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-files
 #
 apiVersion: v1
@@ -3122,11 +3131,13 @@ data:
     defaultClickHouseLogContainerImagePullPolicy: "IfNotPresent"
     defaultMetricsExporterContainerImage: "radondb/chronus-metrics-operator:dmp"
     defaultMetricsExporterContainerImagePullPolicy: "IfNotPresent"
+    
+    imagePrefix: docker.io
 ---
 # Possible Template Parameters:
 #
 # dev
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-confd-files
 #
 apiVersion: v1
@@ -3141,7 +3152,7 @@ data:
 # Possible Template Parameters:
 #
 # dev
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-configd-files
 #
 apiVersion: v1
@@ -3199,7 +3210,7 @@ data:
 # Possible Template Parameters:
 #
 # dev
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-templatesd-files
 #
 apiVersion: v1
@@ -3298,7 +3309,7 @@ data:
 # Possible Template Parameters:
 #
 # dev
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-usersd-files
 #
 apiVersion: v1
@@ -3356,8 +3367,8 @@ data:
 # Possible Template Parameters:
 #
 # dev
-# radondb/chronus-operator:2.1.1
-# radondb/chronus-metrics-operator:2.1.1
+# radondb/chronus-operator:dmp
+# radondb/chronus-metrics-operator:dmp
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -3400,7 +3411,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: radondb/chronus-operator:2.1.1
+          image: radondb/chronus-operator:dmp
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder

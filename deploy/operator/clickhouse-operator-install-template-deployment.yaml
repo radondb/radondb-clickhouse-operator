@@ -173,6 +173,8 @@ data:
     defaultClickHouseLogContainerImagePullPolicy: "IfNotPresent"
     defaultMetricsExporterContainerImage: "radondb/chronus-metrics-operator:dmp"
     defaultMetricsExporterContainerImagePullPolicy: "IfNotPresent"
+    
+    imagePrefix: docker.io
 ---
 # Possible Template Parameters:
 #

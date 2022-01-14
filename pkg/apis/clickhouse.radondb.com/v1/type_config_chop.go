@@ -176,6 +176,9 @@ type OperatorConfig struct {
 	DefaultClickHouseLogContainerImagePullPolicy   string `json:"defaultClickHouseLogContainerImagePullPolicy" yaml:"defaultClickHouseLogContainerImagePullPolicy"`
 	DefaultMetricsExporterContainerImage           string `json:"defaultMetricsExporterContainerImage" yaml:"defaultMetricsExporterContainerImage"`
 	DefaultMetricsExporterContainerImagePullPolicy string `json:"defaultMetricsExporterContainerImagePullPolicy" yaml:"defaultMetricsExporterContainerImagePullPolicy"`
+
+	// custom image prefix which will add to the front of the image used by the clickhouse cluster
+	ImagePrefix string `json:"imagePrefix,omitempty" yaml:"ImagePrefix,omitempty"`
 	//
 	// The end of OperatorConfig
 	//
@@ -636,6 +639,8 @@ func (config *OperatorConfig) String(hideCredentials bool) string {
 	util.Fprintf(b, "DefaultClickHouseLogContainerImagePullPolicy: %s", config.DefaultClickHouseLogContainerImagePullPolicy)
 	util.Fprintf(b, "DefaultMetricsExporterContainerImage: %s", config.DefaultMetricsExporterContainerImage)
 	util.Fprintf(b, "DefaultMetricsExporterContainerImagePullPolicy: %s", config.DefaultMetricsExporterContainerImagePullPolicy)
+
+	util.Fprintf(b, "ImagePrefix: %s", config.ImagePrefix)
 
 	return b.String()
 }

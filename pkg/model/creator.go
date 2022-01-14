@@ -424,6 +424,11 @@ func (c *Creator) CreateStatefulSet(host *chiv1.ChiHost, shutdown bool) *apps.St
 	host.StatefulSet = statefulSet
 	host.DesiredStatefulSet = statefulSet
 
+	for index, _ := range statefulSet.Spec.Template.Spec.Containers {
+		container := &statefulSet.Spec.Template.Spec.Containers[index]
+		container.Image = host.CHI.Spec.ImagePrefix + "/" + container.Image
+	}
+
 	return statefulSet
 }
 
@@ -492,6 +497,11 @@ func (c *Creator) CreateStatefulSetZooKeeper(chi *chiv1.ClickHouseInstallation) 
 
 	c.setupStatefulSetZooKeeperPodTemplate(statefulSet, chi)
 	c.setupStatefulSetZooKeeperVolumeClaimTemplates(statefulSet)
+
+	for index, _ := range statefulSet.Spec.Template.Spec.Containers {
+		container := &statefulSet.Spec.Template.Spec.Containers[index]
+		container.Image = chi.Spec.ImagePrefix + "/" + container.Image
+	}
 
 	return statefulSet
 }
