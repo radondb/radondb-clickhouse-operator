@@ -6,6 +6,8 @@
 1. ClickHouse operator [installed][operator_installation_details.md]
 1. Zookeeper [installed][zookeeper_setup.md]
 
+Note: Starting from version 2.1, you can use the automatic creation and configuration of zookeeper clusters provided by the operator.
+For details, please refer to [custom_resource_explained.md](./custom_resource_explained.md) .spec.configuration.zookeeper section.
 
 ## Manifest
 

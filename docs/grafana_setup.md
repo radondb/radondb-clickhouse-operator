@@ -29,7 +29,7 @@ Login credentials:
  - password: **admin**
 
 check `http://localhost:3000/datasources` contains `Prometheus` datasource
-check `http://localhost:3000/dashboards` contains [Altinity Clickhouse Operator Dashboard][altinity_recommended_dashboard]
+check `http://localhost:3000/dashboards` contains [RadonDB Clickhouse Operator Dashboard][radondb_recommended_dashboard]
 
 ## Install Grafana instance via pure kubernetes manifests
 In case we do not have Grafana available, we can setup it directly into k8s and integrate with Prometheus afterwards. 
@@ -92,17 +92,17 @@ Data source configuration parameters:
  where `svc.cluster.local` is k8s-cluster-dependent part, but it is still rather often called with default `svc.cluster.local` 
  - Access: choose **proxy**, which means Grafana backend will send request to Prometheus, while **direct** means "directly from browser" which will not work in case of k8s-installation.
 
-By now, Prometheus data should be available for Grafana and we can choose nice dashboard to plot data on. Altinity supply recommended [Grafana dashoard][altinity_recommended_dashboard] as additional deliverables. 
+By now, Prometheus data should be available for Grafana and we can choose nice dashboard to plot data on. RadonDB supply recommended [Grafana dashoard][radondb_recommended_dashboard] as additional deliverables. 
 
 ## Manual installation Grafana Dashboard 
 
 In order to install dashboard:
  1. Navigate to `main menu -> Dashboards -> Import` and pick `Upload .json file`. 
- 1. Select recommended [Grafana dashoard][altinity_recommended_dashboard]
+ 1. Select recommended [Grafana dashoard][radondb_recommended_dashboard]
  1. Select a Prometheus data source from which data would be fetched  
  1. Click **Import**
  
-By now Altinity recommended dashboard should be available for use.  
+By now RadonDB recommended dashboard should be available for use.  
 
 More [Grafana docs][grafana-docs]
 
@@ -111,7 +111,7 @@ More [Grafana docs][grafana-docs]
 [grafana_manifest_yaml_secret]:  ../deploy/grafana/grafana-manually/grafana.yaml#L56
 [create_grafana_script]: ../deploy/grafana/grafana-manually/create-grafana.sh 
 [prometheus_setup_doc]: ./prometheus_setup.md 
-[altinity_recommended_dashboard]: ../grafana-dashboard/RadonDB_ClickHouse_Operator_dashboard.json 
+[radondb_recommended_dashboard]: ../grafana-dashboard/RadonDB_ClickHouse_Operator_dashboard.json 
 [install_grafana_operator_script]: ../deploy/grafana/grafana-with-grafana-operator/install-grafana-operator.sh
 [install_grafana_dashboard_script]: ../deploy/grafana/grafana-with-grafana-operator/install-grafana-with-operator.sh
 [grafana-docs]: http://docs.grafana.org/

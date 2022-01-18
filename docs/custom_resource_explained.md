@@ -45,6 +45,7 @@ clickhouse-installation-max   23h
 `.spec.configuration` section represents sources for ClickHouse configuration files. Be it users, remote servers and etc configuration files. 
 
 ## .spec.configuration.zookeeper
+If you want to use your own manually deployed zookeeper, take the following configuration:
 ```yaml
     zookeeper:
       nodes:
@@ -59,6 +60,17 @@ clickhouse-installation-max   23h
       root: /path/to/zookeeper/node
       identity: user:password
 ```
+
+or if you want to automatically create a zookeeper cluster by operator, use the following configuration:
+```yaml
+    zookeeper:
+      install: true
+      replica: 3
+      port: 2181
+      image: radondb/zookeeper:3.6.1
+      imagePullPolicy: IfNotPresent
+```
+
 `.spec.configuration.zookeeper` refers to [&lt;yandex&gt;&lt;zookeeper&gt;&lt;/zookeeper&gt;&lt;/yandex&gt;][server-settings_zookeeper] config section
 
 ## .spec.configuration.profiles

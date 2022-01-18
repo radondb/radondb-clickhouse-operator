@@ -10,7 +10,7 @@ Thanks for taking the time to contribute to `clickhouse-operator`!
 
 Please, **do not** make PR into `master` branch. 
 We intend to keep `master` clean and stable and will not accept commits directly into `master`.
-We always have dedicated branch, named as `x.y.z` (for example, `0.9.1` at the time of this writing), which is used as a  testbed for next release.
+We always have dedicated branch, named as `x.y.z` (for example, `0.9.1` at the time of this writing), which is used as a testbed for next release.
 Please, make your PR into this branch. If you are not sure which branch to use, create new issue to discuss, and we'd be happy to assist.
 
 Your submission should not contain more than one commit. Please **squash your commits**.
