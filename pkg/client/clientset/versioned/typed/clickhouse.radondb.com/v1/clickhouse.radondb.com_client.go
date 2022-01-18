@@ -26,6 +26,7 @@ import (
 
 type ClickhouseV1Interface interface {
 	RESTClient() rest.Interface
+	ClickHouseBackupsGetter
 	ClickHouseInstallationsGetter
 	ClickHouseInstallationTemplatesGetter
 	ClickHouseOperatorConfigurationsGetter
@@ -34,6 +35,10 @@ type ClickhouseV1Interface interface {
 // ClickhouseV1Client is used to interact with features provided by the clickhouse.radondb.com group.
 type ClickhouseV1Client struct {
 	restClient rest.Interface
+}
+
+func (c *ClickhouseV1Client) ClickHouseBackups(namespace string) ClickHouseBackupInterface {
+	return newClickHouseBackups(c, namespace)
 }
 
 func (c *ClickhouseV1Client) ClickHouseInstallations(namespace string) ClickHouseInstallationInterface {

@@ -21,6 +21,8 @@ import (
 	"strings"
 
 	apps "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	"k8s.io/api/core/v1"
 
 	log "github.com/radondb/clickhouse-operator/pkg/announcer"
@@ -29,6 +31,36 @@ import (
 	"github.com/radondb/clickhouse-operator/pkg/util"
 	"github.com/radondb/clickhouse-operator/pkg/util/retry"
 )
+
+// createJob
+func (c *Controller) createJob(ctx context.Context, job *batchv1.Job) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	log.V(1).Info("Create Job %s/%s", job.Namespace, job.Name)
+	if _, err := c.kubeClient.BatchV1().Jobs(job.Namespace).Create(ctx, job, newCreateOptions()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// createCronJob
+func (c *Controller) createCronJob(ctx context.Context, cronJob *batchv1beta1.CronJob) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	log.V(1).Info("Create CronJob %s/%s", cronJob.Namespace, cronJob.Name)
+	if _, err := c.kubeClient.BatchV1beta1().CronJobs(cronJob.Namespace).Create(ctx, cronJob, newCreateOptions()); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // createStatefulSetZooKeeper is an internal function, used in reconcileStatefulSet only
 func (c *Controller) createStatefulSetZooKeeper(ctx context.Context, statefulSet *apps.StatefulSet, chi *chiv1.ClickHouseInstallation) error {

@@ -24,6 +24,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// ClickHouseBackups returns a ClickHouseBackupInformer.
+	ClickHouseBackups() ClickHouseBackupInformer
 	// ClickHouseInstallations returns a ClickHouseInstallationInformer.
 	ClickHouseInstallations() ClickHouseInstallationInformer
 	// ClickHouseInstallationTemplates returns a ClickHouseInstallationTemplateInformer.
@@ -41,6 +43,11 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
+}
+
+// ClickHouseBackups returns a ClickHouseBackupInformer.
+func (v *version) ClickHouseBackups() ClickHouseBackupInformer {
+	return &clickHouseBackupInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // ClickHouseInstallations returns a ClickHouseInstallationInformer.
