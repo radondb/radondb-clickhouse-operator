@@ -4,6 +4,9 @@
   1. Assume we have `clickhouse-operator` already installed and running
   1. Assume we have `Zookeeper` already installed and running
   
+  Note: Starting from version 2.1, you can use the automatic creation and configuration of zookeeper clusters provided by the operator.
+  For details, please refer to [custom_resource_explained.md](./custom_resource_explained.md) .spec.configuration.zookeeper section.
+
 ## Install ClickHouseInstallation example
 We are going to install everything into `dev` namespace. `clickhouse-operator` is already installed into `dev` namespace
 

@@ -23,20 +23,20 @@ Apply `clickhouse-operator` installation manifest. The simplest way - directly f
 
 just run:
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
 ```
 ## **If you want to install operator on kubernetes version prior `1.17` in `kube-system` namespace**
 
 just run:
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle-v1beta1.yaml
+kubectl apply -f https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle-v1beta1.yaml
 ```
 
 ## **In case you'd like to customize installation parameters**,
 
 such as namespace where to install operator or operator's image, use the special installer script.
 ```bash
-curl -s https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator-web-installer/clickhouse-operator-install.sh | OPERATOR_NAMESPACE=test-clickhouse-operator bash
+curl -s https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/operator-web-installer/clickhouse-operator-install.sh | OPERATOR_NAMESPACE=test-clickhouse-operator bash
 ```
 Take into account explicitly specified namespace
 ```bash
@@ -49,7 +49,7 @@ After installation **clickhouse-operator** will watch custom resources like a `k
 If no `OPERATOR_NAMESPACE` specified, as:
 ```bash
 cd ~
-curl -s https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator-web-installer/clickhouse-operator-install.sh | bash
+curl -s https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/operator-web-installer/clickhouse-operator-install.sh | bash
 ```
 installer will install **clickhouse-operator** into `kube-system` namespace and will watch custom resources like a `kind: ClickhouseInstallation` in all available namespaces.
 
@@ -65,13 +65,13 @@ OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE:-test-clickhouse-operator}"
 METRICS_EXPORTER_NAMESPACE="${OPERATOR_NAMESPACE}"
 
 # Operator's docker image
-OPERATOR_IMAGE="${OPERATOR_IMAGE:-altinity/clickhouse-operator:latest}"
+OPERATOR_IMAGE="${OPERATOR_IMAGE:-radondb/chronus-operator:latest}"
 # Metrics exporter's docker image
-METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE:-altinity/metrics-exporter:latest}"
+METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE:-radondb/chronus-metrics-operator:latest}"
 
 # Setup clickhouse-operator into specified namespace
 kubectl apply --namespace="${OPERATOR_NAMESPACE}" -f <( \
-    curl -s https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-template.yaml | \
+    curl -s https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/operator/clickhouse-operator-install-template.yaml | \
         OPERATOR_IMAGE="${OPERATOR_IMAGE}" \
         OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE}" \
         METRICS_EXPORTER_IMAGE="${METRICS_EXPORTER_IMAGE}" \
@@ -84,7 +84,7 @@ kubectl apply --namespace="${OPERATOR_NAMESPACE}" -f <( \
 ```text
 Setup ClickHouse Operator into test-clickhouse-operator namespace
 namespace/test-clickhouse-operator created
-customresourcedefinition.apiextensions.k8s.io/clickhouseinstallations.clickhouse.altinity.com configured
+customresourcedefinition.apiextensions.k8s.io/clickhouseinstallations.clickhouse.radondb.com configured
 serviceaccount/clickhouse-operator created
 clusterrolebinding.rbac.authorization.k8s.io/clickhouse-operator configured
 service/clickhouse-operator-metrics created
@@ -119,7 +119,7 @@ It is a good practice to have all components run in dedicated namespaces. Let's 
 kubectl create namespace test-clickhouse-operator
 ```
 ```text
-namespace/test created
+namespace/test-clickhouse-operator created
 ```
 
 ## Trivial example
@@ -129,10 +129,10 @@ This is the trivial [1 shard 1 replica][01-simple-layout-01-1shard-1repl.yaml] e
 **WARNING**: Do not use it for anything other than 'Hello, world!', it does not have persistent storage!
  
 ```bash
-kubectl apply -n test-clickhouse-operator -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/docs/chi-examples/01-simple-layout-01-1shard-1repl.yaml
+kubectl apply -n test-clickhouse-operator -f https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/docs/chi-examples/01-simple-layout-01-1shard-1repl.yaml
 ```
 ```text
-clickhouseinstallation.clickhouse.altinity.com/simple-01 created
+clickhouseinstallation.clickhouse.radondb.com/simple-01 created
 ```
 
 Installation specification is straightforward and defines 1-replica cluster:
