@@ -67,6 +67,7 @@ type ChiSpec struct {
 	Stop                   string           `json:"stop,omitempty"                   yaml:"stop,omitempty"`
 	Restart                string           `json:"restart,omitempty"                yaml:"restart,omitempty"`
 	Troubleshoot           string           `json:"troubleshoot,omitempty"           yaml:"troubleshoot,omitempty"`
+	MetricsExporter        string           `json:"metricsExporter,omitempty"        yaml:"metricsExporter,omitempty"`
 	NamespaceDomainPattern string           `json:"namespaceDomainPattern,omitempty" yaml:"namespaceDomainPattern,omitempty"`
 	Templating             *ChiTemplating   `json:"templating,omitempty"             yaml:"templating,omitempty"`
 	Reconciling            *ChiReconciling  `json:"reconciling,omitempty"            yaml:"reconciling,omitempty"`

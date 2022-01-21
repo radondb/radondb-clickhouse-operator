@@ -65,6 +65,12 @@ const (
 	// DefaultReconcileSystemThreadsNumber specifies default number of system controller threads running concurrently.
 	// Used in case no other specified in config
 	DefaultReconcileSystemThreadsNumber = 1
+
+	defaultImagePullPolicy = "IfNotPresent"
+	// defaultBusyBoxDockerImage specifies default BusyBox docker image to be used
+	defaultBusyBoxDockerImage = "busybox"
+	// defaultMetricsExporterDockerImage Default metrics exporter docker image to be used
+	defaultMetricsExporterDockerImage = "radondb/chronus-metrics-operator"
 )
 
 // OperatorConfig specifies operator configuration
@@ -165,6 +171,11 @@ type OperatorConfig struct {
 	AppendScopeLabelsString string `json:"appendScopeLabels" yaml:"appendScopeLabels"`
 	AppendScopeLabels       bool
 
+	// default container
+	DefaultClickHouseLogContainerImage             string `json:"defaultClickHouseLogContainerImage" yaml:"defaultClickHouseLogContainerImage"`
+	DefaultClickHouseLogContainerImagePullPolicy   string `json:"defaultClickHouseLogContainerImagePullPolicy" yaml:"defaultClickHouseLogContainerImagePullPolicy"`
+	DefaultMetricsExporterContainerImage           string `json:"defaultMetricsExporterContainerImage" yaml:"defaultMetricsExporterContainerImage"`
+	DefaultMetricsExporterContainerImagePullPolicy string `json:"defaultMetricsExporterContainerImagePullPolicy" yaml:"defaultMetricsExporterContainerImagePullPolicy"`
 	//
 	// The end of OperatorConfig
 	//
@@ -445,6 +456,28 @@ func (config *OperatorConfig) normalize() {
 		config.ReconcileThreadsNumber = defaultReconcileThreadsNumber
 	}
 
+	if config.DefaultClickHouseLogContainerImage == "" {
+		config.DefaultClickHouseLogContainerImage = defaultBusyBoxDockerImage
+	}
+
+	if config.DefaultClickHouseLogContainerImagePullPolicy == "" {
+		config.DefaultClickHouseLogContainerImagePullPolicy = defaultImagePullPolicy
+	}
+	if config.DefaultClickHouseLogContainerImagePullPolicy != "Always" && config.DefaultClickHouseLogContainerImagePullPolicy != "IfNotPresent" && config.DefaultClickHouseLogContainerImagePullPolicy != "Never" {
+		config.DefaultClickHouseLogContainerImagePullPolicy = defaultImagePullPolicy
+	}
+
+	if config.DefaultMetricsExporterContainerImage == "" {
+		config.DefaultMetricsExporterContainerImage = defaultMetricsExporterDockerImage
+	}
+
+	if config.DefaultMetricsExporterContainerImagePullPolicy == "" {
+		config.DefaultMetricsExporterContainerImagePullPolicy = defaultImagePullPolicy
+	}
+	if config.DefaultMetricsExporterContainerImagePullPolicy != "Always" && config.DefaultMetricsExporterContainerImagePullPolicy != "IfNotPresent" && config.DefaultMetricsExporterContainerImagePullPolicy != "Never" {
+		config.DefaultMetricsExporterContainerImagePullPolicy = defaultImagePullPolicy
+	}
+
 	// Whether to append *Scope* labels to StatefulSet and Pod.
 	config.AppendScopeLabels = util.IsStringBoolTrue(config.AppendScopeLabelsString)
 }
@@ -598,6 +631,11 @@ func (config *OperatorConfig) String(hideCredentials bool) string {
 
 	util.Fprintf(b, "%s", util.Slice2String("ExcludeFromPropagationLabels", config.ExcludeFromPropagationLabels))
 	util.Fprintf(b, "appendScopeLabels: %s (%t)\n", config.AppendScopeLabelsString, config.AppendScopeLabels)
+
+	util.Fprintf(b, "DefaultClickHouseLogContainerImage: %s", config.DefaultClickHouseLogContainerImage)
+	util.Fprintf(b, "DefaultClickHouseLogContainerImagePullPolicy: %s", config.DefaultClickHouseLogContainerImagePullPolicy)
+	util.Fprintf(b, "DefaultMetricsExporterContainerImage: %s", config.DefaultMetricsExporterContainerImage)
+	util.Fprintf(b, "DefaultMetricsExporterContainerImagePullPolicy: %s", config.DefaultMetricsExporterContainerImagePullPolicy)
 
 	return b.String()
 }

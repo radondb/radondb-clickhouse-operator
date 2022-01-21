@@ -180,3 +180,15 @@ spec:
                     - "LabelClusterScopeCycleSize"
                     - "LabelClusterScopeCycleIndex"
                     - "LabelClusterScopeCycleOffset"
+                defaultClickHouseLogContainerImage:
+                  type: string
+                  description: "ClickHouse log container image, default `busybox`"
+                defaultClickHouseLogContainerImagePullPolicy:
+                  type: string
+                  description: "ClickHouse log container image pull policy, default `IfNotPresent`"
+                defaultMetricsExporterContainerImage:
+                  type: string
+                  description: "ClickHouse metrics exporter container image, default `radondb/chronus-metrics-operator:dmp`"
+                defaultMetricsExporterContainerImagePullPolicy:
+                  type: string
+                  description: "ClickHouse metrics exporter container image pull policy, default `IfNotPresent`"

@@ -172,6 +172,35 @@ spec:
                     - "disabled"
                     - "Enabled"
                     - "enabled"
+                # Need to be StringBool
+                metricsExporter:
+                  type: string
+                  description: "Monitoring related, allows adding prometheus exporter containers to each pod"
+                  enum:
+                    # List StringBoolXXX constants from model
+                    - ""
+                    - "0"
+                    - "1"
+                    - "False"
+                    - "false"
+                    - "True"
+                    - "true"
+                    - "No"
+                    - "no"
+                    - "Yes"
+                    - "yes"
+                    - "Off"
+                    - "off"
+                    - "On"
+                    - "on"
+                    - "Disable"
+                    - "disable"
+                    - "Enable"
+                    - "enable"
+                    - "Disabled"
+                    - "disabled"
+                    - "Enabled"
+                    - "enabled"
                 namespaceDomainPattern:
                   type: string
                   description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"

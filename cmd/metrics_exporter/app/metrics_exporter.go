@@ -1,4 +1,4 @@
-// Copyright 2019 Altinity Ltd and/or its affiliates. All rights reserved.
+// Copyright 2020 [RadonDB](https://github.com/radondb). All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,23 +20,25 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	log "github.com/golang/glog"
 	// log "k8s.io/klog"
 
 	"github.com/radondb/clickhouse-operator/pkg/apis/metrics"
-	"github.com/radondb/clickhouse-operator/pkg/chop"
 	"github.com/radondb/clickhouse-operator/pkg/version"
 )
 
 // Prometheus exporter defaults
 const (
 	defaultMetricsEndpoint = ":8888"
-	defaultChiListEP       = ":8888"
 
 	metricsPath = "/metrics"
-	chiListPath = "/chi"
+
+	defaultPort     = 8123
+	defaultPassword = ""
+	defaultUsername = "default"
 )
 
 // CLI parameter variables
@@ -56,7 +58,14 @@ var (
 	// metricsEP defines metrics end-point IP address
 	metricsEP string
 
-	chiListEP string
+	// port to access clickhouse
+	port int
+
+	// username to access clickhouse
+	username string
+
+	// password to access clickhouse
+	password string
 )
 
 func init() {
@@ -65,7 +74,20 @@ func init() {
 	flag.StringVar(&kubeConfigFile, "kubeconfig", "", "Path to custom kubernetes config file. Makes sense if runs outside of the cluster only.")
 	flag.StringVar(&masterURL, "master", "", "The address of custom Kubernetes API server. Makes sense if runs outside of the cluster and not being specified in kube config file only.")
 	flag.StringVar(&metricsEP, "metrics-endpoint", defaultMetricsEndpoint, "The Prometheus exporter endpoint.")
-	flag.StringVar(&chiListEP, "chi-list-endpoint", defaultChiListEP, "The CHI list endpoint.")
+	flag.IntVar(&port, "clickhouse-port", defaultPort, "The Prometheus exporter endpoint.")
+	flag.StringVar(&username, "clickhouse-username", defaultUsername, "The Prometheus exporter endpoint.")
+	flag.StringVar(&password, "clickhouse-password", defaultPassword, "The Prometheus exporter endpoint.")
+
+	if u := os.Getenv("CLICKHOUSE_USERNAME"); u != "" {
+		username = u
+	}
+	if p := os.Getenv("CLICKHOUSE_PASSWORD"); p != "" {
+		password = p
+	}
+	if p := os.Getenv("CLICKHOUSE_PORT"); p != "" {
+		port, _ = strconv.Atoi(p)
+	}
+
 	flag.Parse()
 }
 
@@ -89,28 +111,16 @@ func Run() {
 
 	log.Infof("Starting metrics exporter. Version:%s GitSHA:%s BuiltAt:%s\n", version.Version, version.GitSHA, version.BuiltAt)
 
-	// Initialize k8s API clients
-	kubeClient, chopClient := chop.GetClientset(kubeConfigFile, masterURL)
-
-	// Create operator instance
-	chop.New(kubeClient, chopClient, chopConfigFile)
-	log.Info(chop.Config().String(true))
-
-	exporter := metrics.StartMetricsREST(
+	metrics.StartMetricsREST(
 		metrics.NewCHAccessInfo(
-			chop.Config().CHUsername,
-			chop.Config().CHPassword,
-			chop.Config().CHPort,
+			username,
+			password,
+			port,
 		),
 
 		metricsEP,
 		metricsPath,
-
-		chiListEP,
-		chiListPath,
 	)
-
-	exporter.DiscoveryWatchedCHIs(chopClient)
 
 	<-ctx.Done()
 }
