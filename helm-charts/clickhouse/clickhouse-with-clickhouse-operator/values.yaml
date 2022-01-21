@@ -1,0 +1,84 @@
+# Configuration for the ClickHouse cluster to be started
+clickhouse:
+  # default cluster name
+  clusterName: all-nodes
+  # shards count can not scale in this value.
+  shardscount: 1
+  # replicas count can not modify this value when the cluster has already created.
+  replicascount: 2
+
+  # ClickHouse server image configuration
+  image: radondb/clickhouse-server:21.1.3.32
+  imagePullPolicy: IfNotPresent
+
+  resources:
+    memory: "1Gi"
+    cpu: "0.5"
+    storage: "10Gi"
+
+  # User Configuration
+  user:
+    - username: clickhouse
+      password: c1ickh0use0perator
+      networks:
+        - "127.0.0.1"
+        - "::/0"
+
+  ports:
+    # Port for the native interface, see https://clickhouse.tech/docs/en/interfaces/tcp/
+    tcp: 9000
+
+    # Port for HTTP/REST interface, see https://clickhouse.tech/docs/en/interfaces/http/
+    http: 8123
+
+  # servicee, value: ClusterIP/NodePort/LoadBalancer
+  # see https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  svc:
+    type: ClusterIP
+    # If type: LoadBalancer, can use https://docs.qingcloud.com/product/container/qke/index#%E4%B8%8E-qingcloud-iaas-%E7%9A%84%E6%95%B4%E5%90%88
+    qceip:
+
+# Configuration for the clickhouse backup
+backup:
+  # true for enable backup, false for disable
+  enable: true
+
+  # clickhouse backup image configuration
+  image: radondb/clickhouse-backup:latest
+  imagePullPolicy: IfNotPresent
+
+  # Object storage related configuration required for backup
+  # object storage must be compatible with AWS S3 protocol
+  s3EndPoint: ""
+  s3Bucket: ""
+  s3Path: ""
+  s3AccessKey: ""
+  s3SecretKey: ""
+
+  # The number of backups to keep, beyond which stale backups will be deleted
+  backupKeep: 3
+
+# Configuration for the busybox container
+busybox:
+  image: busybox
+  imagePullPolicy: IfNotPresent
+
+# required, zookeeper configuration
+zookeeper:
+  # If you want to create ZooKeeper cluster by operator, use the following configuration
+  install: true
+  replicas: 3
+  port: 2181
+  image: radondb/zookeeper:3.6.1
+  imagePullPolicy: IfNotPresent
+
+  # If you don’t want Operator to create a ZooKeeper cluster, we also provide a ZooKeeper deployment file,
+  # you can customize the following configuration.
+  # install: false
+  # replicas: specify by yourself
+  # image: radondb/zookeeper:3.6.2
+  # imagePullPolicy: specify by yourself
+  # resources:
+  #   memory: specify by yourself
+  #   cpu: specify by yourself
+  #   storage: specify by yourself

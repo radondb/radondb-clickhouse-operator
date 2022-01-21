@@ -1,0 +1,232 @@
+{{- $zkreplicas := int .Values.zookeeper.replicas -}}
+{{- $args := list -}}
+{{- $name :=  .Release.Name -}}
+{{- $namespace := .Release.Namespace -}}
+---
+apiVersion: "clickhouse.radondb.com/v1"
+kind: "ClickHouseInstallation"
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  configuration:
+    zookeeper:
+      {{- if .Values.zookeeper.install }}
+      install: true
+      replica: {{ .Values.zookeeper.replicas | default 3 }}
+      port: {{ .Values.zookeeper.port | default 2181 }}
+      image: {{ .Values.zookeeper.image | default "radondb/zookeeper:3.6.1" }}
+      imagePullPolicy: {{ .Values.zookeeper.imagePullPolicy | default "IfNotPresent" }}
+      {{- else }}
+      nodes:
+        {{- range untilStep 0 $zkreplicas 1 -}}
+          {{ $args = printf "%s-%s-%d" "zk" $name . }}
+          - host: {{ $args }}.zk-server-{{ $name }}.{{ $namespace }}
+            port: 2181
+        {{- end }}
+      {{- end }}
+    users:
+      readonly/profile: readonly
+      #     <users>
+      #        <readonly>
+      #          <profile>readonly</profile>
+      #        </readonly>
+      #     </users>
+      {{- range .Values.clickhouse.user }}
+      {{ .username }}/password: {{ .password }}
+      {{ .username }}/networks/ip:
+        {{- range $ipIndex, $ip := .networks }}
+          - {{ $ip }}
+        {{- end }}
+      {{ .username }}/profile: default
+      {{ .username }}/quotas: default
+      {{- end }}
+      #     <users>
+      #        <test>
+      #          <networks>
+      #            <ip>127.0.0.1</ip>
+      #            <ip>::/0</ip>
+      #          </networks>
+      #        </test>
+      #     </users>
+    profiles:
+      readonly/readonly: "1"
+      #      <profiles>
+      #        <readonly>
+      #          <readonly>1</readonly>
+      #        </readonly>
+      #      </profiles>
+    quotas:
+      default/interval/duration: "3600"
+      #     <quotas>
+      #       <default>
+      #         <interval>
+      #           <duration>3600</duration>
+      #         </interval>
+      #       </default>
+      #     </quotas>
+    settings:
+      compression/case/method: zstd
+      #      <compression>
+      #        <case>
+      #          <method>zstd</method>
+      #        </case>
+      #      </compression>
+      disable_internal_dns_cache: 1
+      #      <disable_internal_dns_cache>1</disable_internal_dns_cache>
+    clusters:
+      - name: {{ .Values.clickhouse.clusterName | default "clickhouse" }}
+        # Templates are specified for this cluster explicitly
+        templates:
+          podTemplate: pod-template-with-volume
+        layout:
+          shardsCount: {{ .Values.clickhouse.shardscount | default 1 }}
+          replicasCount: {{ .Values.clickhouse.replicascount | default 1 }}
+
+  defaults:
+    templates:
+      podTemplate: pod-template-with-volume
+      dataVolumeClaimTemplate: data
+      serviceTemplate: chi-svc-template
+
+  templates:
+    serviceTemplates:
+      - name: chi-svc-template
+        {{- if eq .Values.clickhouse.svc.type "LoadBalancer" }}
+        metadata:
+          annotations:
+            service.beta.kubernetes.io/qingcloud-load-balancer-eip-ids: {{ .Values.clickhouse.svc.qceip }}
+            service.beta.kubernetes.io/qingcloud-load-balancer-type: "0"
+        {{- end }}
+        spec:
+          ports:
+            - name: http
+              port: {{ .Values.clickhouse.ports.http | default 8123 }}
+            - name: tcp
+              port: {{ .Values.clickhouse.ports.tcp | default 9000 }}
+          type: {{ .Values.clickhouse.svc.type | default "ClusterIP" }}
+
+    podTemplates:
+      - name: pod-template-with-volume
+        metadata:
+          annotations:
+            backup.velero.io/backup-volumes: data
+        spec:
+          affinity:
+            # Locate only one pod on each host
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 1
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: "clickhouse.radondb.com/chi"
+                          operator: In
+                          values:
+                          - {{ .Release.Name }}
+                    topologyKey: "kubernetes.io/hostname"
+          containers:
+            - name: clickhouse
+              image: {{ .Values.clickhouse.image | default "radondb/clickhouse-server:21.1.3.32"  }}
+              imagePullPolicy: {{ .Values.clickhouse.imagePullPolicy | default "IfNotPresent" }}
+              volumeMounts:
+                - name: data
+                  mountPath: /var/lib/clickhouse
+              {{- if .Values.clickhouse.resources }}
+              {{- if or .Values.clickhouse.resources.memory .Values.clickhouse.resources.cpu }}
+              resources:
+                requests:
+                  {{- if .Values.clickhouse.resources.memory }}
+                  memory: {{ .Values.clickhouse.resources.memory }}
+                  {{- end }}
+                  {{- if .Values.clickhouse.resources.cpu }}
+                  cpu: {{ .Values.clickhouse.resources.cpu }}
+                  {{- end }}
+                limits:
+                  {{- if .Values.clickhouse.resources.memory }}
+                  memory: {{ .Values.clickhouse.resources.memory }}
+                  {{- end }}
+                  {{- if .Values.clickhouse.resources.cpu }}
+                  cpu: {{ .Values.clickhouse.resources.cpu }}
+                  {{- end }}
+              {{- end }}
+              {{- end }}
+            - name: clickhouse-log
+              image: {{ .Values.busybox.image | default "busybox"  }}
+              imagePullPolicy: {{ .Values.busybox.imagePullPolicy | default "IfNotPresent"  }}
+              volumeMounts:
+                - name: data
+                  mountPath: /var/lib/clickhouse
+              command:
+                - /bin/sh
+                - '-c'
+                - '--'
+              args:
+                - while true; do sleep 30; done;
+            {{- if .Values.backup.enable }}
+            - name: clickhouse-backup
+              image: {{ .Values.backup.image | default "radondb/clickhouse-backup:latest"  }}
+              imagePullPolicy: {{ .Values.backup.imagePullPolicy | default "Always"  }}
+              command:
+                - bash
+                - -xc
+                - "/bin/clickhouse-backup server"
+              ports:
+                - name: backup-rest
+                  containerPort: 7171
+              env:
+                - name: API_LISTEN
+                  value: "0.0.0.0:7171"
+                # INSERT INTO system.backup_actions to execute backup
+                - name: API_CREATE_INTEGRATION_TABLES
+                  value: "true"
+
+                - name: LOG_LEVEL
+                  value: "debug"
+                - name: MAX_FILE_SIZE
+                  value: "107374182400"
+                - name: DISABLE_PROGRESS_BAR
+                  value: "false"
+                - name: ALLOW_EMPTY_BACKUPS
+                  value: "true"
+                - name: BACKUPS_TO_KEEP_LOCAL
+                  value: {{ mul .Values.backup.backupKeep .Values.clickhouse.shardscount .Values.clickhouse.replicascount | default "" | quote }}
+                - name: BACKUPS_TO_KEEP_REMOTE
+                  value: {{ mul .Values.backup.backupKeep .Values.clickhouse.shardscount .Values.clickhouse.replicascount | default "" | quote }}
+
+                - name: CLICKHOUSE_HOST
+                  value: "localhost"
+                - name: CLICKHOUSE_PORT
+                  value: {{ .Values.clickhouse.ports.tcp | default "9000" | quote }}
+                - name: CLICKHOUSE_USERNAME
+                  value: {{ (index .Values.clickhouse.user 0).username | default "default" | quote }}
+                - name: CLICKHOUSE_PASSWORD
+                  value: {{ (index .Values.clickhouse.user 0).password | default "" | quote }}
+
+                - name: S3_ACL
+                  value: "private"
+                - name: REMOTE_STORAGE
+                  value: "s3"
+                - name: S3_ENDPOINT
+                  value: {{ .Values.backup.s3EndPoint }}
+                - name: S3_BUCKET
+                  value: {{ .Values.backup.s3Bucket }}
+                - name: S3_PATH
+                  value: {{ .Values.backup.s3Path }}
+                - name: S3_ACCESS_KEY
+                  value: {{ .Values.backup.s3AccessKey }}
+                - name: S3_SECRET_KEY
+                  value: {{ .Values.backup.s3SecretKey }}
+                - name: S3_FORCE_PATH_STYLE
+                  value: "true"
+            {{- end }}
+
+    volumeClaimTemplates:
+      - name: data
+        reclaimPolicy: Retain
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ .Values.clickhouse.resources.storage | default "10Gi" }}
