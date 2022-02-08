@@ -1,37 +1,44 @@
 # Table of Contents
 
-## Quick Start:
-1. [quick_start.md](./quick_start.md) - quick start
-1. [introduction.md](./introduction.md) - general introduction
+## Introduction
+
+1. [general introduction](./introduction.md)
+2. [architecture overview](./architecture.md)
+3. [operator configuration in details](./operator_configuration.md)
+4. [Custom Resource Definition in details](./custom_resource_explained.md)
+5. [storage explained](./storage.md)
+
+## Quick Start
+
+1. [quick start](./quick_start.md)
+
+## ClickHouse Operator
+
+1. [how to install operator in details](./operator_installation_details.md)
+2. [how to upgrade operator to the different version](./operator_upgrade.md)
+3. [how to build operator from sources](./operator_build_from_sources.md)
+4. [how operator handles ClickHouse's config errors](./clickhouse_config_errors_handling.md)
+5. [how operator migrates schema during cluster resize](./schema_migration.md)
+
+## ClickHouse Cluster
+
+1. [how to set up zookeeper](./zookeeper_setup.md)
+2. [how to set up replication](./replication_setup.md)
+3. [how to add replication](./chi_update_add_replication.md)
+4. [how to update version](./chi_update_clickhouse_version.md)
+5. [how to do backup and restore](./clickhouse_backup_and_restore.md)
 
 
-## ClickHouse Operator:
-1. [operator_installation_details.md](./operator_installation_details.md) - how to install operator in details
-1. [operator_upgrade.md](./operator_upgrade.md) - how to upgrade operator to the different version
-1. [operator_configuration.md](./operator_configuration.md) - operator configuration in details
-1. [operator_build_from_sources.md](./operator_build_from_sources.md) - how to build operator from sources
-1. [custom_resource_explained.md](./custom_resource_explained.md) - explain Custom Resource Definition in details
-1. [clickhouse_config_errors_handling.md](./clickhouse_config_errors_handling.md) - how operator handles ClickHouse's config errors
-1. [architecture.md](./architecture.md) - architecture overview
-1. [schema_migration.md](./schema_migration.md) - how operator migrates schema during cluster resize
+## ClickHouse Monitor
 
+1. [how to set up monitoring](./monitoring_setup.md)
+2. [how to set up Prometheus](./prometheus_setup.md)
+3. [how to set up Grafana](./grafana_setup.md)
 
-## ClickHouse Installation:
-1. [zookeeper_setup.md](./zookeeper_setup.md) - how to set up zookeeper
-1. [replication_setup.md](./replication_setup.md) - how to set up replication
-1. [chi_update_add_replication.md](./chi_update_add_replication.md) - how to add replication
-1. [chi_update_clickhouse_version.md](./chi_update_clickhouse_version.md) - how to update version
-1. [clickhouse_backup_and_restore.md](./clickhouse_backup_and_restore.md) - how to do backup and restore
-1. [storage.md](./storage.md) - storage explained
+## ClickHouse Backup
 
+1. [how to backup / restore clickhouse cluster](./clickhouse_backup_and_restore.md)
 
-## ClickHouse Monitor:
-1. [monitoring_setup.md](./monitoring_setup.md) - how to set up monitoring
-1. [prometheus_setup.md](./prometheus_setup.md) - how to set up Prometheus
-1. [grafana_setup.md](./grafana_setup.md) - how to set up Grafana
+## Others
 
-## ClickHouse Backup:
-1. [clickhouse_backup_and_restore.md](./clickhouse_backup_and_restore.md) - how to backup / restore clickhouse cluster
-
-## Others:
-1. [k8s_cluster_access.md](./k8s_cluster_access.md) - how to set up cluster access
+1. [how to set up cluster access](./k8s_cluster_access.md)
