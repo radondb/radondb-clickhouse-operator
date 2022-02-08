@@ -1,10 +1,10 @@
 # Submitting your patch
 
-Thanks for taking the time to contribute to `clickhouse-operator`!
+Thanks for taking the time to contribute to `radondb-clickhouse-operator`!
 
 ## Intro
-`clickhouse-operator` contribution process is built around standard git _Pull Requests_. 
 
+`radondb-clickhouse-operator` contribution process is built around standard git _Pull Requests_. 
 
 ## How to make PR
 
@@ -19,9 +19,9 @@ In case you'd like to introduce several features, make several PRs, please.
 ## Sign Your Work
 
 Every PR has to be signed. The sign-off is a text line at the end of the commit's text description.
-Your signature certifies that you wrote the patch or otherwise have the right to contribute it to `clickhouse-operator`.
+Your signature certifies that you wrote the patch or otherwise have the right to contribute it to `radondb-clickhouse-operator`.
 
-Developer Certificate of Origin is available at [developercertificate.org](https://developercertificate.org/):
+Developer Certificate of Origin is available at [developer certificate.org](https://developercertificate.org/):
 
 ```text
 Version 1.1
@@ -72,7 +72,7 @@ If you set your `user.name` and `user.email` git configs, you can sign your comm
 
 Your `git log` information for your commit should look something like this:
 
-```
+```spain
 Author: John Doe <john.doe@example.com>
 Date:   Mon Jan 24 12:34:56 2020 +0200
 
