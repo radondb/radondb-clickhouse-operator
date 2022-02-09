@@ -19,12 +19,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kube "k8s.io/client-go/kubernetes"
 	"strings"
 
 	"github.com/google/uuid"
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kube "k8s.io/client-go/kubernetes"
 
 	log "github.com/radondb/clickhouse-operator/pkg/announcer"
 	chiV1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
@@ -127,8 +127,8 @@ func (n *Normalizer) normalize() (*chiV1.ClickHouseInstallation, error) {
 	n.chi.Spec.Templating = n.normalizeTemplating(n.chi.Spec.Templating)
 	n.chi.Spec.Reconciling = n.normalizeReconciling(n.chi.Spec.Reconciling)
 	n.chi.Spec.Defaults = n.normalizeDefaults(n.chi.Spec.Defaults)
-	n.chi.Spec.Configuration = n.normalizeConfiguration(n.chi.Spec.Configuration)
 	n.chi.Spec.Templates = n.normalizeTemplates(n.chi.Spec.Templates)
+	n.chi.Spec.Configuration = n.normalizeConfiguration(n.chi.Spec.Configuration)
 	// UseTemplates already done
 
 	n.finalizeCHI()
@@ -801,34 +801,42 @@ func (n *Normalizer) normalizeConfigurationZookeeper(zk *chiV1.ChiZookeeperConfi
 		return nil
 	}
 
-	// ZooKeeper Cluster Node must larger than zero.
-	// ZooKeeper Cluster Node must be odd.
-	if zk.Install && zk.Replica <= 0 {
-		zk.Replica = 1
-	} else if zk.Install && zk.Replica%2 == 0 {
-		zk.Replica--
+	clientPort := int32(2181)
+	if template, ok := n.chi.GetZooKeeperServiceTemplate(); ok {
+		for _, port := range template.Spec.Ports {
+			if port.Name == "client" {
+				clientPort = port.Port
+			}
+		}
 	}
 
-	// In case no ZK port specified - assign default
-	if zk.Port == 0 {
-		zk.Port = zkDefaultClientPortNumber
-	}
+	if zk.Install {
+		// ZooKeeper Cluster Node must larger than zero.
+		// ZooKeeper Cluster Node must be odd.
+		if zk.Replica <= 0 {
+			zk.Replica = 1
+		} else if zk.Install && zk.Replica%2 == 0 {
+			zk.Replica--
+		}
 
-	// In case no ZK image specified - assign default
-	if zk.Image == "" {
-		zk.Image = defaultZooKeeperDockerImage
-	}
+		// Fill zookeeper node if install = true
+		replica := int(zk.Replica)
+		zk.Nodes = make([]chiV1.ChiZookeeperNode, 0)
 
-	// In case no ZK imagePullPolicy specified - assign default
-	if zk.ImagePullPolicy == "" {
-		zk.ImagePullPolicy = "IfNotPresent"
+		for i := 0; i < replica; i++ {
+			host := CreatePodFQDNOfZooKeeper(n.chi, i)
+			zk.Nodes = append(zk.Nodes, chiV1.ChiZookeeperNode{
+				Host: host,
+				Port: clientPort,
+			})
+		}
 	}
 
 	for i := range zk.Nodes {
 		// Convenience wrapper
 		node := &zk.Nodes[i]
 		if node.Port == 0 {
-			node.Port = zkDefaultClientPortNumber
+			node.Port = clientPort
 		}
 	}
 

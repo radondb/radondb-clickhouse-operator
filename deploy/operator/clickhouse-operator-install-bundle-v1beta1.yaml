@@ -323,12 +323,18 @@ spec:
                     podTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.podTemplates, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperPodTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperPodTemplate, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     dataVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
                     logVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse log directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperVolumeClaimTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperVolumeClaimTemplate, allows customization each `PVC` which will mount for zookeeper data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     serviceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for one `Service` resource which will created by `clickhouse-operator` which cover all clusters in whole `chi` resource"
@@ -341,6 +347,9 @@ spec:
                     replicaServiceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover each replica inside each shard inside each clickhouse cluster described in `chi.spec.configuration.clusters`"
+                    zookeeperServiceTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperServiceTemplate, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover zookeeper replicas described in `chi.spec.configuration.zookeepers`"
                     volumeClaimTemplate:
                       type: string
                       description: "DEPRECATED! VolumeClaimTemplate is deprecated in favor of DataVolumeClaimTemplate and LogVolumeClaimTemplate"
@@ -390,26 +399,11 @@ spec:
                     install:
                       type: boolean
                       description: "Choose whether to create zookeeper dependencies by operator"
-                    image:
-                      type: string
-                      description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                    imagePullPolicy:
-                      type: string
-                      enum:
-                        - Always
-                        - IfNotPresent
-                        - Never
-                      description: "zookeeper image pull policy, default `IfNotPresent`"
                     replica:
                       type: integer
                       minimum: 0
                       maximum: 9
                       description: "zookeeper cluster replica count, between 1~9, default `1`"
-                    port:
-                      type: integer
-                      minimum: 0
-                      maximum: 65535
-                      description: "zookeeper server port, default `2181`"
                 users:
                   type: object
                   description: |
@@ -516,26 +510,11 @@ spec:
                           install:
                             type: boolean
                             description: "Choose whether to create zookeeper dependencies by operator"
-                          image:
-                            type: string
-                            description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                          imagePullPolicy:
-                            type: string
-                            enum:
-                              - Always
-                              - IfNotPresent
-                              - Never
-                            description: "zookeeper image pull policy, default `IfNotPresent`"
                           replica:
                             type: integer
                             minimum: 0
                             maximum: 9
                             description: "zookeeper cluster replica count, between 1~9, default `1`"
-                          port:
-                            type: integer
-                            minimum: 0
-                            maximum: 65535
-                            description: "zookeeper server port, default `2181`"
                       settings:
                         type: object
                         description: |
@@ -1582,12 +1561,18 @@ spec:
                     podTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.podTemplates, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperPodTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperPodTemplate, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     dataVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
                     logVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse log directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperVolumeClaimTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperVolumeClaimTemplate, allows customization each `PVC` which will mount for zookeeper data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     serviceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for one `Service` resource which will created by `clickhouse-operator` which cover all clusters in whole `chi` resource"
@@ -1600,6 +1585,9 @@ spec:
                     replicaServiceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover each replica inside each shard inside each clickhouse cluster described in `chi.spec.configuration.clusters`"
+                    zookeeperServiceTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperServiceTemplate, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover zookeeper replicas described in `chi.spec.configuration.zookeepers`"
                     volumeClaimTemplate:
                       type: string
                       description: "DEPRECATED! VolumeClaimTemplate is deprecated in favor of DataVolumeClaimTemplate and LogVolumeClaimTemplate"
@@ -1649,26 +1637,11 @@ spec:
                     install:
                       type: boolean
                       description: "Choose whether to create zookeeper dependencies by operator"
-                    image:
-                      type: string
-                      description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                    imagePullPolicy:
-                      type: string
-                      enum:
-                        - Always
-                        - IfNotPresent
-                        - Never
-                      description: "zookeeper image pull policy, default `IfNotPresent`"
                     replica:
                       type: integer
                       minimum: 0
                       maximum: 9
                       description: "zookeeper cluster replica count, between 1~9, default `1`"
-                    port:
-                      type: integer
-                      minimum: 0
-                      maximum: 65535
-                      description: "zookeeper server port, default `2181`"
                 users:
                   type: object
                   description: |
@@ -1775,26 +1748,11 @@ spec:
                           install:
                             type: boolean
                             description: "Choose whether to create zookeeper dependencies by operator"
-                          image:
-                            type: string
-                            description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                          imagePullPolicy:
-                            type: string
-                            enum:
-                              - Always
-                              - IfNotPresent
-                              - Never
-                            description: "zookeeper image pull policy, default `IfNotPresent`"
                           replica:
                             type: integer
                             minimum: 0
                             maximum: 9
                             description: "zookeeper cluster replica count, between 1~9, default `1`"
-                          port:
-                            type: integer
-                            minimum: 0
-                            maximum: 65535
-                            description: "zookeeper server port, default `2181`"
                       settings:
                         type: object
                         description: |
@@ -2972,7 +2930,7 @@ subjects:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-files
 #
 apiVersion: v1
@@ -3143,7 +3101,7 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-confd-files
 #
 apiVersion: v1
@@ -3158,7 +3116,7 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-configd-files
 #
 apiVersion: v1
@@ -3212,7 +3170,7 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-templatesd-files
 #
 apiVersion: v1
@@ -3309,7 +3267,7 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-usersd-files
 #
 apiVersion: v1
@@ -3366,8 +3324,8 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.1.1
-# radondb/chronus-metrics-operator:2.1.1
+# radondb/chronus-operator:2.2.0
+# radondb/chronus-metrics-operator:2.2.0
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -3410,7 +3368,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: radondb/chronus-operator:2.1.1
+          image: radondb/chronus-operator:2.2.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -3473,7 +3431,7 @@ spec:
                   containerName: clickhouse-operator
                   resource: limits.memory
         - name: metrics-exporter
-          image: radondb/chronus-metrics-operator:2.1.1
+          image: radondb/chronus-metrics-operator:2.2.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder

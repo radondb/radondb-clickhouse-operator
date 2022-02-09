@@ -600,6 +600,15 @@ func (chi *ClickHouseInstallation) WalkPodTemplates(f func(template *ChiPodTempl
 	chi.Spec.Templates.GetPodTemplatesIndex().Walk(f)
 }
 
+// GetZooKeeperPodTemplate gets ChiPodTemplate of zookeeper
+func (chi *ClickHouseInstallation) GetZooKeeperPodTemplate() (*ChiPodTemplate, bool) {
+	if !chi.Spec.Defaults.Templates.HasZooKeeperPodTemplate() {
+		return nil, false
+	}
+	name := chi.Spec.Defaults.Templates.GetZooKeeperPodTemplate()
+	return chi.GetPodTemplate(name)
+}
+
 // GetVolumeClaimTemplate gets ChiVolumeClaimTemplate by name
 func (chi *ClickHouseInstallation) GetVolumeClaimTemplate(name string) (*ChiVolumeClaimTemplate, bool) {
 	if chi.Spec.Templates.GetVolumeClaimTemplatesIndex().Has(name) {
@@ -627,6 +636,15 @@ func (chi *ClickHouseInstallation) GetCHIServiceTemplate() (*ChiServiceTemplate,
 		return nil, false
 	}
 	name := chi.Spec.Defaults.Templates.GetServiceTemplate()
+	return chi.GetServiceTemplate(name)
+}
+
+// GetZooKeeperServiceTemplate gets ChiServiceTemplate of zookeeper
+func (chi *ClickHouseInstallation) GetZooKeeperServiceTemplate() (*ChiServiceTemplate, bool) {
+	if !chi.Spec.Defaults.Templates.HasZooKeeperServiceTemplate() {
+		return nil, false
+	}
+	name := chi.Spec.Defaults.Templates.GetZooKeeperServiceTemplate()
 	return chi.GetServiceTemplate(name)
 }
 

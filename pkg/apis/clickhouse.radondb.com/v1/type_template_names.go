@@ -51,6 +51,22 @@ func (templateNames *ChiTemplateNames) GetPodTemplate() string {
 	return templateNames.PodTemplate
 }
 
+// HasZooKeeperPodTemplate checks whether zookeeper pod template is specified
+func (templateNames *ChiTemplateNames) HasZooKeeperPodTemplate() bool {
+	if templateNames == nil {
+		return false
+	}
+	return len(templateNames.ZooKeeperPodTemplate) > 0
+}
+
+// GetZooKeeperPodTemplate gets zookeeper pod template
+func (templateNames *ChiTemplateNames) GetZooKeeperPodTemplate() string {
+	if templateNames == nil {
+		return ""
+	}
+	return templateNames.ZooKeeperPodTemplate
+}
+
 // HasDataVolumeClaimTemplate checks whether data volume claim template is specified
 func (templateNames *ChiTemplateNames) HasDataVolumeClaimTemplate() bool {
 	if templateNames == nil {
@@ -81,6 +97,22 @@ func (templateNames *ChiTemplateNames) GetLogVolumeClaimTemplate() string {
 		return ""
 	}
 	return templateNames.LogVolumeClaimTemplate
+}
+
+// HasZooKeeperVolumeClaimTemplate checks whether zookeeper volume claim template is specified
+func (templateNames *ChiTemplateNames) HasZooKeeperVolumeClaimTemplate() bool {
+	if templateNames == nil {
+		return false
+	}
+	return len(templateNames.ZooKeeperVolumeClaimTemplate) > 0
+}
+
+// GetZooKeeperVolumeClaimTemplate gets zookeeper volume claim template
+func (templateNames *ChiTemplateNames) GetZooKeeperVolumeClaimTemplate() string {
+	if templateNames == nil {
+		return ""
+	}
+	return templateNames.ZooKeeperVolumeClaimTemplate
 }
 
 // HasServiceTemplate checks whether service template is specified
@@ -147,6 +179,22 @@ func (templateNames *ChiTemplateNames) GetReplicaServiceTemplate() string {
 	return templateNames.ReplicaServiceTemplate
 }
 
+// HasZooKeeperServiceTemplate checks whether zookeeper service template is specified
+func (templateNames *ChiTemplateNames) HasZooKeeperServiceTemplate() bool {
+	if templateNames == nil {
+		return false
+	}
+	return len(templateNames.ZooKeeperServiceTemplate) > 0
+}
+
+// GetZooKeeperServiceTemplate gets zookeeper service template
+func (templateNames *ChiTemplateNames) GetZooKeeperServiceTemplate() string {
+	if templateNames == nil {
+		return ""
+	}
+	return templateNames.ZooKeeperServiceTemplate
+}
+
 // HandleDeprecatedFields helps to deal with deprecated fields
 func (templateNames *ChiTemplateNames) HandleDeprecatedFields() {
 	if templateNames == nil {
@@ -185,11 +233,17 @@ func (templateNames *ChiTemplateNames) mergeFromFillEmptyValues(from *ChiTemplat
 	if templateNames.PodTemplate == "" {
 		templateNames.PodTemplate = from.PodTemplate
 	}
+	if templateNames.ZooKeeperPodTemplate == "" {
+		templateNames.ZooKeeperPodTemplate = from.ZooKeeperPodTemplate
+	}
 	if templateNames.DataVolumeClaimTemplate == "" {
 		templateNames.DataVolumeClaimTemplate = from.DataVolumeClaimTemplate
 	}
 	if templateNames.LogVolumeClaimTemplate == "" {
 		templateNames.LogVolumeClaimTemplate = from.LogVolumeClaimTemplate
+	}
+	if templateNames.ZooKeeperVolumeClaimTemplate == "" {
+		templateNames.ZooKeeperVolumeClaimTemplate = from.ZooKeeperVolumeClaimTemplate
 	}
 	if templateNames.VolumeClaimTemplate == "" {
 		templateNames.VolumeClaimTemplate = from.VolumeClaimTemplate
@@ -206,6 +260,9 @@ func (templateNames *ChiTemplateNames) mergeFromFillEmptyValues(from *ChiTemplat
 	if templateNames.ReplicaServiceTemplate == "" {
 		templateNames.ReplicaServiceTemplate = from.ReplicaServiceTemplate
 	}
+	if templateNames.ZooKeeperServiceTemplate == "" {
+		templateNames.ZooKeeperServiceTemplate = from.ZooKeeperServiceTemplate
+	}
 	return templateNames
 }
 
@@ -217,11 +274,17 @@ func (templateNames *ChiTemplateNames) mergeFromOverwriteByNonEmptyValues(from *
 	if from.PodTemplate != "" {
 		templateNames.PodTemplate = from.PodTemplate
 	}
+	if from.ZooKeeperPodTemplate != "" {
+		templateNames.ZooKeeperPodTemplate = from.ZooKeeperPodTemplate
+	}
 	if from.DataVolumeClaimTemplate != "" {
 		templateNames.DataVolumeClaimTemplate = from.DataVolumeClaimTemplate
 	}
 	if from.LogVolumeClaimTemplate != "" {
 		templateNames.LogVolumeClaimTemplate = from.LogVolumeClaimTemplate
+	}
+	if from.ZooKeeperVolumeClaimTemplate != "" {
+		templateNames.ZooKeeperVolumeClaimTemplate = from.ZooKeeperVolumeClaimTemplate
 	}
 	if from.VolumeClaimTemplate != "" {
 		templateNames.VolumeClaimTemplate = from.VolumeClaimTemplate
@@ -237,6 +300,9 @@ func (templateNames *ChiTemplateNames) mergeFromOverwriteByNonEmptyValues(from *
 	}
 	if from.ReplicaServiceTemplate != "" {
 		templateNames.ReplicaServiceTemplate = from.ReplicaServiceTemplate
+	}
+	if from.ZooKeeperServiceTemplate != "" {
+		templateNames.ZooKeeperServiceTemplate = from.ZooKeeperServiceTemplate
 	}
 	return templateNames
 }

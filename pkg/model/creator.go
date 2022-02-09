@@ -15,15 +15,12 @@
 package model
 
 import (
-	"bytes"
 	"fmt"
-	"strconv"
 	// "net/url"
 
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/policy/v1beta1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -100,80 +97,6 @@ func (c *Creator) CreateServiceCHI() *corev1.Service {
 	}
 	MakeObjectVersionLabel(&svc.ObjectMeta, svc)
 	return svc
-}
-
-// CreateServiceZooKeeperServer creates new corev1.Service for zookeeper
-func (c *Creator) CreateServiceZooKeeperServer(chi *chiv1.ClickHouseInstallation) *corev1.Service {
-	zooKeeperStatefulSetName := CreateStatefulSetZooKeeperName(chi)
-	zooKeeperServiceName := CreateStatefulSetServiceZooKeeperServerName(chi)
-
-	c.a.V(1).F().Info("%s/%s for ZooKeeper Set %s", chi.Namespace, zooKeeperServiceName, zooKeeperStatefulSetName)
-
-	// TODO: use template if exists.
-	// if template, ok := host.GetServiceZooKeeperServerTemplate(); ok {
-	//     return c.createServiceZooKeeperServerFromTemplate()
-	// }
-
-	// Create default Service
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      zooKeeperServiceName,
-			Namespace: chi.Namespace,
-			Labels:    c.labeler.getLabelsServiceZooKeeperServer(),
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Name:       zkDefaultServerPortName,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       zkDefaultServerPortNumber,
-					TargetPort: intstr.FromInt(int(zkDefaultServerPortNumber)),
-				},
-				{
-					Name:       zkDefaultLeaderElectionPortName,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       zkDefaultLeaderElectionPortNumber,
-					TargetPort: intstr.FromInt(int(zkDefaultLeaderElectionPortNumber)),
-				},
-			},
-			Selector:  c.labeler.getSelectorZooKeeperScope(),
-			ClusterIP: templateDefaultsServiceClusterIP,
-		},
-	}
-}
-
-// CreateServiceZooKeeperClient creates new corev1.Service for zookeeper
-func (c *Creator) CreateServiceZooKeeperClient(chi *chiv1.ClickHouseInstallation) *corev1.Service {
-	zooKeeperStatefulSetName := CreateStatefulSetZooKeeperName(chi)
-	zooKeeperServiceName := CreateStatefulSetServiceZooKeeperClientName(chi)
-
-	c.a.V(1).F().Info("%s/%s for ZooKeeper Set %s", chi.Namespace, zooKeeperServiceName, zooKeeperStatefulSetName)
-
-	// TODO: use template if exists.
-	// if template, ok := host.GetServiceZooKeeperClientTemplate(); ok {
-	//     return c.createServiceZooKeeperClientFromTemplate()
-	// }
-
-	// Create default Service
-	zookeeperConfig := chi.Spec.Configuration.Zookeeper
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      zooKeeperServiceName,
-			Namespace: chi.Namespace,
-			Labels:    c.labeler.getLabelsServiceZooKeeperClient(),
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Name:       zkDefaultClientPortName,
-					Protocol:   corev1.ProtocolTCP,
-					Port:       zookeeperConfig.Port,
-					TargetPort: intstr.FromInt(int(zookeeperConfig.Port)),
-				},
-			},
-			Selector: c.labeler.getSelectorZooKeeperScope(),
-		},
-	}
 }
 
 // CreateServiceCluster creates new corev1.Service for specified Cluster
@@ -449,53 +372,6 @@ func (c *Creator) GetStatefulSetVersion(statefulSet *apps.StatefulSet) (string, 
 	return label, ok
 }
 
-// CreateStatefulSetZooKeeper creates new apps.StatefulSet
-func (c *Creator) CreateStatefulSetZooKeeper(chi *chiv1.ClickHouseInstallation) *apps.StatefulSet {
-	zooKeeperStatefulSetName := CreateStatefulSetZooKeeperName(chi)
-	zooKeeperServiceName := CreateStatefulSetServiceZooKeeperServerName(chi)
-
-	c.a.V(1).F().Info("Create StatefulSet %s/%s", chi.Namespace, zooKeeperServiceName)
-
-	// Create apps.StatefulSet object
-	replicasNum := chi.Spec.Configuration.Zookeeper.GetStatefulSetReplicasNum()
-	revisionHistoryLimit := int32(10)
-
-	// StatefulSet has additional label - ZK config fingerprint
-	statefulSet := &apps.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      zooKeeperStatefulSetName,
-			Namespace: chi.Namespace,
-			Labels:    c.labeler.getLabelsZooKeeperScope(),
-		},
-		Spec: apps.StatefulSetSpec{
-			Replicas:    &replicasNum,
-			ServiceName: zooKeeperServiceName,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: c.labeler.getSelectorZooKeeperScope(),
-			},
-
-			// IMPORTANT
-			// Template is to be setup later
-			Template: corev1.PodTemplateSpec{},
-
-			// IMPORTANT
-			// VolumeClaimTemplates are to be setup later
-			VolumeClaimTemplates: nil,
-
-			PodManagementPolicy: apps.ParallelPodManagement,
-			UpdateStrategy: apps.StatefulSetUpdateStrategy{
-				Type: apps.RollingUpdateStatefulSetStrategyType,
-			},
-			RevisionHistoryLimit: &revisionHistoryLimit,
-		},
-	}
-
-	c.setupStatefulSetZooKeeperPodTemplate(statefulSet, chi)
-	c.setupStatefulSetZooKeeperVolumeClaimTemplates(statefulSet)
-
-	return statefulSet
-}
-
 // PreparePersistentVolume prepares PV labels
 func (c *Creator) PreparePersistentVolume(pv *corev1.PersistentVolume, host *chiv1.ChiHost) *corev1.PersistentVolume {
 	pv.Labels = util.MergeStringMapsOverwrite(pv.Labels, c.labeler.getLabelsHostScope(host, false))
@@ -527,12 +403,6 @@ func (c *Creator) setupStatefulSetPodTemplate(statefulSet *apps.StatefulSet, hos
 	// Post-process StatefulSet
 	ensureStatefulSetTemplateIntegrity(statefulSet, host)
 	c.personalizeStatefulSetTemplate(statefulSet, host)
-}
-
-// setupStatefulSetZooKeeperPodTemplate performs PodTemplate setup of StatefulSet
-func (c *Creator) setupStatefulSetZooKeeperPodTemplate(statefulSet *apps.StatefulSet, chi *chiv1.ClickHouseInstallation) {
-	podTemplate := c.getPodTemplateZooKeeper(chi)
-	c.statefulSetApplyPodTemplateZooKeeper(statefulSet, podTemplate)
 }
 
 // ensureStatefulSetTemplateIntegrity
@@ -657,23 +527,6 @@ func (c *Creator) getPodTemplate(host *chiv1.ChiHost) *chiv1.ChiPodTemplate {
 	return podTemplate
 }
 
-// getPodTemplateZooKeeper gets ZooKeeper Pod Template to be used to create StatefulSet
-func (c *Creator) getPodTemplateZooKeeper(chi *chiv1.ClickHouseInstallation) *chiv1.ChiPodTemplate {
-	statefulSetName := CreateStatefulSetZooKeeperName(chi)
-	zooKeeperConfig := chi.Spec.Configuration.Zookeeper
-
-	// TODO: use template if exists.
-	// if template, ok := host.GetPodZooKeeperTemplate(); ok {
-	//     return c.createPodZooKeeperFromTemplate()
-	// }
-
-	// Create default one
-	podTemplate := c.newDefaultZooKeeperPodTemplate(zooKeeperConfig, statefulSetName)
-	c.a.V(1).F().Info("statefulSet %s use default generated template", statefulSetName)
-
-	return podTemplate
-}
-
 // setupConfigMapVolumes adds to each container in the Pod VolumeMount objects with
 func (c *Creator) setupConfigMapVolumes(statefulSetObject *apps.StatefulSet, host *chiv1.ChiHost) {
 	configMapPersonalName := CreateConfigMapPersonalName(host)
@@ -740,43 +593,6 @@ func (c *Creator) setupStatefulSetVolumeClaimTemplates(statefulSet *apps.Statefu
 	c.setupStatefulSetApplyVolumeClaimTemplates(statefulSet, host)
 }
 
-// setupStatefulSetZooKeeperVolumeClaimTemplates performs VolumeClaimTemplate setup for Containers in PodTemplate of a StatefulSet
-func (c *Creator) setupStatefulSetZooKeeperVolumeClaimTemplates(statefulSet *apps.StatefulSet) {
-	// applies `volumeMounts` of a `container`
-	// c.setupStatefulSetApplyVolumeMounts(statefulSet, host)
-	for i := range statefulSet.Spec.Template.Spec.Containers {
-		// Convenience wrapper
-		container := &statefulSet.Spec.Template.Spec.Containers[i]
-
-		container.VolumeMounts = []corev1.VolumeMount{
-			{
-				Name:      "data",
-				MountPath: "/var/lib/zookeeper",
-			},
-		}
-	}
-
-	// applies Data VolumeClaimTemplates on all containers
-	// c.setupStatefulSetApplyVolumeClaimTemplates(statefulSet, host)
-	statefulSet.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "data",
-			},
-			Spec: corev1.PersistentVolumeClaimSpec{
-				AccessModes: []corev1.PersistentVolumeAccessMode{
-					corev1.ReadWriteOnce,
-				},
-				Resources: corev1.ResourceRequirements{
-					Requests: corev1.ResourceList{
-						corev1.ResourceStorage: *resource.NewScaledQuantity(10, resource.Giga),
-					},
-				},
-			},
-		},
-	}
-}
-
 // statefulSetApplyPodTemplate fills StatefulSet.Spec.Template with data from provided ChiPodTemplate
 func (c *Creator) statefulSetApplyPodTemplate(
 	statefulSet *apps.StatefulSet,
@@ -803,29 +619,6 @@ func (c *Creator) statefulSetApplyPodTemplate(
 	if statefulSet.Spec.Template.Spec.TerminationGracePeriodSeconds == nil {
 		terminationGracePeriod := int64(60)
 		statefulSet.Spec.Template.Spec.TerminationGracePeriodSeconds = &terminationGracePeriod
-	}
-}
-
-// statefulSetApplyPodTemplateZooKeeper fills StatefulSet.Spec.Template with data from provided ChiPodTemplate
-func (c *Creator) statefulSetApplyPodTemplateZooKeeper(
-	statefulSet *apps.StatefulSet,
-	template *chiv1.ChiPodTemplate,
-) {
-	// StatefulSet's pod template is not directly compatible with ChiPodTemplate,
-	// we need to extract some fields from ChiPodTemplate and apply on StatefulSet
-	statefulSet.Spec.Template = corev1.PodTemplateSpec{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: template.Name,
-			Labels: util.MergeStringMapsOverwrite(
-				c.labeler.getLabelsZooKeeperScope(),
-				template.ObjectMeta.Labels,
-			),
-			Annotations: util.MergeStringMapsOverwrite(
-				c.labeler.getAnnotationsZooKeeperScope(),
-				template.ObjectMeta.Annotations,
-			),
-		},
-		Spec: *template.Spec.DeepCopy(),
 	}
 }
 
@@ -967,28 +760,6 @@ func (c *Creator) NewPodDisruptionBudget() *v1beta1.PodDisruptionBudget {
 			MaxUnavailable: &intstr.IntOrString{
 				Type:   intstr.Int,
 				IntVal: 1,
-			},
-		},
-	}
-}
-
-// NewPodDisruptionBudgetZooKeeper creates new policy.PodDisruptionBudget for zookeeper
-func (c *Creator) NewPodDisruptionBudgetZooKeeper(chi *chiv1.ClickHouseInstallation) *v1beta1.PodDisruptionBudget {
-	zooKeeperPodDisruptionBudgetName := CreatePodDisruptionBudgetZooKeeperName(chi)
-
-	return &v1beta1.PodDisruptionBudget{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      zooKeeperPodDisruptionBudgetName,
-			Namespace: chi.Namespace,
-			Labels:    c.labeler.getLabelsPodDisruptionBudgetZooKeeper(),
-		},
-		Spec: v1beta1.PodDisruptionBudgetSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: c.labeler.getSelectorZooKeeperScope(),
-			},
-			MaxUnavailable: &intstr.IntOrString{
-				Type:   intstr.Int,
-				IntVal: (chi.Spec.Configuration.Zookeeper.Replica - 1) / 2,
 			},
 		},
 	}
@@ -1196,52 +967,6 @@ func newDefaultPodTemplate(name string) *chiv1.ChiPodTemplate {
 	return podTemplate
 }
 
-// newDefaultZooKeeperPodTemplate returns default ZooKeeper Pod Template to be used with StatefulSet
-func (c *Creator) newDefaultZooKeeperPodTemplate(zooKeeperConfig *chiv1.ChiZookeeperConfig, name string) *chiv1.ChiPodTemplate {
-	runAsUser := int64(1000)
-	fSGroup := int64(1000)
-	podTemplate := &chiv1.ChiPodTemplate{
-		Name: name,
-		Spec: corev1.PodSpec{
-			Affinity: &corev1.Affinity{
-				PodAntiAffinity: &corev1.PodAntiAffinity{
-					PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
-						{
-							Weight: 1,
-							PodAffinityTerm: corev1.PodAffinityTerm{
-								LabelSelector: &metav1.LabelSelector{
-									MatchExpressions: []metav1.LabelSelectorRequirement{
-										{
-											Key:      "clickhouse.radondb.com/zookeeper",
-											Operator: "In",
-											Values: []string{
-												name,
-											},
-										},
-									},
-								},
-								TopologyKey: "kubernetes.io/hostname",
-							},
-						},
-					},
-				},
-			},
-			Containers: []corev1.Container{},
-			SecurityContext: &corev1.PodSecurityContext{
-				RunAsUser: &runAsUser,
-				FSGroup:   &fSGroup,
-			},
-		},
-	}
-
-	addContainer(
-		&podTemplate.Spec,
-		c.newDefaultZooKeeperContainer(zooKeeperConfig),
-	)
-
-	return podTemplate
-}
-
 // newDefaultLivenessProbe
 func newDefaultLivenessProbe() *corev1.Probe {
 	return &corev1.Probe{
@@ -1292,119 +1017,6 @@ func newDefaultClickHouseContainer() corev1.Container {
 		},
 		LivenessProbe:  newDefaultLivenessProbe(),
 		ReadinessProbe: newDefaultReadinessProbe(),
-	}
-}
-
-// newDefaultZooKeeperContainer returns default ZooKeeper Container
-func (c *Creator) newDefaultZooKeeperContainer(zookeeperConfig *chiv1.ChiZookeeperConfig) corev1.Container {
-	b := &bytes.Buffer{}
-	util.Iline(b, 0, "HOST=$(hostname -s) &&")
-	util.Iline(b, 0, "DOMAIN=$(hostname -d) &&")
-	util.Iline(b, 0, "ZOO_DATA_DIR=/var/lib/zookeeper/data &&")
-	util.Iline(b, 0, "ZOO_DATA_LOG_DIR=/var/lib/zookeeper/datalog &&")
-	util.Iline(b, 0, "SERVERS="+fmt.Sprintf("%d", zookeeperConfig.Replica)+" &&")
-	util.Iline(b, 0, "CLIENT_PORT="+fmt.Sprintf("%d", zookeeperConfig.Port)+" &&")
-	util.Iline(b, 0, "SERVER_PORT="+fmt.Sprintf("%d", zkDefaultServerPortNumber)+" &&")
-	util.Iline(b, 0, "ELECTION_PORT="+fmt.Sprintf("%d", zkDefaultLeaderElectionPortNumber)+" &&")
-	util.Iline(b, 0, "{")
-	util.Iline(b, 0, "  echo clientPort=${CLIENT_PORT}")
-	util.Iline(b, 0, "  echo tickTime=2000")
-	util.Iline(b, 0, "  echo initLimit=300")
-	util.Iline(b, 0, "  echo syncLimit=10")
-	util.Iline(b, 0, "  echo maxClientCnxns=2000")
-	util.Iline(b, 0, "  echo maxSessionTimeout=60000000")
-	util.Iline(b, 0, "  echo dataDir=${ZOO_DATA_DIR}")
-	util.Iline(b, 0, "  echo dataLogDir=${ZOO_DATA_LOG_DIR}")
-	util.Iline(b, 0, "  echo autopurge.snapRetainCount=10")
-	util.Iline(b, 0, "  echo autopurge.purgeInterval=1")
-	util.Iline(b, 0, "  echo preAllocSize=131072")
-	util.Iline(b, 0, "  echo snapCount=3000000")
-	util.Iline(b, 0, "  echo leaderServes=yes")
-	util.Iline(b, 0, "  echo standaloneEnabled="+strconv.FormatBool(zookeeperConfig.Replica == 1))
-	util.Iline(b, 0, "  echo 4lw.commands.whitelist=*")
-	util.Iline(b, 0, "} > /conf/zoo.cfg &&")
-	util.Iline(b, 0, "{")
-	util.Iline(b, 0, "  echo zookeeper.root.logger=CONSOLE")
-	util.Iline(b, 0, "  echo zookeeper.console.threshold=INFO")
-	util.Iline(b, 0, "  echo log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender")
-	util.Iline(b, 0, "  echo log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout")
-	util.Iline(b, 0, "  echo 'log4j.rootLogger=${zookeeper.root.logger}'")
-	util.Iline(b, 0, "  echo 'log4j.appender.CONSOLE.Threshold=${zookeeper.console.threshold}'")
-	util.Iline(b, 0, "  echo 'log4j.appender.CONSOLE.layout.ConversionPattern=%%d{ISO8601} [myid:%%X{myid}] - %%-5p [%%t:%%C{1}@%%L] - %%m%%n'")
-	util.Iline(b, 0, "} > /conf/log4j.properties &&")
-	util.Iline(b, 0, "echo JVMFLAGS='-Xms128M -Xmx4G -XX:+CMSParallelRemarkEnabled' > /conf/java.env &&")
-	util.Iline(b, 0, "if [[ $HOST =~ (.*)-([0-9]+)$ ]]; then")
-	util.Iline(b, 0, "    NAME=${BASH_REMATCH[1]}")
-	util.Iline(b, 0, "    ORD=${BASH_REMATCH[2]}")
-	util.Iline(b, 0, "else")
-	util.Iline(b, 0, "    echo 'Fialed to parse name and ordinal of Pod'")
-	util.Iline(b, 0, "    exit 1")
-	util.Iline(b, 0, "fi &&")
-	util.Iline(b, 0, "mkdir -p ${ZOO_DATA_DIR} &&")
-	util.Iline(b, 0, "mkdir -p ${ZOO_DATA_LOG_DIR} &&")
-	util.Iline(b, 0, "export MY_ID=$((ORD+1)) &&")
-	util.Iline(b, 0, "echo $MY_ID > $ZOO_DATA_DIR/myid &&")
-	util.Iline(b, 0, "for (( i=1; i<=$SERVERS; i++ )); do")
-	util.Iline(b, 0, "  echo server.$i=$NAME-$((i-1)).$DOMAIN:$SERVER_PORT:$ELECTION_PORT >> /conf/zoo.cfg")
-	util.Iline(b, 0, "done &&")
-	util.Iline(b, 0, "chown -Rv zookeeper \"$ZOO_DATA_DIR\" \"$ZOO_DATA_LOG_DIR\" \"$ZOO_LOG_DIR\" \"$ZOO_CONF_DIR\" &&")
-	util.Iline(b, 0, "cat /conf/zoo.cfg &&")
-	util.Iline(b, 0, "zkServer.sh start-foreground")
-
-	return corev1.Container{
-		Name:            zooKeeperContainerName,
-		Image:           zookeeperConfig.Image,
-		ImagePullPolicy: corev1.PullPolicy(zookeeperConfig.ImagePullPolicy),
-		Ports: []corev1.ContainerPort{
-			{
-				Name:          zkDefaultClientPortName,
-				ContainerPort: zookeeperConfig.Port,
-			},
-			{
-				Name:          zkDefaultServerPortName,
-				ContainerPort: zkDefaultServerPortNumber,
-			},
-			{
-				Name:          zkDefaultLeaderElectionPortName,
-				ContainerPort: zkDefaultLeaderElectionPortNumber,
-			},
-			{
-				Name:          defaultPrometheusPortName,
-				ContainerPort: defaultPrometheusPortNumber,
-			},
-		},
-		Command: []string{
-			"bash",
-			"-x",
-			"-c",
-			b.String(),
-		},
-		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
-				Exec: &corev1.ExecAction{Command: []string{
-					"bash",
-					"-c",
-					"OK=$(echo ruok | nc 127.0.0.1 " +
-						strconv.Itoa(int(zookeeperConfig.Port)) +
-						"); if [[ \"$OK\" == \"imok\" ]]; then exit 0; else exit 1; fi",
-				}},
-			},
-			InitialDelaySeconds: 10,
-			TimeoutSeconds:      5,
-		},
-		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
-				Exec: &corev1.ExecAction{Command: []string{
-					"bash",
-					"-c",
-					"OK=$(echo ruok | nc 127.0.0.1 " +
-						strconv.Itoa(int(zookeeperConfig.Port)) +
-						"); if [[ \"$OK\" == \"imok\" ]]; then exit 0; else exit 1; fi",
-				}},
-			},
-			InitialDelaySeconds: 10,
-			TimeoutSeconds:      5,
-		},
 	}
 }
 
