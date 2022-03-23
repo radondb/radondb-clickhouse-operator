@@ -2,6 +2,9 @@
 
 This document describes how to setup ZooKeeper in k8s environment.
 
+## Notice
+**After version 2.1, you can create zookeeper clusters by operator by specifying .spec.configuration.zookeeper.install=true in CHI. No manual deployment is required.**
+
 Zookeeper installation is available in two options:
 1. [Quick start](#quick-start) - just run it quickly and ask no questions
 1. [Advanced setup](#advanced-setup) - setup internal details, such as storage class, replicas number, etc 

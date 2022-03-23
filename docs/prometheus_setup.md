@@ -72,7 +72,7 @@ We can either run [create-prometheus.sh][create-prometheus.sh] or setup the whol
     
   - Setup `prometheus` into dedicated namespace. `prometheus-operator` would be used to create `prometheus` instance
   ```bash
-  kubectl apply --namespace=prometheus -f <(wget -qO- https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/prometheus/prometheus-template.yaml | PROMETHEUS_NAMESPACE=prometheus envsubst)
+  kubectl apply --namespace=prometheus -f <(wget -qO- https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/prometheus/prometheus-template.yaml | PROMETHEUS_NAMESPACE=prometheus envsubst)
   ```
 
   - Setup `alertmanager` slack webhook, look at https://api.slack.com/incoming-webhooks how to enable external webhooks in Slack API
@@ -82,14 +82,14 @@ We can either run [create-prometheus.sh][create-prometheus.sh] or setup the whol
   export PROMETHEUS_NAMESPACE=prometheus
   export ALERT_MANAGER_EXTERNAL_URL=https://your.external-domain.for-alertmanger/    
   kubectl apply --namespace=prometheus -f <( \
-    wget -qO- https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/prometheus/prometheus-alertmanager-template.yaml | \
+    wget -qO- https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/prometheus/prometheus-alertmanager-template.yaml | \
     envsubst \
   )
   ```
 
   - Setup `clickhouse-operator` alert rules for `prometheus`
   ```bash
-  kubectl apply --namespace=prometheus -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/prometheus/prometheus-alert-rules.yaml
+  kubectl apply --namespace=prometheus -f https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/prometheus/prometheus-alert-rules.yaml
   ```
     
 At this point Prometheus and AlertManager is up and running. Also, all kubernetes pods which contains `meta.annotations` `prometheus.io/scrape: 'true'`, `promethus.io/port: NNNN`, `prometheus.io/path: '/metrics'`, `prometheus.io/scheme: http`, will discover via prometheus kubernetes_sd_config job `kubernetes-pods`.

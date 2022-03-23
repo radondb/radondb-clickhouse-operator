@@ -7,12 +7,12 @@ In is located in `deploy/operator` folder inside `clickhouse-operator` sources.
 Operator installation process is quite straightforward and consists of one main step - deploy **ClickHouse operator**.
 We'll apply operator manifest directly from github repo
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/radondb/radondb-clickhouse-operator/master/deploy/operator/clickhouse-operator-install-bundle.yaml
 ```
 
 The following results are expected:
 ```text
-customresourcedefinition.apiextensions.k8s.io/clickhouseinstallations.clickhouse.altinity.com created
+customresourcedefinition.apiextensions.k8s.io/clickhouseinstallations.clickhouse.radondb.com created
 serviceaccount/clickhouse-operator created
 clusterrolebinding.rbac.authorization.k8s.io/clickhouse-operator created
 deployment.apps/clickhouse-operator configured
@@ -44,7 +44,7 @@ Let's walk over all resources created along with ClickHouse operator, which are:
 
 ### Custom Resource Definition
 ```text
-customresourcedefinition.apiextensions.k8s.io/clickhouseinstallations.clickhouse.altinity.com created
+customresourcedefinition.apiextensions.k8s.io/clickhouseinstallations.clickhouse.radondb.com created
 ```
 New [Custom Resource Definition][customresourcedefinitions] named **ClickHouseInstallation** is created.
 k8s API is extended with new kind `ClickHouseInstallation` and we'll be able to manage k8s resource of `kind: ClickHouseInstallation`
@@ -98,7 +98,7 @@ Expected result
 ```text
 NAME                                              CREATED AT
 ...
-clickhouseinstallations.clickhouse.altinity.com   2019-01-25T10:17:57Z
+clickhouseinstallations.clickhouse.radondb.com   2019-01-25T10:17:57Z
 ...
 ```
 
