@@ -1,4 +1,9 @@
-vendor/
-docs/
+.idea/
 .vagrant/
+
+hack/
+docs/
+tests/
+
 *.log
+Vagrantfile
