@@ -622,6 +622,15 @@ func (chi *ClickHouseInstallation) WalkVolumeClaimTemplates(f func(template *Chi
 	chi.Spec.Templates.GetVolumeClaimTemplatesIndex().Walk(f)
 }
 
+// GetZooKeeperVolumeClaimTemplate gets ChiVolumeClaimTemplate of zookeeper
+func (chi *ClickHouseInstallation) GetZooKeeperVolumeClaimTemplate() (*ChiVolumeClaimTemplate, bool) {
+	if chi.Spec.Defaults.Templates.HasZooKeeperVolumeClaimTemplate() {
+		name := chi.Spec.Defaults.Templates.GetZooKeeperVolumeClaimTemplate()
+		return chi.GetVolumeClaimTemplate(name)
+	}
+	return nil, false
+}
+
 // GetServiceTemplate gets ChiServiceTemplate by name
 func (chi *ClickHouseInstallation) GetServiceTemplate(name string) (*ChiServiceTemplate, bool) {
 	if !chi.Spec.Templates.GetServiceTemplatesIndex().Has(name) {

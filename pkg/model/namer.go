@@ -840,8 +840,8 @@ func CreatePodDisruptionBudgetZooKeeperName(chi *chop.ClickHouseInstallation) st
 	return newNameMacroReplacerZooKeeper(chi).Replace(pattern)
 }
 
-// CreatePodZooKeepername returns a name of a Pod of a ZooKeeper instance
-func CreatePodZooKeepername(chi *chop.ClickHouseInstallation, index int) string {
+// CreatePodZooKeeperName returns a name of a Pod of a ZooKeeper instance
+func CreatePodZooKeeperName(chi *chop.ClickHouseInstallation, index int) string {
 	// Name can be generated either from default name pattern,
 	// or from personal name pattern provided in ServiceTemplate
 
@@ -895,7 +895,7 @@ func CreatePodFQDNOfZooKeeper(chi *chop.ClickHouseInstallation, index int) strin
 	// {pod}.{svc}.{namespace}.svc.cluster.local
 	return fmt.Sprintf(
 		pattern,
-		CreatePodZooKeepername(chi, index)+"."+CreateStatefulSetServiceZooKeeperServerName(chi),
+		CreatePodZooKeeperName(chi, index)+"."+CreateStatefulSetServiceZooKeeperServerName(chi),
 		chi.Namespace,
 	)
 }
@@ -989,4 +989,9 @@ func CreatePodName(obj interface{}) string {
 // CreatePVCName create PVC name from components, to which PVC belongs to
 func CreatePVCName(host *chop.ChiHost, _ *v1.VolumeMount, template *chop.ChiVolumeClaimTemplate) string {
 	return template.Name + "-" + CreatePodName(host)
+}
+
+// CreatePVCZooKeeperName create PVC name from components, to which PVC belongs to
+func CreatePVCZooKeeperName(chi *chop.ClickHouseInstallation, index int, template *chop.ChiVolumeClaimTemplate) string {
+	return template.Name + "-" + CreatePodZooKeeperName(chi, index)
 }

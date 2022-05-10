@@ -118,18 +118,18 @@ func (l *Labeler) getLabelsConfigMapHost(host *chi.ChiHost) map[string]string {
 }
 
 // GetLabelsPodDisruptionBudgetZooKeeper get zookeeper PodDisruption label
-func (l *Labeler) GetLabelsPodDisruptionBudgetZooKeeper() map[string]string {
+func (l *Labeler) GetLabelsPodDisruptionBudgetZooKeeper(chi *chi.ClickHouseInstallation) map[string]string {
 	return util.MergeStringMapsOverwrite(
-		l.GetLabelsZooKeeperScope(),
+		l.GetLabelsZooKeeperScope(chi),
 		map[string]string{
 			LabelPodDisruptionBudget: labelPodDisruptionBudgetValue,
 		})
 }
 
 // GetLabelsServiceZooKeeper get zookeeper service label
-func (l *Labeler) GetLabelsServiceZooKeeper() map[string]string {
+func (l *Labeler) GetLabelsServiceZooKeeper(chi *chi.ClickHouseInstallation) map[string]string {
 	return util.MergeStringMapsOverwrite(
-		l.GetLabelsZooKeeperScope(),
+		l.GetLabelsZooKeeperScope(chi),
 		map[string]string{
 			LabelService: labelServiceValueZooKeeper,
 		})
@@ -183,10 +183,9 @@ var labelsNamer = newNamer(namerContextLabels)
 func (l *Labeler) GetSelectorCHIScope() map[string]string {
 	// Do not include CHI-provided labels
 	return map[string]string{
-		LabelNamespace:  labelsNamer.getNamePartNamespace(l.chi),
-		LabelAppName:    LabelAppValue,
-		LabelCHIName:    labelsNamer.getNamePartCHIName(l.chi),
-		LabelClickHouse: labelClickHouseValue,
+		LabelNamespace: labelsNamer.getNamePartNamespace(l.chi),
+		LabelAppName:   LabelAppValue,
+		LabelCHIName:   labelsNamer.getNamePartCHIName(l.chi),
 	}
 }
 
@@ -196,24 +195,31 @@ func (l *Labeler) getSelectorCHIScopeReady() map[string]string {
 }
 
 // GetLabelsZooKeeperScope gets labels for ZooKeeper-scoped object
-func (l *Labeler) GetLabelsZooKeeperScope() map[string]string {
+func (l *Labeler) GetLabelsZooKeeperScope(chi *chi.ClickHouseInstallation) map[string]string {
 	// Combine generated labels and CHI-provided labels
-	return l.appendCHILabels(l.GetSelectorZooKeeperScope())
+	return l.appendCHILabels(GetSelectorZooKeeperScope(chi))
 }
 
 // GetSelectorZooKeeperScope gets labels to select a ZooKeeper-scoped object
-func (l *Labeler) GetSelectorZooKeeperScope() map[string]string {
+func GetSelectorZooKeeperScope(chi *chi.ClickHouseInstallation) map[string]string {
 	return map[string]string{
-		LabelNamespace: labelsNamer.getNamePartNamespace(l.chi),
+		LabelNamespace: labelsNamer.getNamePartNamespace(chi),
 		LabelAppName:   LabelAppValue,
-		LabelCHIName:   labelsNamer.getNamePartCHIName(l.chi),
+		LabelCHIName:   labelsNamer.getNamePartCHIName(chi),
 		LabelZooKeeper: labelZooKeeperValue,
 	}
 }
 
 // GetSelectorZooKeeperScopeReady gets labels to select a ready-labelled ZooKeeper-scoped object
-func (l *Labeler) GetSelectorZooKeeperScopeReady() map[string]string {
-	return appendReadyLabels(l.GetSelectorZooKeeperScope())
+func (l *Labeler) GetSelectorZooKeeperScopeReady(chi *chi.ClickHouseInstallation) map[string]string {
+	return appendReadyLabels(GetSelectorZooKeeperScope(chi))
+}
+
+// GetLabelsZooKeeperScopeReclaimPolicy gets labels to select a ZooKeeper-scoped object
+func (l *Labeler) GetLabelsZooKeeperScopeReclaimPolicy(chi *chi.ClickHouseInstallation, template *chi.ChiVolumeClaimTemplate) map[string]string {
+	return util.MergeStringMapsOverwrite(l.GetLabelsZooKeeperScope(chi), map[string]string{
+		LabelPVCReclaimPolicyName: template.PVCReclaimPolicy.String(),
+	})
 }
 
 // getLabelsClusterScope gets labels for Cluster-scoped object

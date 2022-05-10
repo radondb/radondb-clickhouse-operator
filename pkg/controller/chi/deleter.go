@@ -25,6 +25,7 @@ import (
 	log "github.com/radondb/clickhouse-operator/pkg/announcer"
 	chop "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
+	zookeepermodel "github.com/radondb/clickhouse-operator/pkg/model/zookeeper"
 	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
@@ -55,8 +56,9 @@ func (c *Controller) deleteZooKeeper(ctx context.Context, chi *chop.ClickHouseIn
 
 	// Each ZooKeeper consists of
 	// 1. StatefulSet
-	// 2. PersistentVolumeClaim
-	// 3. Service
+	// 2. PodDisruptionBudget
+	// 3. PersistentVolumeClaim
+	// 4. Service
 	// Need to delete all these item
 	var err error
 
@@ -87,7 +89,25 @@ func (c *Controller) deleteZooKeeper(ctx context.Context, chi *chop.ClickHouseIn
 		log.V(1).M(chi).A().Error("FAIL delete PodDisruptionBudget %s/%s err: %v", namespace, pdbName, err)
 	}
 
-	// delete PVC?
+	// delete PVC
+	c.walkDiscoveredPVCsZooKeeper(chi, func(pvc *v1.PersistentVolumeClaim) {
+		log.V(1).M(chi).F().Info("%s/%s", namespace, pvc.Name)
+
+		if !zookeepermodel.ZooKeeperCanDeletePVC(chi, pvc.Name) {
+			log.V(1).M(chi).Info("PVC %s/%s should not be deleted, leave it intact", namespace, pvc.Name)
+			// Move to the next PVC
+			return
+		}
+
+		// Actually delete PVC
+		if err := c.kubeClient.CoreV1().PersistentVolumeClaims(namespace).Delete(ctx, pvc.Name, newDeleteOptions()); err == nil {
+			log.V(1).M(chi).Info("OK delete PVC %s/%s", namespace, pvc.Name)
+		} else if apierrors.IsNotFound(err) {
+			log.V(1).M(chi).Info("NEUTRAL not found PVC %s/%s", namespace, pvc.Name)
+		} else {
+			log.M(chi).A().Error("FAIL to delete PVC %s/%s err:%v", namespace, pvc.Name, err)
+		}
+	})
 
 	// delete Service
 	clientName := chopmodel.CreateStatefulSetServiceZooKeeperClientName(chi)

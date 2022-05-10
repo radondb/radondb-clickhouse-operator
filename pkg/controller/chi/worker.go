@@ -710,6 +710,12 @@ func (w *worker) reconcileZooKeeper(ctx context.Context, chi *chiv1.ClickHouseIn
 		return err
 	}
 
+	// Reconcile zookeeper's Persistent Volumes
+	w.reconcileZooKeeperPersistentVolumes(ctx, chi)
+
+	// Reconcile zookeeper's Persistent Volume Claims
+	_ = w.reconcileZooKeeperPVCs(ctx, chi)
+
 	w.a.V(1).
 		WithEvent(chi, eventActionReconcile, eventReasonReconcileCompleted).
 		WithStatusAction(chi).
@@ -2328,6 +2334,77 @@ func (w *worker) reconcilePVC(
 	}
 
 	pvc = w.creator.PreparePersistentVolumeClaim(pvc, host, template)
+	w.applyPVCResourcesRequests(pvc, template)
+	return w.c.updatePersistentVolumeClaim(ctx, pvc)
+}
+
+// reconcileZooKeeperPersistentVolumes
+func (w *worker) reconcileZooKeeperPersistentVolumes(ctx context.Context, chi *chiv1.ClickHouseInstallation) {
+	if util.IsContextDone(ctx) {
+		return
+	}
+
+	w.c.walkPVsZooKeeper(chi, func(pv *core.PersistentVolume) {
+		pv = w.zkCreator.PreparePersistentVolumeZooKeeper(pv)
+		_, _ = w.c.updatePersistentVolume(ctx, pv)
+	})
+}
+
+// reconcileZooKeeperPVCs
+func (w *worker) reconcileZooKeeperPVCs(ctx context.Context, chi *chiv1.ClickHouseInstallation) error {
+	if util.IsContextDone(ctx) {
+		return nil
+	}
+
+	namespace := chi.Namespace
+	w.a.V(2).M(chi).S().Info("chi %s/%s", namespace, chi.Name)
+	defer w.a.V(2).M(chi).E().Info("chi %s/%s", namespace, chi.Name)
+
+	volumeClaimTemplate, ok := chi.GetZooKeeperVolumeClaimTemplate()
+	if ok {
+		for index := 0; index < int(chi.Spec.Configuration.Zookeeper.Replica); index++ {
+			pvcName := chopmodel.CreatePVCZooKeeperName(chi, index, volumeClaimTemplate)
+
+			w.a.V(2).M(chi).Info("reconcile volumeMount (%s/%s/%s/%s) - start", namespace, chi.Name, pvcName)
+
+			pvc, err := w.c.kubeClient.CoreV1().PersistentVolumeClaims(namespace).Get(ctx, pvcName, newGetOptions())
+			if err != nil {
+				if apierrors.IsNotFound(err) {
+					// This is not an error per se, means PVC is not created (yet)?
+				} else {
+					w.a.M(chi).A().Error("ERROR unable to get PVC(%s/%s) err: %v", namespace, pvcName, err)
+				}
+				return nil
+			}
+
+			pvc, err = w.reconcilePVCZooKeeper(ctx, pvc, volumeClaimTemplate)
+			if err != nil {
+				w.a.M(chi).A().Error("ERROR unable to reconcile PVC(%s/%s) err: %v", namespace, pvcName, err)
+				w.registryFailed.RegisterPVC(pvc.ObjectMeta)
+				return nil
+			}
+
+			w.registryReconciled.RegisterPVC(pvc.ObjectMeta)
+
+			w.a.V(2).M(chi).Info("reconcile volumeMount (%s/%s/%s/%s) - end", namespace, chi.Name, pvcName)
+		}
+	}
+
+	return nil
+}
+
+// reconcilePVCZooKeeper
+func (w *worker) reconcilePVCZooKeeper(
+	ctx context.Context,
+	pvc *core.PersistentVolumeClaim,
+	template *chiv1.ChiVolumeClaimTemplate,
+) (*core.PersistentVolumeClaim, error) {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil, fmt.Errorf("ctx is done")
+	}
+
+	pvc = w.zkCreator.PreparePersistentVolumeClaimZooKeeper(pvc, template)
 	w.applyPVCResourcesRequests(pvc, template)
 	return w.c.updatePersistentVolumeClaim(ctx, pvc)
 }

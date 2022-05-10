@@ -58,8 +58,8 @@ func (c *Creator) CreateServiceZooKeeper() *corev1.Service {
 			template,
 			c.chi.Namespace,
 			serviceName,
-			c.labeler.GetLabelsServiceZooKeeper(),
-			c.labeler.GetSelectorZooKeeperScope(),
+			c.labeler.GetLabelsServiceZooKeeper(c.chi),
+			model.GetSelectorZooKeeperScope(c.chi),
 			ownerReferences,
 		)
 	}
@@ -70,7 +70,7 @@ func (c *Creator) CreateServiceZooKeeper() *corev1.Service {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            serviceName,
 			Namespace:       c.chi.Namespace,
-			Labels:          c.labeler.GetLabelsServiceZooKeeper(),
+			Labels:          c.labeler.GetLabelsServiceZooKeeper(c.chi),
 			OwnerReferences: ownerReferences,
 		},
 		Spec: corev1.ServiceSpec{
@@ -100,7 +100,7 @@ func (c *Creator) CreateServiceZooKeeper() *corev1.Service {
 					TargetPort: intstr.FromString(defaultPrometheusPortName),
 				},
 			},
-			Selector: c.labeler.GetSelectorZooKeeperScope(),
+			Selector: model.GetSelectorZooKeeperScope(c.chi),
 			Type:     corev1.ServiceTypeClusterIP,
 		},
 	}
@@ -123,14 +123,14 @@ func (c *Creator) CreateStatefulSetZooKeeper() *apps.StatefulSet {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            statefulSetName,
 			Namespace:       c.chi.Namespace,
-			Labels:          c.labeler.GetLabelsZooKeeperScope(),
+			Labels:          c.labeler.GetLabelsZooKeeperScope(c.chi),
 			OwnerReferences: ownerReferences,
 		},
 		Spec: apps.StatefulSetSpec{
 			Replicas:    &replicasNum,
 			ServiceName: serviceName,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: c.labeler.GetSelectorZooKeeperScope(),
+				MatchLabels: model.GetSelectorZooKeeperScope(c.chi),
 			},
 
 			// IMPORTANT
@@ -154,6 +154,27 @@ func (c *Creator) CreateStatefulSetZooKeeper() *apps.StatefulSet {
 	c.setupStatefulSetVersion(statefulSet)
 
 	return statefulSet
+}
+
+// PreparePersistentVolumeZooKeeper prepares PV labels
+func (c *Creator) PreparePersistentVolumeZooKeeper(pv *corev1.PersistentVolume) *corev1.PersistentVolume {
+	pv.Labels = util.MergeStringMapsOverwrite(pv.Labels, c.labeler.GetLabelsZooKeeperScope(c.chi))
+	// And after the object is ready we can put version label
+	model.MakeObjectVersionLabel(&pv.ObjectMeta, pv)
+	return pv
+}
+
+// PreparePersistentVolumeClaimZooKeeper prepares labels and annotations of the PVC
+func (c *Creator) PreparePersistentVolumeClaimZooKeeper(
+	pvc *corev1.PersistentVolumeClaim,
+	template *chiv1.ChiVolumeClaimTemplate,
+) *corev1.PersistentVolumeClaim {
+	pvc.Labels = util.MergeStringMapsOverwrite(pvc.Labels, template.ObjectMeta.Labels)
+	pvc.Labels = util.MergeStringMapsOverwrite(pvc.Labels, c.labeler.GetLabelsZooKeeperScopeReclaimPolicy(c.chi, template))
+	pvc.Annotations = util.MergeStringMapsOverwrite(pvc.Annotations, template.ObjectMeta.Annotations)
+	// And after the object is ready we can put version label
+	model.MakeObjectVersionLabel(&pvc.ObjectMeta, pvc)
+	return pvc
 }
 
 // setupStatefulSetZooKeeperPodTemplate performs PodTemplate setup of StatefulSet
@@ -200,7 +221,7 @@ func (c *Creator) statefulSetApplyPodTemplateZooKeeper(
 		ObjectMeta: metav1.ObjectMeta{
 			Name: template.Name,
 			Labels: util.MergeStringMapsOverwrite(
-				c.labeler.GetLabelsZooKeeperScope(),
+				c.labeler.GetLabelsZooKeeperScope(c.chi),
 				template.ObjectMeta.Labels,
 			),
 			Annotations: template.ObjectMeta.Annotations,
@@ -271,7 +292,9 @@ func (c *Creator) ensureZooKeeperCommandSpecified(statefulSet *apps.StatefulSet)
 		return
 	}
 
-	container.Command = c.newDefaultZooKeeperCommand()
+	if container.Command == nil {
+		container.Command = c.newDefaultZooKeeperCommand()
+	}
 	// copy(container.Command, c.newDefaultZooKeeperCommand(statefulSet))
 }
 
@@ -329,7 +352,7 @@ func (c *Creator) statefulSetZooKeeperAppendPVCTemplate(
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   volumeClaimTemplate.Name,
-			Labels: c.labeler.GetLabelsZooKeeperScope(),
+			Labels: c.labeler.GetLabelsZooKeeperScope(c.chi),
 		},
 		Spec: *volumeClaimTemplate.Spec.DeepCopy(),
 	}
@@ -446,11 +469,11 @@ func (c *Creator) NewPodDisruptionBudgetZooKeeper(chi *chiv1.ClickHouseInstallat
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      zooKeeperPodDisruptionBudgetName,
 			Namespace: chi.Namespace,
-			Labels:    c.labeler.GetLabelsPodDisruptionBudgetZooKeeper(),
+			Labels:    c.labeler.GetLabelsPodDisruptionBudgetZooKeeper(c.chi),
 		},
 		Spec: v1beta1.PodDisruptionBudgetSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: c.labeler.GetSelectorZooKeeperScope(),
+				MatchLabels: model.GetSelectorZooKeeperScope(c.chi),
 			},
 			MaxUnavailable: &intstr.IntOrString{
 				Type:   intstr.Int,
@@ -599,7 +622,6 @@ func (c *Creator) newDefaultZooKeeperPodTemplate(name string) *chiv1.ChiPodTempl
 
 // newDefaultZooKeeperLivenessProbe
 func (c *Creator) newDefaultZooKeeperLivenessProbe() *corev1.Probe {
-
 	return &corev1.Probe{
 		Handler: corev1.Handler{
 			Exec: &corev1.ExecAction{Command: []string{
