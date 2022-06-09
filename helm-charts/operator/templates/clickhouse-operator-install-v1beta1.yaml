@@ -325,12 +325,18 @@ spec:
                     podTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.podTemplates, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperPodTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperPodTemplate, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     dataVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
                     logVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse log directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperVolumeClaimTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperVolumeClaimTemplate, allows customization each `PVC` which will mount for zookeeper data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     serviceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for one `Service` resource which will created by `clickhouse-operator` which cover all clusters in whole `chi` resource"
@@ -343,6 +349,9 @@ spec:
                     replicaServiceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover each replica inside each shard inside each clickhouse cluster described in `chi.spec.configuration.clusters`"
+                    zookeeperServiceTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperServiceTemplate, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover zookeeper replicas described in `chi.spec.configuration.zookeepers`"
                     volumeClaimTemplate:
                       type: string
                       description: "DEPRECATED! VolumeClaimTemplate is deprecated in favor of DataVolumeClaimTemplate and LogVolumeClaimTemplate"
@@ -392,26 +401,11 @@ spec:
                     install:
                       type: boolean
                       description: "Choose whether to create zookeeper dependencies by operator"
-                    image:
-                      type: string
-                      description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                    imagePullPolicy:
-                      type: string
-                      enum:
-                        - Always
-                        - IfNotPresent
-                        - Never
-                      description: "zookeeper image pull policy, default `IfNotPresent`"
                     replica:
                       type: integer
                       minimum: 0
                       maximum: 9
                       description: "zookeeper cluster replica count, between 1~9, default `1`"
-                    port:
-                      type: integer
-                      minimum: 0
-                      maximum: 65535
-                      description: "zookeeper server port, default `2181`"
                 users:
                   type: object
                   description: |
@@ -518,26 +512,11 @@ spec:
                           install:
                             type: boolean
                             description: "Choose whether to create zookeeper dependencies by operator"
-                          image:
-                            type: string
-                            description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                          imagePullPolicy:
-                            type: string
-                            enum:
-                              - Always
-                              - IfNotPresent
-                              - Never
-                            description: "zookeeper image pull policy, default `IfNotPresent`"
                           replica:
                             type: integer
                             minimum: 0
                             maximum: 9
                             description: "zookeeper cluster replica count, between 1~9, default `1`"
-                          port:
-                            type: integer
-                            minimum: 0
-                            maximum: 65535
-                            description: "zookeeper server port, default `2181`"
                       settings:
                         type: object
                         description: |
@@ -1584,12 +1563,18 @@ spec:
                     podTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.podTemplates, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperPodTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperPodTemplate, allows customization each `Pod` resource during render and reconcile each StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     dataVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
                     logVolumeClaimTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.volumeClaimTemplates, allows customization each `PVC` which will mount for clickhouse log directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.clusters`"
+                    zookeeperVolumeClaimTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperVolumeClaimTemplate, allows customization each `PVC` which will mount for zookeeper data directory in each `Pod` during render and reconcile every StatefulSet.spec resource described in `chi.spec.configuration.zookeepers`"
                     serviceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for one `Service` resource which will created by `clickhouse-operator` which cover all clusters in whole `chi` resource"
@@ -1602,6 +1587,9 @@ spec:
                     replicaServiceTemplate:
                       type: string
                       description: "optional, template name from chi.spec.templates.serviceTemplates, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover each replica inside each shard inside each clickhouse cluster described in `chi.spec.configuration.clusters`"
+                    zookeeperServiceTemplate:
+                      type: string
+                      description: "optional, template name from chi.spec.templates.zookeeperServiceTemplate, allows customization for each `Service` resource which will created by `clickhouse-operator` which cover zookeeper replicas described in `chi.spec.configuration.zookeepers`"
                     volumeClaimTemplate:
                       type: string
                       description: "DEPRECATED! VolumeClaimTemplate is deprecated in favor of DataVolumeClaimTemplate and LogVolumeClaimTemplate"
@@ -1651,26 +1639,11 @@ spec:
                     install:
                       type: boolean
                       description: "Choose whether to create zookeeper dependencies by operator"
-                    image:
-                      type: string
-                      description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                    imagePullPolicy:
-                      type: string
-                      enum:
-                        - Always
-                        - IfNotPresent
-                        - Never
-                      description: "zookeeper image pull policy, default `IfNotPresent`"
                     replica:
                       type: integer
                       minimum: 0
                       maximum: 9
                       description: "zookeeper cluster replica count, between 1~9, default `1`"
-                    port:
-                      type: integer
-                      minimum: 0
-                      maximum: 65535
-                      description: "zookeeper server port, default `2181`"
                 users:
                   type: object
                   description: |
@@ -1777,26 +1750,11 @@ spec:
                           install:
                             type: boolean
                             description: "Choose whether to create zookeeper dependencies by operator"
-                          image:
-                            type: string
-                            description: "zookeeper image, default `radondb/zookeeper:3.6.1`"
-                          imagePullPolicy:
-                            type: string
-                            enum:
-                              - Always
-                              - IfNotPresent
-                              - Never
-                            description: "zookeeper image pull policy, default `IfNotPresent`"
                           replica:
                             type: integer
                             minimum: 0
                             maximum: 9
                             description: "zookeeper cluster replica count, between 1~9, default `1`"
-                          port:
-                            type: integer
-                            minimum: 0
-                            maximum: 65535
-                            description: "zookeeper server port, default `2181`"
                       settings:
                         type: object
                         description: |
@@ -2759,10 +2717,10 @@ spec:
               description: "The tcp port of the cluster to be backed up."
             image:
               type: string
-              description: "The image of clickhouse-client, is used to send backup commands to clickhouse-server and monitor the backup situation."
+              description: "The image of clickhouse-client, is used to send backup commands to clickhouse-server and monitor the backup situation, default `radondb/clickhouse-client:21.1.3.32`"
             imagePullPolicy:
               type: string
-              description: "The image pull policy of clickhouse-client."
+              description: "The image pull policy of clickhouse-client, default `IfNotPresent`."
               enum:
                 - Always
                 - IfNotPresent
@@ -2773,7 +2731,7 @@ spec:
               properties:
                 kind:
                   type: string
-                  description: "The type of backup, single backup or scheduled backup."
+                  description: "The type of backup, single backup or scheduled backup, default `single` unless backup.schedule is not empty."
                   enum:
                     - single
                     - schedule

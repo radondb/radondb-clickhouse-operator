@@ -12,9 +12,15 @@ clickhouse:
   imagePullPolicy: IfNotPresent
 
   resources:
-    memory: "1Gi"
     cpu: "0.5"
-    storage: "10Gi"
+    memory: "1Gi"
+
+  storage:
+    capacity: "10Gi"
+    # reclaim policy, value: Retain/Delete
+    reclaimPolicy: Delete
+    # storage class, leave blank to use default value in k8s
+    storageClassName:
 
   # User Configuration
   user:
@@ -25,25 +31,64 @@ clickhouse:
         - "::/0"
 
   ports:
-    # Port for the native interface, see https://clickhouse.tech/docs/en/interfaces/tcp/
     tcp: 9000
-
-    # Port for HTTP/REST interface, see https://clickhouse.tech/docs/en/interfaces/http/
     http: 8123
 
-  # servicee, value: ClusterIP/NodePort/LoadBalancer
+  # service, value: ClusterIP/NodePort/LoadBalancer
   # see https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   svc:
-    type: ClusterIP
-    # If type: LoadBalancer, can use https://docs.qingcloud.com/product/container/qke/index#%E4%B8%8E-qingcloud-iaas-%E7%9A%84%E6%95%B4%E5%90%88
-    qceip:
+    type: NodePort
+
+
+# Configuration for the Zookeeper to be used by ClickHouse
+# Can not modify this value when the cluster has already created.
+zookeeper:
+  # If you want to create ZooKeeper by operator, use install = true
+  install: true
+  replicas: 3
+
+  # ZooKeeper image configuration
+  image: radondb/zookeeper:3.6.1
+  imagePullPolicy: IfNotPresent
+
+  resources:
+    cpu: "0.5"
+    memory: "1Gi"
+
+  storage:
+    capacity: "10Gi"
+    # reclaim policy, value: Retain/Delete
+    reclaimPolicy: Delete
+    # storage class, leave blank to use default value in k8s
+    storageClassName:
+
+  ports:
+    client: 2182
+    server: 2889
+    election: 3889
+
+  # service, value: ClusterIP/NodePort/LoadBalancer
+  # see https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  svc:
+    type: NodePort
+
+  # If you don’t want Operator to create a ZooKeeper cluster, we also provide a ZooKeeper deployment file,
+  # you can customize the following configuration.
+  # install: false
+  # replicas: specify by yourself
+  # image: radondb/zookeeper:3.6.2
+  # imagePullPolicy: specify by yourself
+  # resources:
+  #   memory: specify by yourself
+  #   cpu: specify by yourself
+  #   storage: specify by yourself
 
 # Configuration for the clickhouse backup
 backup:
   # true for enable backup, false for disable
-  enable: true
+  enable: false
 
-  # clickhouse backup image configuration
+  # ClickHouse-backup image configuration
   image: radondb/clickhouse-backup:latest
   imagePullPolicy: IfNotPresent
 
@@ -62,23 +107,3 @@ backup:
 busybox:
   image: busybox
   imagePullPolicy: IfNotPresent
-
-# required, zookeeper configuration
-zookeeper:
-  # If you want to create ZooKeeper cluster by operator, use the following configuration
-  install: true
-  replicas: 3
-  port: 2181
-  image: radondb/zookeeper:3.6.1
-  imagePullPolicy: IfNotPresent
-
-  # If you don’t want Operator to create a ZooKeeper cluster, we also provide a ZooKeeper deployment file,
-  # you can customize the following configuration.
-  # install: false
-  # replicas: specify by yourself
-  # image: radondb/zookeeper:3.6.2
-  # imagePullPolicy: specify by yourself
-  # resources:
-  #   memory: specify by yourself
-  #   cpu: specify by yourself
-  #   storage: specify by yourself
