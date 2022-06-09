@@ -1,16 +1,16 @@
 # Submitting your patch
 
-Thanks for taking the time to contribute to `clickhouse-operator`!
+Thanks for taking the time to contribute to `radondb-clickhouse-operator`!
 
 ## Intro
-`clickhouse-operator` contribution process is built around standard git _Pull Requests_. 
 
+`radondb-clickhouse-operator` contribution process is built around standard git _Pull Requests_. 
 
 ## How to make PR
 
 Please, **do not** make PR into `master` branch. 
 We intend to keep `master` clean and stable and will not accept commits directly into `master`.
-We always have dedicated branch, named as `x.y.z` (for example, `0.9.1` at the time of this writing), which is used as a  testbed for next release.
+We always have dedicated branch, named as `x.y.z` (for example, `0.9.1` at the time of this writing), which is used as a testbed for next release.
 Please, make your PR into this branch. If you are not sure which branch to use, create new issue to discuss, and we'd be happy to assist.
 
 Your submission should not contain more than one commit. Please **squash your commits**.
@@ -19,9 +19,9 @@ In case you'd like to introduce several features, make several PRs, please.
 ## Sign Your Work
 
 Every PR has to be signed. The sign-off is a text line at the end of the commit's text description.
-Your signature certifies that you wrote the patch or otherwise have the right to contribute it to `clickhouse-operator`.
+Your signature certifies that you wrote the patch or otherwise have the right to contribute it to `radondb-clickhouse-operator`.
 
-Developer Certificate of Origin is available at [developercertificate.org](https://developercertificate.org/):
+Developer Certificate of Origin is available at [developer certificate.org](https://developercertificate.org/):
 
 ```text
 Version 1.1
@@ -72,7 +72,7 @@ If you set your `user.name` and `user.email` git configs, you can sign your comm
 
 Your `git log` information for your commit should look something like this:
 
-```
+```spain
 Author: John Doe <john.doe@example.com>
 Date:   Mon Jan 24 12:34:56 2020 +0200
 

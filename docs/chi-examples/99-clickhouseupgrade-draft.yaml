@@ -7,7 +7,7 @@ spec:
     deployment:
       zone:
         matchLabels:
-          clickhouse.altinity.com/zone: zone1
+          clickhouse.radondb.com/zone: zone1
       podTemplate: clickhouse-v20.6
       dataVolumeClaimTemplate: default
       logVolumeClaimTemplate: default
@@ -54,8 +54,8 @@ spec:
               scenario: NodeMonopoly # 1 pod (CH server instance) per node (zone can be a set of n nodes) -> podAntiAffinity
               zone:
                 matchLabels:
-                  clickhouse.altinity.com/zone: zone4
-                  clickhouse.altinity.com/kind: ssd
+                  clickhouse.radondb.com/zone: zone4
+                  clickhouse.radondb.com/kind: ssd
               podTemplate: clickhouse-v20.6
 
             replicas:

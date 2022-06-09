@@ -31,6 +31,7 @@ However, in case we'd like to have high-available ClickHouse installation, we ne
 So, we can either use
 1. Already existing Zookeeper instance, or
 1. [Setup][zookeeper-setup-doc] our own Zookeeper - in most cases inside the same k8s installation.
+1. (In version 2.1+) Specify .spec.configuration.zookeeper.install = true in CHI to let the operator help create the zookeeper cluster.
 
 [persistent-volumes]: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 [dynamic-provisioning]: https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/

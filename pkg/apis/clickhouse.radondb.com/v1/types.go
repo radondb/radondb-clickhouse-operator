@@ -66,6 +66,7 @@ type ChiSpec struct {
 	TaskID                 *string          `json:"taskID,omitempty"                 yaml:"taskID,omitempty"`
 	Stop                   string           `json:"stop,omitempty"                   yaml:"stop,omitempty"`
 	Restart                string           `json:"restart,omitempty"                yaml:"restart,omitempty"`
+	ImagePrefix            string           `json:"imagePrefix,omitempty"            yaml:"imagePrefix,omitempty"`
 	Troubleshoot           string           `json:"troubleshoot,omitempty"           yaml:"troubleshoot,omitempty"`
 	NamespaceDomainPattern string           `json:"namespaceDomainPattern,omitempty" yaml:"namespaceDomainPattern,omitempty"`
 	Templating             *ChiTemplating   `json:"templating,omitempty"             yaml:"templating,omitempty"`

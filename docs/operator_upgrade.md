@@ -24,9 +24,9 @@ spec:
     spec:
       serviceAccountName: clickhouse-operator
       containers:
-      - image: altinity/clickhouse-operator:0.13.0
+      - image: radondb/chronus-operator:2.0
         name: clickhouse-operator
-      - image: altinity/metrics-exporter:0.13.0
+      - image: radondb/chronus-metrics-operator:2.0
         name: metrics-exporter          
 ```
 The latest available version is installed by default. If version changes, there are three ways to upgrade the operator:
@@ -50,25 +50,25 @@ Pod Template:
   Service Account:  clickhouse-operator
   Containers:
    clickhouse-operator:
-    Image:        altinity/clickhouse-operator:0.13.0
+    Image:        radondb/chronus-operator:2.0
    metrics-exporter:
-    Image:        altinity/metrics-exporter:0.13.0
+    Image:        radondb/chronus-metrics-operator:2.0
 <...>
 ```
 Version is labeled and can be also displayed with the command:
 ```
 $ kubectl get deployment clickhouse-operator -L version -n kube-system
 NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE       VERSION
-clickhouse-operator   1         1         1            1           19h       0.13.0
+clickhouse-operator   1         1         1            1           19h       2.0
 ```
 
 If we want to update to the new version, we can run following command:
   
 ```
-$ kubectl set image deployment.v1.apps/clickhouse-operator clickhouse-operator=altinity/clickhouse-operator:0.13.5 -n kube-system
+$ kubectl set image deployment.v1.apps/clickhouse-operator clickhouse-operator=radondb/chronus-operator:2.1.1 -n kube-system
 deployment.apps/clickhouse-operator image updated
 
-$ kubectl set image deployment.v1.apps/clickhouse-operator metrics-exporter=altinity/clickhouse-operator:0.13.5 -n kube-system
+$ kubectl set image deployment.v1.apps/clickhouse-operator metrics-exporter=radondb/chronus-metrics-operator:2.1.1 -n kube-system
 deployment.apps/clickhouse-operator image updated
 
 ```
@@ -89,9 +89,9 @@ Pod Template:
   Service Account:  clickhouse-operator
   Containers:
    clickhouse-operator:
-    Image:        altinity/clickhouse-operator:0.13.5
+    Image:        radondb/chronus-operator:2.1.1
    metrics-exporter:
-    Image:        altinity/metrics-exporter:0.13.5
+    Image:        radondb/chronus-metrics-operator:2.1.1
 <...>
 ```
 

@@ -122,6 +122,7 @@ func (n *Normalizer) normalize() (*chiV1.ClickHouseInstallation, error) {
 	n.chi.Spec.UseTemplates = n.normalizeUseTemplates(n.chi.Spec.UseTemplates)
 	n.chi.Spec.Stop = n.normalizeStop(n.chi.Spec.Stop)
 	n.chi.Spec.Restart = n.normalizeRestart(n.chi.Spec.Restart)
+	n.chi.Spec.ImagePrefix = n.normalizeImagePrefix(n.chi.Spec.ImagePrefix)
 	n.chi.Spec.Troubleshoot = n.normalizeTroubleshoot(n.chi.Spec.Troubleshoot)
 	n.chi.Spec.NamespaceDomainPattern = n.normalizeNamespaceDomainPattern(n.chi.Spec.NamespaceDomainPattern)
 	n.chi.Spec.Templating = n.normalizeTemplating(n.chi.Spec.Templating)
@@ -379,6 +380,14 @@ func (n *Normalizer) normalizeNamespaceDomainPattern(namespaceDomainPattern stri
 		return ""
 	}
 	return namespaceDomainPattern
+}
+
+// normalizeImagePrefix normalizes .spec.ImagePrefix
+func (n *Normalizer) normalizeImagePrefix(imagePrefix string) string {
+	if imagePrefix == "" {
+		return chop.Config().ImagePrefix
+	}
+	return imagePrefix
 }
 
 // normalizeDefaults normalizes .spec.defaults

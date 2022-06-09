@@ -136,7 +136,7 @@ Defaults for ClickHouseInstallation can be provided by `ClickHouseInstallationTe
 
 `ClickHouseInstallationTemplate` has the same structure as `ClickHouseInstallation`, but all parts and fields are optional. Templates are included into an installation with 'useTemplates' syntax. For example, one can define a template for ClickHouse pod:
 
-```apiVersion: "clickhouse.altinity.com/v1"
+```apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallationTemplate"
 
 metadata:
@@ -154,7 +154,7 @@ spec:
 
 Template needs to be deployed to some namespace, and later on used in the installation:
 ```
-apiVersion: "clickhouse.altinity.com/v1"
+apiVersion: "clickhouse.radondb.com/v1"
 kind: "ClickHouseInstallation"
 ...
 spec:
