@@ -39,6 +39,7 @@ import (
 	"github.com/radondb/clickhouse-operator/pkg/chop"
 	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
 	backupmodel "github.com/radondb/clickhouse-operator/pkg/model/backup"
+	zookeepermodel "github.com/radondb/clickhouse-operator/pkg/model/zookeeper"
 	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
@@ -55,6 +56,7 @@ type worker struct {
 	chbNormalizer *backupmodel.Normalizer
 	schemer       *chopmodel.Schemer
 	creator       *chopmodel.Creator
+	zkCreator     *zookeepermodel.Creator
 	chbCreator    *backupmodel.Creator
 	start         time.Time
 
@@ -78,6 +80,7 @@ func (c *Controller) newWorker(q queue.PriorityQueue) *worker {
 			chop.Config().CHPort,
 		),
 		creator:    nil,
+		zkCreator:  nil,
 		chbCreator: nil,
 		start:      time.Now().Add(chiv1.DefaultReconcileThreadsWarmup),
 	}
@@ -626,6 +629,7 @@ func (w *worker) reconcile(ctx context.Context, chi *chiv1.ClickHouseInstallatio
 	defer w.a.V(2).M(chi).E().P()
 
 	w.creator = chopmodel.NewCreator(chi)
+	w.zkCreator = zookeepermodel.NewCreator(chi)
 	_ = w.reconcileChiPDB(ctx, chi)
 	return chi.WalkTillError(
 		ctx,
@@ -660,7 +664,7 @@ func (w *worker) reconcileZooKeeper(ctx context.Context, chi *chiv1.ClickHouseIn
 
 	// Only handle create. So judge if need to install first
 	zookeeperConfig := chi.Spec.Configuration.Zookeeper
-	if zookeeperConfig == nil || !zookeeperConfig.Install || len(zookeeperConfig.Nodes) > 0 {
+	if zookeeperConfig == nil || !zookeeperConfig.Install {
 		w.a.V(1).
 			WithEvent(chi, eventActionReconcile, eventReasonReconcileStarted).
 			WithStatusAction(chi).
@@ -677,7 +681,7 @@ func (w *worker) reconcileZooKeeper(ctx context.Context, chi *chiv1.ClickHouseIn
 		Info("Reconcile zookeeper started")
 
 	// Create zookeeper artifacts
-	statefulSetZooKeeper := w.creator.CreateStatefulSetZooKeeper(chi)
+	statefulSetZooKeeper := w.zkCreator.CreateStatefulSetZooKeeper()
 
 	// Check if zookeeper has been installed
 	curStatefulSet, _ := w.c.getStatefulSet(&statefulSetZooKeeper.ObjectMeta, false)
@@ -691,12 +695,8 @@ func (w *worker) reconcileZooKeeper(ctx context.Context, chi *chiv1.ClickHouseIn
 		return nil
 	}
 
-	// Reconcile zookeeper's Service first. Because the successful operation of ZooKeeper
-	// depends on successful communication with other nodes.
-	if err := w.reconcileZooKeeperServiceServer(ctx, chi); err != nil {
-		return err
-	}
-	if err := w.reconcileZooKeeperServiceClient(ctx, chi); err != nil {
+	// Reconcile zookeeper's Service
+	if err := w.reconcileZooKeeperService(ctx, chi); err != nil {
 		return err
 	}
 
@@ -719,48 +719,23 @@ func (w *worker) reconcileZooKeeper(ctx context.Context, chi *chiv1.ClickHouseIn
 }
 
 // reconcileHostService reconciles zookeeper's server Service
-func (w *worker) reconcileZooKeeperServiceServer(ctx context.Context, chi *chiv1.ClickHouseInstallation) error {
+func (w *worker) reconcileZooKeeperService(ctx context.Context, chi *chiv1.ClickHouseInstallation) error {
 	if util.IsContextDone(ctx) {
 		log.V(2).Info("ctx is done")
 		return nil
 	}
 
-	serviceZooKeeperServer := w.creator.CreateServiceZooKeeperServer(chi)
-	if serviceZooKeeperServer == nil {
+	serviceZooKeeper := w.zkCreator.CreateServiceZooKeeper()
+	if serviceZooKeeper == nil {
 		// This is not a problem, service may be omitted
 		return nil
 	}
-
-	err := w.reconcileService(ctx, chi, serviceZooKeeperServer)
+	err := w.reconcileService(ctx, chi, serviceZooKeeper)
 	if err == nil {
-		w.registryReconciled.RegisterService(serviceZooKeeperServer.ObjectMeta)
+		w.registryReconciled.RegisterService(serviceZooKeeper.ObjectMeta)
 	} else {
-		w.registryFailed.RegisterService(serviceZooKeeperServer.ObjectMeta)
+		w.registryFailed.RegisterService(serviceZooKeeper.ObjectMeta)
 	}
-
-	return err
-}
-
-// reconcileHostService reconciles zookeeper's client Service
-func (w *worker) reconcileZooKeeperServiceClient(ctx context.Context, chi *chiv1.ClickHouseInstallation) error {
-	if util.IsContextDone(ctx) {
-		log.V(2).Info("ctx is done")
-		return nil
-	}
-
-	serviceZooKeeperClient := w.creator.CreateServiceZooKeeperClient(chi)
-	if serviceZooKeeperClient == nil {
-		// This is not a problem, service may be omitted
-		return nil
-	}
-
-	err := w.reconcileService(ctx, chi, serviceZooKeeperClient)
-	if err == nil {
-		w.registryReconciled.RegisterService(serviceZooKeeperClient.ObjectMeta)
-	} else {
-		w.registryFailed.RegisterService(serviceZooKeeperClient.ObjectMeta)
-	}
-
 	return err
 }
 
@@ -771,7 +746,7 @@ func (w *worker) reconcileZooKeeperPDB(ctx context.Context, chi *chiv1.ClickHous
 		return nil
 	}
 
-	pdb := w.creator.NewPodDisruptionBudgetZooKeeper(chi)
+	pdb := w.zkCreator.NewPodDisruptionBudgetZooKeeper(chi)
 
 	err := w.reconcilePDB(ctx, chi, pdb)
 
@@ -785,7 +760,7 @@ func (w *worker) reconcileZooKeeperStatefulSet(ctx context.Context, chi *chiv1.C
 		return nil
 	}
 
-	statefulSet := w.creator.CreateStatefulSetZooKeeper(chi)
+	statefulSet := w.zkCreator.CreateStatefulSetZooKeeper()
 
 	// reconcileStatefulSet
 	w.a.V(2).M(chi).S().Info(util.NamespaceNameString(statefulSet.ObjectMeta))
@@ -813,31 +788,8 @@ func (w *worker) reconcileZooKeeperStatefulSet(ctx context.Context, chi *chiv1.C
 	}
 	// reconcileStatefulSet end
 
-	zookeeperConfig := chi.Spec.Configuration.Zookeeper
-	replica := int(zookeeperConfig.Replica)
+	replica := int(chi.Spec.Configuration.Zookeeper.Replica)
 	if err == nil {
-		// Write zookeeper node info to status
-		var zooKeeperNode []chiv1.ChiZookeeperNode
-
-		// Create zookeeper node info
-		for i := 0; i < replica; i++ {
-			host := chopmodel.CreatePodFQDNOfZooKeeper(chi, i)
-			zooKeeperNode = append(zooKeeperNode, chiv1.ChiZookeeperNode{
-				Host: host,
-				Port: zookeeperConfig.Port,
-			})
-		}
-
-		normalizedZKConfig := chi.Status.NormalizedCHI.Configuration.Zookeeper
-		// Write zookeeper node info to status.chi
-		normalizedZKConfig.Nodes = make([]chiv1.ChiZookeeperNode, replica)
-		copy(normalizedZKConfig.Nodes, zooKeeperNode)
-
-		// Update change to kubernetes
-		if err = w.c.updateCHIObjectStatus(ctx, chi, false); err != nil {
-			w.a.V(1).M(chi).A().Error("UNABLE to update CHI ZooKeeper. Err: %q", err)
-		}
-
 		w.registryReconciled.RegisterStatefulSet(statefulSet.ObjectMeta)
 		for i := 0; i < replica; i++ {
 			w.registryReconciled.RegisterPVC(v1.ObjectMeta{

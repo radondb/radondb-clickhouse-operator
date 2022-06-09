@@ -481,14 +481,17 @@ type ChiDefaults struct {
 
 // ChiTemplateNames defines references to .spec.templates to be used on current level of cluster
 type ChiTemplateNames struct {
-	HostTemplate            string `json:"hostTemplate,omitempty"            yaml:"hostTemplate,omitempty"`
-	PodTemplate             string `json:"podTemplate,omitempty"             yaml:"podTemplate,omitempty"`
-	DataVolumeClaimTemplate string `json:"dataVolumeClaimTemplate,omitempty" yaml:"dataVolumeClaimTemplate,omitempty"`
-	LogVolumeClaimTemplate  string `json:"logVolumeClaimTemplate,omitempty"  yaml:"logVolumeClaimTemplate,omitempty"`
-	ServiceTemplate         string `json:"serviceTemplate,omitempty"         yaml:"serviceTemplate,omitempty"`
-	ClusterServiceTemplate  string `json:"clusterServiceTemplate,omitempty"  yaml:"clusterServiceTemplate,omitempty"`
-	ShardServiceTemplate    string `json:"shardServiceTemplate,omitempty"    yaml:"shardServiceTemplate,omitempty"`
-	ReplicaServiceTemplate  string `json:"replicaServiceTemplate,omitempty"  yaml:"replicaServiceTemplate,omitempty"`
+	HostTemplate                 string `json:"hostTemplate,omitempty"                 yaml:"hostTemplate,omitempty"`
+	PodTemplate                  string `json:"podTemplate,omitempty"                  yaml:"podTemplate,omitempty"`
+	ZooKeeperPodTemplate         string `json:"zookeeperPodTemplate,omitempty"         yaml:"zookeeperPodTemplate,omitempty"`
+	DataVolumeClaimTemplate      string `json:"dataVolumeClaimTemplate,omitempty"      yaml:"dataVolumeClaimTemplate,omitempty"`
+	LogVolumeClaimTemplate       string `json:"logVolumeClaimTemplate,omitempty"       yaml:"logVolumeClaimTemplate,omitempty"`
+	ZooKeeperVolumeClaimTemplate string `json:"zookeeperVolumeClaimTemplate,omitempty" yaml:"zookeeperVolumeClaimTemplate,omitempty"`
+	ServiceTemplate              string `json:"serviceTemplate,omitempty"              yaml:"serviceTemplate,omitempty"`
+	ClusterServiceTemplate       string `json:"clusterServiceTemplate,omitempty"       yaml:"clusterServiceTemplate,omitempty"`
+	ShardServiceTemplate         string `json:"shardServiceTemplate,omitempty"         yaml:"shardServiceTemplate,omitempty"`
+	ReplicaServiceTemplate       string `json:"replicaServiceTemplate,omitempty"       yaml:"replicaServiceTemplate,omitempty"`
+	ZooKeeperServiceTemplate     string `json:"zookeeperServiceTemplate,omitempty"     yaml:"zookeeperServiceTemplate,omitempty"`
 
 	// VolumeClaimTemplate is deprecated in favor of DataVolumeClaimTemplate and LogVolumeClaimTemplate
 	// !!! DEPRECATED !!!
@@ -776,9 +779,6 @@ type ChiZookeeperConfig struct {
 	Identity           string             `json:"identity,omitempty"             yaml:"identity,omitempty"`
 	Install            bool               `json:"install,omitempty"              yaml:"install"`
 	Replica            int32              `json:"replica,omitempty"              yaml:"replica"`
-	Image              string             `json:"image,omitempty"                yaml:"image"`
-	ImagePullPolicy    string             `json:"imagePullPolicy,omitempty"      yaml:"imagePullPolicy"`
-	Port               int32              `json:"port,omitempty"                 yaml:"port"`
 }
 
 // ChiZookeeperNode defines item of nodes section of .spec.configuration.zookeeper

@@ -1,7 +1,7 @@
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-files
 #
 apiVersion: v1
@@ -174,7 +174,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-confd-files
 #
 apiVersion: v1
@@ -188,7 +188,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-configd-files
 #
 apiVersion: v1
@@ -245,7 +245,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-templatesd-files
 #
 apiVersion: v1
@@ -343,7 +343,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:2.2.0
 # etc-clickhouse-operator-usersd-files
 #
 apiVersion: v1
@@ -400,8 +400,8 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
-# radondb/chronus-metrics-operator:2.1.1
+# radondb/chronus-operator:2.2.0
+# radondb/chronus-metrics-operator:2.2.0
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -443,7 +443,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: radondb/chronus-operator:2.1.1
+          image: radondb/chronus-operator:2.2.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -508,7 +508,7 @@ spec:
                   resource: limits.memory
 
         - name: metrics-exporter
-          image: radondb/chronus-metrics-operator:2.1.1
+          image: radondb/chronus-metrics-operator:2.2.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder
