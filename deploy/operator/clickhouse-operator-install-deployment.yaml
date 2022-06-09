@@ -1,7 +1,7 @@
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-files
 #
 apiVersion: v1
@@ -167,12 +167,18 @@ data:
     #  LabelClusterScopeCycleIndex
     #  LabelClusterScopeCycleOffset
     appendScopeLabels: "no"
-
+    
+    defaultClickHouseLogContainerImage: "busybox"
+    defaultClickHouseLogContainerImagePullPolicy: "IfNotPresent"
+    defaultMetricsExporterContainerImage: "radondb/chronus-metrics-operator:dmp"
+    defaultMetricsExporterContainerImagePullPolicy: "IfNotPresent"
+    
+    imagePrefix: docker.io
 ---
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-confd-files
 #
 apiVersion: v1
@@ -186,7 +192,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-configd-files
 #
 apiVersion: v1
@@ -243,7 +249,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-templatesd-files
 #
 apiVersion: v1
@@ -341,7 +347,7 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
+# radondb/chronus-operator:dmp
 # etc-clickhouse-operator-usersd-files
 #
 apiVersion: v1
@@ -398,8 +404,8 @@ data:
 # Possible Template Parameters:
 #
 # -
-# radondb/chronus-operator:2.1.1
-# radondb/chronus-metrics-operator:2.1.1
+# radondb/chronus-operator:dmp
+# radondb/chronus-metrics-operator:dmp
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -441,7 +447,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: radondb/chronus-operator:2.1.1
+          image: radondb/chronus-operator:dmp
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -504,18 +510,3 @@ spec:
                 resourceFieldRef:
                   containerName: clickhouse-operator
                   resource: limits.memory
-
-        - name: metrics-exporter
-          image: radondb/chronus-metrics-operator:2.1.1
-          imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - name: etc-clickhouse-operator-folder
-              mountPath: /etc/clickhouse-operator
-            - name: etc-clickhouse-operator-confd-folder
-              mountPath: /etc/clickhouse-operator/conf.d
-            - name: etc-clickhouse-operator-configd-folder
-              mountPath: /etc/clickhouse-operator/config.d
-            - name: etc-clickhouse-operator-templatesd-folder
-              mountPath: /etc/clickhouse-operator/templates.d
-            - name: etc-clickhouse-operator-usersd-folder
-              mountPath: /etc/clickhouse-operator/users.d

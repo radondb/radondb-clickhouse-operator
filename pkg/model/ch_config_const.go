@@ -66,9 +66,6 @@ const (
 	// defaultClickHouseDockerImage specifies default ClickHouse docker image to be used
 	defaultClickHouseDockerImage = "radondb/clickhouse-server:latest"
 
-	// defaultBusyBoxDockerImage specifies default BusyBox docker image to be used
-	defaultBusyBoxDockerImage = "busybox"
-
 	// Name of container within Pod with ClickHouse instance.
 	// Pod may have other containers included, such as monitoring, logging
 
@@ -76,6 +73,8 @@ const (
 	ClickHouseContainerName = "clickhouse"
 	// ClickHouseLogContainerName specifies name of the logger container in the pod
 	ClickHouseLogContainerName = "clickhouse-log"
+	// MetricsExporterContainerName Name of container within Pod with metrics exporter instance.
+	MetricsExporterContainerName = "clickhouse-metrics-exporter"
 )
 
 const (

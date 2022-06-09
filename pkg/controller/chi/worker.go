@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	//"github.com/altinity/queue"
 
@@ -856,6 +857,19 @@ func (w *worker) reconcileCHIAuxObjectsPreliminary(ctx context.Context, chi *chi
 		_ = w.c.deleteServiceCHI(ctx, chi)
 	} else {
 		if service := w.creator.CreateServiceCHI(); service != nil {
+
+			if chi.IsMetricsExporter() {
+				service.Spec.Ports = append(service.Spec.Ports,
+					core.ServicePort{
+						Name:     "clickhouse-metrics",
+						Protocol: core.ProtocolTCP,
+						Port:     8888,
+						TargetPort: intstr.IntOrString{
+							IntVal: 8888,
+						},
+					})
+			}
+
 			if err := w.reconcileService(ctx, chi, service); err != nil {
 				// Service not reconciled
 				w.registryFailed.RegisterService(service.ObjectMeta)

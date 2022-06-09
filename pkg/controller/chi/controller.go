@@ -36,7 +36,6 @@ import (
 
 	log "github.com/radondb/clickhouse-operator/pkg/announcer"
 	chi "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
-	"github.com/radondb/clickhouse-operator/pkg/apis/metrics"
 	"github.com/radondb/clickhouse-operator/pkg/chop"
 	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
 	chopclientsetscheme "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned/scheme"
@@ -536,11 +535,11 @@ func (c *Controller) updateWatch(namespace, name string, hostnames []string) {
 
 // updateWatchAsync
 func (c *Controller) updateWatchAsync(namespace, name string, hostnames []string) {
-	if err := metrics.InformMetricsExporterAboutWatchedCHI(namespace, name, hostnames); err != nil {
-		log.V(1).A().Info("FAIL update watch (%s/%s): %q", namespace, name, err)
-	} else {
-		log.V(2).Info("OK update watch (%s/%s)", namespace, name)
-	}
+	//if err := metrics.InformMetricsExporterAboutWatchedCHI(namespace, name, hostnames); err != nil {
+	//	log.V(1).A().Info("FAIL update watch (%s/%s): %q", namespace, name, err)
+	//} else {
+	//	log.V(2).Info("OK update watch (%s/%s)", namespace, name)
+	//}
 }
 
 // deleteWatch
@@ -550,11 +549,11 @@ func (c *Controller) deleteWatch(namespace, name string) {
 
 // deleteWatchAsync
 func (c *Controller) deleteWatchAsync(namespace, name string) {
-	if err := metrics.InformMetricsExporterToDeleteWatchedCHI(namespace, name); err != nil {
-		log.V(1).A().Info("FAIL delete watch (%s/%s): %q", namespace, name, err)
-	} else {
-		log.V(2).Info("OK delete watch (%s/%s)", namespace, name)
-	}
+	//if err := metrics.InformMetricsExporterToDeleteWatchedCHI(namespace, name); err != nil {
+	//	log.V(1).A().Info("FAIL delete watch (%s/%s): %q", namespace, name, err)
+	//} else {
+	//	log.V(2).Info("OK delete watch (%s/%s)", namespace, name)
+	//}
 }
 
 // addChit sync new CHIT - creates all its resources

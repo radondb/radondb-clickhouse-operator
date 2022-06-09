@@ -172,6 +172,38 @@ spec:
                     - "disabled"
                     - "Enabled"
                     - "enabled"
+                # Need to be StringBool
+                metricsExporter:
+                  type: string
+                  description: "Monitoring related, allows adding prometheus exporter containers to each pod"
+                  enum:
+                    # List StringBoolXXX constants from model
+                    - ""
+                    - "0"
+                    - "1"
+                    - "False"
+                    - "false"
+                    - "True"
+                    - "true"
+                    - "No"
+                    - "no"
+                    - "Yes"
+                    - "yes"
+                    - "Off"
+                    - "off"
+                    - "On"
+                    - "on"
+                    - "Disable"
+                    - "disable"
+                    - "Enable"
+                    - "enable"
+                    - "Disabled"
+                    - "disabled"
+                    - "Enabled"
+                    - "enabled"
+                imagePrefix:
+                  type: string
+                  description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
                 namespaceDomainPattern:
                   type: string
                   description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -1439,6 +1471,38 @@ spec:
                     - "disabled"
                     - "Enabled"
                     - "enabled"
+                # Need to be StringBool
+                metricsExporter:
+                  type: string
+                  description: "Monitoring related, allows adding prometheus exporter containers to each pod"
+                  enum:
+                    # List StringBoolXXX constants from model
+                    - ""
+                    - "0"
+                    - "1"
+                    - "False"
+                    - "false"
+                    - "True"
+                    - "true"
+                    - "No"
+                    - "no"
+                    - "Yes"
+                    - "yes"
+                    - "Off"
+                    - "off"
+                    - "On"
+                    - "on"
+                    - "Disable"
+                    - "disable"
+                    - "Enable"
+                    - "enable"
+                    - "Disabled"
+                    - "disabled"
+                    - "Enabled"
+                    - "enabled"
+                imagePrefix:
+                  type: string
+                  description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
                 namespaceDomainPattern:
                   type: string
                   description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -2716,3 +2780,18 @@ spec:
                     - "LabelClusterScopeCycleSize"
                     - "LabelClusterScopeCycleIndex"
                     - "LabelClusterScopeCycleOffset"
+                defaultClickHouseLogContainerImage:
+                  type: string
+                  description: "ClickHouse log container image, default `busybox`"
+                defaultClickHouseLogContainerImagePullPolicy:
+                  type: string
+                  description: "ClickHouse log container image pull policy, default `IfNotPresent`"
+                defaultMetricsExporterContainerImage:
+                  type: string
+                  description: "ClickHouse metrics exporter container image, default `radondb/chronus-metrics-operator:dmp`"
+                defaultMetricsExporterContainerImagePullPolicy:
+                  type: string
+                  description: "ClickHouse metrics exporter container image pull policy, default `IfNotPresent`"
+                imagePrefix:
+                  type: string
+                  description: "custom image prefix which will add to the front of the image used by the clickhouse cluster, if the parameter is also defined in CHI, CHI has higher priority"

@@ -81,7 +81,3 @@ spec:
                 resourceFieldRef:
                   containerName: clickhouse-operator
                   resource: limits.memory
-
-        - name: metrics-exporter
-          image: ${METRICS_EXPORTER_IMAGE}
-          imagePullPolicy: IfNotPresent

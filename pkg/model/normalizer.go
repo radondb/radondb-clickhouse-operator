@@ -122,7 +122,9 @@ func (n *Normalizer) normalize() (*chiV1.ClickHouseInstallation, error) {
 	n.chi.Spec.UseTemplates = n.normalizeUseTemplates(n.chi.Spec.UseTemplates)
 	n.chi.Spec.Stop = n.normalizeStop(n.chi.Spec.Stop)
 	n.chi.Spec.Restart = n.normalizeRestart(n.chi.Spec.Restart)
+	n.chi.Spec.ImagePrefix = n.normalizeImagePrefix(n.chi.Spec.ImagePrefix)
 	n.chi.Spec.Troubleshoot = n.normalizeTroubleshoot(n.chi.Spec.Troubleshoot)
+	n.chi.Spec.MetricsExporter = n.normalizeMetricsExporter(n.chi.Spec.MetricsExporter)
 	n.chi.Spec.NamespaceDomainPattern = n.normalizeNamespaceDomainPattern(n.chi.Spec.NamespaceDomainPattern)
 	n.chi.Spec.Templating = n.normalizeTemplating(n.chi.Spec.Templating)
 	n.chi.Spec.Reconciling = n.normalizeReconciling(n.chi.Spec.Reconciling)
@@ -362,11 +364,22 @@ func (n *Normalizer) normalizeRestart(restart string) string {
 	return ""
 }
 
-// normalizeTroubleshoot normalizes .spec.stop
+// normalizeTroubleshoot normalizes .spec.troubleshoot
 func (n *Normalizer) normalizeTroubleshoot(troubleshoot string) string {
 	if util.IsStringBool(troubleshoot) {
 		// It is bool, use as it is
 		return troubleshoot
+	}
+
+	// In case it is unknown value - just use set it to false
+	return util.StringBoolFalseLowercase
+}
+
+// normalizeMetricsExporter normalizes .spec.metricsExporter
+func (n *Normalizer) normalizeMetricsExporter(metricsExporter string) string {
+	if util.IsStringBool(metricsExporter) {
+		// It is bool, use as it is
+		return metricsExporter
 	}
 
 	// In case it is unknown value - just use set it to false
@@ -379,6 +392,14 @@ func (n *Normalizer) normalizeNamespaceDomainPattern(namespaceDomainPattern stri
 		return ""
 	}
 	return namespaceDomainPattern
+}
+
+// normalizeImagePrefix normalizes .spec.ImagePrefix
+func (n *Normalizer) normalizeImagePrefix(imagePrefix string) string {
+	if imagePrefix == "" {
+		return chop.Config().ImagePrefix
+	}
+	return imagePrefix
 }
 
 // normalizeDefaults normalizes .spec.defaults

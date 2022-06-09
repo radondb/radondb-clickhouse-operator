@@ -477,8 +477,14 @@ func (spec *ChiSpec) MergeFrom(from *ChiSpec, _type MergeType) {
 		if spec.Restart == "" {
 			spec.Restart = from.Restart
 		}
+		if spec.ImagePrefix == "" {
+			spec.ImagePrefix = from.ImagePrefix
+		}
 		if spec.Troubleshoot == "" {
 			spec.Troubleshoot = from.Troubleshoot
+		}
+		if spec.MetricsExporter == "" {
+			spec.MetricsExporter = from.MetricsExporter
 		}
 		if spec.NamespaceDomainPattern == "" {
 			spec.NamespaceDomainPattern = from.NamespaceDomainPattern
@@ -492,9 +498,16 @@ func (spec *ChiSpec) MergeFrom(from *ChiSpec, _type MergeType) {
 			// Override by non-empty values only
 			spec.Restart = from.Restart
 		}
+		if from.ImagePrefix != "" {
+			// Override by non-empty values only
+			spec.ImagePrefix = from.ImagePrefix
+		}
 		if from.Troubleshoot != "" {
 			// Override by non-empty values only
 			spec.Troubleshoot = from.Troubleshoot
+		}
+		if spec.MetricsExporter == "" {
+			spec.MetricsExporter = from.MetricsExporter
 		}
 		if from.NamespaceDomainPattern != "" {
 			spec.NamespaceDomainPattern = from.NamespaceDomainPattern
@@ -679,6 +692,11 @@ func (chi *ClickHouseInstallation) IsNoRestart() bool {
 // IsTroubleshoot checks whether CHI is in troubleshoot mode
 func (chi *ClickHouseInstallation) IsTroubleshoot() bool {
 	return util.IsStringBoolTrue(chi.Spec.Troubleshoot)
+}
+
+// IsMetricsExporter checks whether CHI is in metrics exporter mode
+func (chi *ClickHouseInstallation) IsMetricsExporter() bool {
+	return util.IsStringBoolTrue(chi.Spec.MetricsExporter)
 }
 
 // GetReconciling gets reconciling spec

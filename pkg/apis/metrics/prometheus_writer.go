@@ -1,4 +1,4 @@
-// Copyright 2019 Altinity Ltd and/or its affiliates. All rights reserved.
+// Copyright 2020 [RadonDB](https://github.com/radondb). All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,21 +37,15 @@ const (
 
 // PrometheusWriter specifies write to prometheus
 type PrometheusWriter struct {
-	out      chan<- prometheus.Metric
-	chi      *WatchedCHI
-	hostname string
+	out chan<- prometheus.Metric
 }
 
 // NewPrometheusWriter creates new prometheus writer
 func NewPrometheusWriter(
 	out chan<- prometheus.Metric,
-	chi *WatchedCHI,
-	hostname string,
 ) *PrometheusWriter {
 	return &PrometheusWriter{
-		out:      out,
-		chi:      chi,
-		hostname: hostname,
+		out: out,
 	}
 }
 
@@ -74,10 +68,7 @@ func (w *PrometheusWriter) WriteMetrics(data [][]string) {
 			metric[2],
 			metric[1],
 			metricType,
-			[]string{"chi", "namespace", "hostname"},
-			w.chi.Name,
-			w.chi.Namespace,
-			w.hostname,
+			[]string{},
 		)
 	}
 }
@@ -91,20 +82,20 @@ func (w *PrometheusWriter) WriteTableSizes(data [][]string) {
 			continue
 		}
 		writeSingleMetricToPrometheus(w.out, "table_partitions", "Number of partitions of the table", metric[3], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table", "active"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1], metric[2])
+			[]string{"database", "table", "active"},
+			metric[0], metric[1], metric[2])
 		writeSingleMetricToPrometheus(w.out, "table_parts", "Number of parts of the table", metric[4], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table", "active"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1], metric[2])
+			[]string{"database", "table", "active"},
+			metric[0], metric[1], metric[2])
 		writeSingleMetricToPrometheus(w.out, "table_parts_bytes", "Table size in bytes", metric[5], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table", "active"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1], metric[2])
+			[]string{"database", "table", "active"},
+			metric[0], metric[1], metric[2])
 		writeSingleMetricToPrometheus(w.out, "table_parts_bytes_uncompressed", "Table size in bytes uncompressed", metric[6], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table", "active"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1], metric[2])
+			[]string{"database", "table", "active"},
+			metric[0], metric[1], metric[2])
 		writeSingleMetricToPrometheus(w.out, "table_parts_rows", "Number of rows in the table", metric[7], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table", "active"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1], metric[2])
+			[]string{"database", "table", "active"},
+			metric[0], metric[1], metric[2])
 	}
 }
 
@@ -112,8 +103,8 @@ func (w *PrometheusWriter) WriteTableSizes(data [][]string) {
 func (w *PrometheusWriter) WriteSystemReplicas(data [][]string) {
 	for _, metric := range data {
 		writeSingleMetricToPrometheus(w.out, "system_replicas_is_session_expired", "Number of expired Zookeeper sessions of the table", metric[2], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1])
+			[]string{"database", "table"},
+			metric[0], metric[1])
 	}
 }
 
@@ -121,11 +112,11 @@ func (w *PrometheusWriter) WriteSystemReplicas(data [][]string) {
 func (w *PrometheusWriter) WriteMutations(data [][]string) {
 	for _, metric := range data {
 		writeSingleMetricToPrometheus(w.out, "table_mutations", "Number of active mutations for the table", metric[2], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1])
+			[]string{"database", "table"},
+			metric[0], metric[1])
 		writeSingleMetricToPrometheus(w.out, "table_mutations_parts_to_do", "Number of data parts that need to be mutated for the mutation to finish", metric[3], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0], metric[1])
+			[]string{"database", "table"},
+			metric[0], metric[1])
 
 	}
 }
@@ -134,11 +125,11 @@ func (w *PrometheusWriter) WriteMutations(data [][]string) {
 func (w *PrometheusWriter) WriteSystemDisks(data [][]string) {
 	for _, metric := range data {
 		writeSingleMetricToPrometheus(w.out, "metric_DiskFreeBytes", "Free disk space available from system.disks", metric[1], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "disk"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0])
+			[]string{"disk"},
+			metric[0])
 		writeSingleMetricToPrometheus(w.out, "metric_DiskTotalBytes", "Total disk space available from system.disks", metric[2], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "disk"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[0])
+			[]string{"disk"},
+			metric[0])
 	}
 }
 
@@ -146,23 +137,23 @@ func (w *PrometheusWriter) WriteSystemDisks(data [][]string) {
 func (w *PrometheusWriter) WriteDetachedParts(data [][]string) {
 	for _, metric := range data {
 		writeSingleMetricToPrometheus(w.out, "metric_DetachedParts", "Count of currently detached parts from system.detached_parts", metric[0], prometheus.GaugeValue,
-			[]string{"chi", "namespace", "hostname", "database", "table", "disk", "reason"},
-			w.chi.Name, w.chi.Namespace, w.hostname, metric[1], metric[2], metric[3], metric[4])
+			[]string{"database", "table", "disk", "reason"},
+			metric[1], metric[2], metric[3], metric[4])
 	}
 }
 
 // WriteErrorFetch writes error fetch
 func (w *PrometheusWriter) WriteErrorFetch(fetchType string) {
 	writeSingleMetricToPrometheus(w.out, "metric_fetch_errors", "status of fetching metrics from ClickHouse 1 - unsuccessful, 0 - successful", "1", prometheus.GaugeValue,
-		[]string{"chi", "namespace", "hostname", "fetch_type"},
-		w.chi.Name, w.chi.Namespace, w.hostname, fetchType)
+		[]string{"fetch_type"},
+		fetchType)
 }
 
 // WriteOKFetch writes successful fetch
 func (w *PrometheusWriter) WriteOKFetch(fetchType string) {
 	writeSingleMetricToPrometheus(w.out, "metric_fetch_errors", "status of fetching metrics from ClickHouse 1 - unsuccessful, 0 - successful", "0", prometheus.GaugeValue,
-		[]string{"chi", "namespace", "hostname", "fetch_type"},
-		w.chi.Name, w.chi.Namespace, w.hostname, fetchType)
+		[]string{"fetch_type"},
+		fetchType)
 }
 
 func writeSingleMetricToPrometheus(out chan<- prometheus.Metric, name string, desc string, value string, metricType prometheus.ValueType, labels []string, labelValues ...string) {
@@ -197,16 +188,5 @@ func newDescription(name, help string, labels []string) *prometheus.Desc {
 // convertMetricName converts the given string to snake case following the Golang format:
 // acronyms are converted to lower-case and preceded by an underscore.
 func convertMetricName(in string) string {
-	/*runes := []rune(in)
-	length := len(runes)
-
-	var out []rune
-	for i := 0; i < length; i++ {
-		if i > 0 && unicode.IsUpper(runes[i]) && ((i+1 < length && unicode.IsLower(runes[i+1])) || unicode.IsLower(runes[i-1])) {
-			out = append(out, '_')
-		}
-		out = append(out, unicode.ToLower(runes[i]))
-	}*/
-
 	return strings.Replace(in, ".", "_", -1)
 }

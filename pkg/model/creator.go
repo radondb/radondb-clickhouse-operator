@@ -424,6 +424,11 @@ func (c *Creator) CreateStatefulSet(host *chiv1.ChiHost, shutdown bool) *apps.St
 	host.StatefulSet = statefulSet
 	host.DesiredStatefulSet = statefulSet
 
+	for index, _ := range statefulSet.Spec.Template.Spec.Containers {
+		container := &statefulSet.Spec.Template.Spec.Containers[index]
+		container.Image = host.CHI.Spec.ImagePrefix + "/" + container.Image
+	}
+
 	return statefulSet
 }
 
@@ -493,6 +498,11 @@ func (c *Creator) CreateStatefulSetZooKeeper(chi *chiv1.ClickHouseInstallation) 
 	c.setupStatefulSetZooKeeperPodTemplate(statefulSet, chi)
 	c.setupStatefulSetZooKeeperVolumeClaimTemplates(statefulSet)
 
+	for index, _ := range statefulSet.Spec.Template.Spec.Containers {
+		container := &statefulSet.Spec.Template.Spec.Containers[index]
+		container.Image = chi.Spec.ImagePrefix + "/" + container.Image
+	}
+
 	return statefulSet
 }
 
@@ -527,6 +537,7 @@ func (c *Creator) setupStatefulSetPodTemplate(statefulSet *apps.StatefulSet, hos
 	// Post-process StatefulSet
 	ensureStatefulSetTemplateIntegrity(statefulSet, host)
 	c.personalizeStatefulSetTemplate(statefulSet, host)
+	c.setupMetricsExporterContainer(statefulSet, host)
 }
 
 // setupStatefulSetZooKeeperPodTemplate performs PodTemplate setup of StatefulSet
@@ -629,6 +640,16 @@ func (c *Creator) setupLogContainer(statefulSet *apps.StatefulSet, host *chiv1.C
 	if host.Templates.HasLogVolumeClaimTemplate() {
 		addContainer(&statefulSet.Spec.Template.Spec, newDefaultLogContainer())
 		c.a.V(1).F().Info("add log container for statefulSet %s", statefulSetName)
+	}
+}
+
+// setupLogContainer
+func (c *Creator) setupMetricsExporterContainer(statefulSet *apps.StatefulSet, host *chiv1.ChiHost) {
+	statefulSetName := CreateStatefulSetName(host)
+	if host.CHI.IsMetricsExporter() {
+		addContainer(&statefulSet.Spec.Template.Spec, newDefaultMetricsExporterContainer())
+		c.a.V(1).F().Info("add metrics exporter container for statefulSet %s", statefulSetName)
+
 	}
 }
 
@@ -1411,13 +1432,37 @@ func (c *Creator) newDefaultZooKeeperContainer(zookeeperConfig *chiv1.ChiZookeep
 // newDefaultLogContainer returns default Log Container
 func newDefaultLogContainer() corev1.Container {
 	return corev1.Container{
-		Name:  ClickHouseLogContainerName,
-		Image: defaultBusyBoxDockerImage,
+		Name:            ClickHouseLogContainerName,
+		Image:           chop.Config().DefaultClickHouseLogContainerImage,
+		ImagePullPolicy: corev1.PullPolicy(chop.Config().DefaultClickHouseLogContainerImagePullPolicy),
 		Command: []string{
 			"/bin/sh", "-c", "--",
 		},
 		Args: []string{
 			"while true; do sleep 30; done;",
+		},
+	}
+}
+
+// newDefaultMetricsExporterContainer returns default metric exporter Container
+func newDefaultMetricsExporterContainer() corev1.Container {
+	return corev1.Container{
+		Name:            MetricsExporterContainerName,
+		Image:           chop.Config().DefaultMetricsExporterContainerImage,
+		ImagePullPolicy: corev1.PullPolicy(chop.Config().DefaultMetricsExporterContainerImagePullPolicy),
+		Env: []corev1.EnvVar{
+			{
+				Name:  "CLICKHOUSE_USERNAME",
+				Value: chop.Config().CHUsername,
+			},
+			{
+				Name:  "CLICKHOUSE_PASSWORD",
+				Value: chop.Config().CHPassword,
+			},
+			{
+				Name:  "CLICKHOUSE_PORT",
+				Value: strconv.Itoa(chop.Config().CHPort),
+			},
 		},
 	}
 }
