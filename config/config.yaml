@@ -153,3 +153,5 @@ reconcileWaitInclude: false
 #  LabelClusterScopeCycleIndex
 #  LabelClusterScopeCycleOffset
 appendScopeLabels: "no"
+
+imagePrefix: docker.io

@@ -165,6 +165,8 @@ type OperatorConfig struct {
 	AppendScopeLabelsString string `json:"appendScopeLabels" yaml:"appendScopeLabels"`
 	AppendScopeLabels       bool
 
+	// custom image prefix which will add to the front of the image used by the clickhouse cluster
+	ImagePrefix string `json:"imagePrefix,omitempty" yaml:"ImagePrefix,omitempty"`
 	//
 	// The end of OperatorConfig
 	//
@@ -598,6 +600,8 @@ func (config *OperatorConfig) String(hideCredentials bool) string {
 
 	util.Fprintf(b, "%s", util.Slice2String("ExcludeFromPropagationLabels", config.ExcludeFromPropagationLabels))
 	util.Fprintf(b, "appendScopeLabels: %s (%t)\n", config.AppendScopeLabelsString, config.AppendScopeLabels)
+
+	util.Fprintf(b, "ImagePrefix: %s", config.ImagePrefix)
 
 	return b.String()
 }

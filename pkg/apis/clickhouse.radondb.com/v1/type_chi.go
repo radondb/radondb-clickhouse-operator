@@ -477,6 +477,9 @@ func (spec *ChiSpec) MergeFrom(from *ChiSpec, _type MergeType) {
 		if spec.Restart == "" {
 			spec.Restart = from.Restart
 		}
+		if spec.ImagePrefix == "" {
+			spec.ImagePrefix = from.ImagePrefix
+		}
 		if spec.Troubleshoot == "" {
 			spec.Troubleshoot = from.Troubleshoot
 		}
@@ -491,6 +494,10 @@ func (spec *ChiSpec) MergeFrom(from *ChiSpec, _type MergeType) {
 		if from.Restart != "" {
 			// Override by non-empty values only
 			spec.Restart = from.Restart
+		}
+		if from.ImagePrefix != "" {
+			// Override by non-empty values only
+			spec.ImagePrefix = from.ImagePrefix
 		}
 		if from.Troubleshoot != "" {
 			// Override by non-empty values only
