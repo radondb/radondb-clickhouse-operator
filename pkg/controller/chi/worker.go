@@ -393,7 +393,7 @@ func (w *worker) includeStopped(chi *chiv1.ClickHouseInstallation) {
 
 func (w *worker) clear(ctx context.Context, chi *chiv1.ClickHouseInstallation) {
 	// Remove deleted items
-	objs := w.c.discovery(ctx, chi)
+	objs := w.c.discovery(ctx, chi, true)
 	need := w.registryReconciled
 	w.a.V(1).M(chi).F().Info("Reconciled objects:\n%s", w.registryReconciled)
 	w.a.V(1).M(chi).F().Info("Existing objects:\n%s", objs)
@@ -1466,7 +1466,7 @@ func (w *worker) discoveryAndDeleteCHI(ctx context.Context, chi *chiv1.ClickHous
 		return nil
 	}
 
-	objs := w.c.discovery(ctx, chi)
+	objs := w.c.discovery(ctx, chi, false)
 	if objs.NumStatefulSet() > 0 {
 		chi.WalkHosts(func(host *chiv1.ChiHost) error {
 			_ = w.schemer.HostSyncTables(ctx, host)

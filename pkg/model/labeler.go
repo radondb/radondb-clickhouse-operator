@@ -189,6 +189,17 @@ func (l *Labeler) GetSelectorCHIScope() map[string]string {
 	}
 }
 
+// GetSelectorCHIWithoutZookeeperScope gets labels to select a CHI-scoped object without zookeeper
+func (l *Labeler) GetSelectorCHIWithoutZookeeperScope() map[string]string {
+	// Do not include CHI-provided labels
+	return map[string]string{
+		LabelNamespace:  labelsNamer.getNamePartNamespace(l.chi),
+		LabelAppName:    LabelAppValue,
+		LabelCHIName:    labelsNamer.getNamePartCHIName(l.chi),
+		LabelClickHouse: labelClickHouseValue,
+	}
+}
+
 // getSelectorCHIScopeReady gets labels to select a ready-labelled CHI-scoped object
 func (l *Labeler) getSelectorCHIScopeReady() map[string]string {
 	return appendReadyLabels(l.GetSelectorCHIScope())
