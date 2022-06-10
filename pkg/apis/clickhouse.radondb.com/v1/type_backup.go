@@ -29,14 +29,11 @@ type ClickHouseBackup struct {
 }
 
 type ClickHouseBackupSpec struct {
-	CHIName         string         `json:"chiName,omitempty"          yaml:"chiName,omitempty"`
-	ClusterName     string         `json:"clusterName,omitempty"      yaml:"clusterName,omitempty"`
-	Namespace       string         `json:"namespace,omitempty"        yaml:"namespace,omitempty"`
-	TCPPort         int32          `json:"tcpPort,omitempty"          yaml:"tcpPort,omitempty"`
-	Image           string         `json:"image,omitempty"            yaml:"image,omitempty"`
-	ImagePullPolicy string         `json:"imagePullPolicy,omitempty"  yaml:"imagePullPolicy,omitempty"`
-	Backup          *BackupConfig  `json:"backup,omitempty"           yaml:"backup,omitempty"`
-	Restore         *RestoreConfig `json:"restore,omitempty"          yaml:"restore,omitempty"`
+	CHIName     string         `json:"chiName,omitempty"          yaml:"chiName,omitempty"`
+	ClusterName string         `json:"clusterName,omitempty"      yaml:"clusterName,omitempty"`
+	Namespace   string         `json:"namespace,omitempty"        yaml:"namespace,omitempty"`
+	Backup      *BackupConfig  `json:"backup,omitempty"           yaml:"backup,omitempty"`
+	Restore     *RestoreConfig `json:"restore,omitempty"          yaml:"restore,omitempty"`
 }
 
 type BackupConfig struct {
@@ -58,6 +55,21 @@ func (chb *ClickHouseBackup) IsEmpty() bool {
 		return true
 	}
 	return false
+}
+
+func (chb *ClickHouseBackup) WalkHost(f func(host *ChiHost, shardIndex, replicaIndex int) error) error {
+	for shardIndex := range chb.Cluster.Layout.Shards {
+		shard := &chb.Cluster.Layout.Shards[shardIndex]
+		for replicaIndex := range shard.Hosts {
+			host := shard.Hosts[replicaIndex]
+
+			if err := f(host, shardIndex, replicaIndex); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // NewClickHouseBackupSpec create new ClickHouseBackupSpec object
