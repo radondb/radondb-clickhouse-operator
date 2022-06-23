@@ -544,8 +544,42 @@ func (c *Controller) enqueueObject(obj queue.PriorityQueueItem) {
 			log.V(1).Info("ENQUEUE new ReconcileCHI cmd=%s for %s/%s", command.cmd, namespace, name)
 		}
 
+	case *ReconcileCHB:
+		switch command.cmd {
+		case reconcileAdd:
+			newjs, _ := json.Marshal(command.new)
+			newchb := chi.ClickHouseBackup{
+				TypeMeta: meta.TypeMeta{
+					APIVersion: chi.SchemeGroupVersion.String(),
+					Kind:       chi.ClickHouseBackupCRDResourceKind,
+				},
+			}
+			_ = json.Unmarshal(newjs, &newchb)
+			command.new = &newchb
+		case reconcileUpdate:
+			old_chb := command.old
+			new_chb := command.new
+			enqueue = c.ChbHasActionsToDo(old_chb, new_chb)
+
+			if enqueue {
+				log.V(2).M(old_chb).Info("ClickHouseBackup reconcileUpdate enqueue.")
+
+				oldjs, _ := json.Marshal(command.old)
+				newjs, _ := json.Marshal(command.new)
+				oldchb := chi.ClickHouseBackup{}
+				newchb := chi.ClickHouseBackup{
+					TypeMeta: meta.TypeMeta{
+						APIVersion: chi.SchemeGroupVersion.String(),
+						Kind:       chi.ClickHouseBackupCRDResourceKind,
+					},
+				}
+				_ = json.Unmarshal(oldjs, &oldchb)
+				_ = json.Unmarshal(newjs, &newchb)
+				command.old = &oldchb
+				command.new = &newchb
+			}
+		}
 	case
-		*ReconcileCHB,
 		*ReconcileCHIT,
 		*ReconcileChopConfig,
 		*DropDns:
@@ -556,6 +590,38 @@ func (c *Controller) enqueueObject(obj queue.PriorityQueueItem) {
 		//c.queues[index].AddRateLimited(obj)
 		c.queues[index].Insert(obj)
 	}
+}
+
+// ChbHasActionsToDo checks whether there are any actions to do - meaning changes between states to reconcile
+func (c *Controller) ChbHasActionsToDo(old *chi.ClickHouseBackup, new *chi.ClickHouseBackup) bool {
+	specDiff, specEqual := messagediff.DeepDiff(old.Spec, new.Spec)
+	labelsDiff, labelsEqual := messagediff.DeepDiff(old.Labels, new.Labels)
+	_, deletionTimestampEqual := messagediff.DeepDiff(old.DeletionTimestamp, new.DeletionTimestamp)
+	_, finalizersEqual := messagediff.DeepDiff(old.Finalizers, new.Finalizers)
+
+	if specEqual && labelsEqual && deletionTimestampEqual && finalizersEqual {
+		// All is equal - no actions to do
+		return false
+	}
+
+	if (specDiff == nil) && (labelsDiff == nil) {
+		// No diffs available
+		return !deletionTimestampEqual || !finalizersEqual
+	}
+
+	// Looks like have some changes in diffs
+
+	if (specDiff != nil) && (len(specDiff.Added)+len(specDiff.Removed)+len(specDiff.Modified) > 0) {
+		// Has some modifications
+		return true
+	}
+
+	if (labelsDiff != nil) && (len(labelsDiff.Added)+len(labelsDiff.Removed)+len(labelsDiff.Modified) > 0) {
+		// Has some modifications
+		return true
+	}
+
+	return !deletionTimestampEqual || !finalizersEqual
 }
 
 // updateWatch
@@ -894,7 +960,7 @@ func (c *Controller) updateCHBObjectStatus(ctx context.Context, chb *chi.ClickHo
 
 	// Update status of a real object.
 	// TODO DeepCopy depletes stack here
-	cur.Status = chb.Status
+	cur.ChbStatus = chb.ChbStatus
 	return c.updateCHBObject(ctx, cur)
 }
 

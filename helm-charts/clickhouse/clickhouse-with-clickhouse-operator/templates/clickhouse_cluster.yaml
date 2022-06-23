@@ -197,9 +197,9 @@ spec:
                 - name: ALLOW_EMPTY_BACKUPS
                   value: "true"
                 - name: BACKUPS_TO_KEEP_LOCAL
-                  value: {{ mul .Values.backup.backupKeep .Values.clickhouse.shardscount .Values.clickhouse.replicascount | default "" | quote }}
+                  value: {{ mul .Values.backup.localBackupKeep .Values.clickhouse.shardscount .Values.clickhouse.replicascount | default "0" | quote }}
                 - name: BACKUPS_TO_KEEP_REMOTE
-                  value: {{ mul .Values.backup.backupKeep .Values.clickhouse.shardscount .Values.clickhouse.replicascount | default "" | quote }}
+                  value: {{ mul .Values.backup.remoteBackupKeep .Values.clickhouse.shardscount .Values.clickhouse.replicascount | default "0" | quote }}
 
                 - name: CLICKHOUSE_HOST
                   value: "localhost"

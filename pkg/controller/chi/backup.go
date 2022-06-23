@@ -3,6 +3,7 @@ package chi
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -21,7 +22,23 @@ type CronJob struct {
 }
 
 func (c *CronJob) Run() {
-	_ = c.worker.startSingleBackup(c.ctx, c.chb)
+	w := c.worker
+	ctx := c.ctx
+	chb := c.chb
+
+	startTime := time.Now().Format(v1.TIME_LAYOUT)
+	backupName := chb.Name + "-" + startTime
+
+	(&chb.ChbStatus).ReconcileBackupRunning(startTime)
+	_ = w.c.updateCHBObjectStatus(ctx, chb, false)
+
+	if err := w.startSingleBackup(ctx, chb, backupName); err != nil {
+		(&c.chb.ChbStatus).ReconcileBackupFailed(time.Now().Format(v1.TIME_LAYOUT))
+		_ = c.worker.c.updateCHBObjectStatus(ctx, chb, false)
+		return
+	}
+	(&chb.ChbStatus).ReconcileBackupCompleted(backupName, chb.ChbStatus.Schedule, time.Now().Format(v1.TIME_LAYOUT), w.getBackupSize(ctx, chb, backupName))
+	_ = c.worker.c.updateCHBObjectStatus(ctx, chb, false)
 }
 
 func (w *worker) startCronBackup(ctx context.Context, chb *v1.ClickHouseBackup) error {
@@ -32,12 +49,12 @@ func (w *worker) startCronBackup(ctx context.Context, chb *v1.ClickHouseBackup) 
 
 	c := cron.New()
 
-	if schedule, err := cron.ParseStandard(chb.Spec.Backup.Schedule); err != nil {
-		c.Schedule(schedule, &CronJob{
-			worker: w,
-			ctx:    ctx,
-			chb:    chb,
-		})
+	if _, err := c.AddJob(chb.Spec.Backup.Schedule, &CronJob{
+		worker: w,
+		ctx:    ctx,
+		chb:    chb,
+	}); err != nil {
+		w.a.V(1).M(chb).F().Error("AddJob error, err = %v", err)
 	}
 
 	c.Start()
@@ -61,14 +78,15 @@ func (w *worker) stopCronBackup(ctx context.Context, chb *v1.ClickHouseBackup) e
 	return nil
 }
 
-func (w *worker) startSingleBackup(ctx context.Context, chb *v1.ClickHouseBackup) error {
+func (w *worker) startSingleBackup(ctx context.Context, chb *v1.ClickHouseBackup, backupName string) error {
 	if util.IsContextDone(ctx) {
 		log.V(2).Info("ctx is done")
 		return nil
 	}
+	//var backupSize uint64
 
 	if err := chb.WalkHost(func(host *v1.ChiHost, shardIndex, replicaIndex int) error {
-		backupname := chb.Name + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
+		backupname := backupName + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
 
 		if created, location := w.schemer.HostGetBackup(ctx, host, backupname); created != "" {
 			w.a.V(1).M(chb).F().Info("backup %s already created at %s, located on %s", backupname, created, location)
@@ -82,7 +100,7 @@ func (w *worker) startSingleBackup(ctx context.Context, chb *v1.ClickHouseBackup
 
 	if err := chb.WalkHost(func(host *v1.ChiHost, shardIndex, replicaIndex int) error {
 		hostname := model.CreatePodHostname(host)
-		backupname := chb.Name + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
+		backupname := backupName + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
 
 		var err error
 		if 0 == replicaIndex {
@@ -103,7 +121,7 @@ func (w *worker) startSingleBackup(ctx context.Context, chb *v1.ClickHouseBackup
 
 	if err := chb.WalkHost(func(host *v1.ChiHost, shardIndex, replicaIndex int) error {
 		hostname := model.CreatePodHostname(host)
-		backupname := chb.Name + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
+		backupname := backupName + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
 
 		count := 0
 		err := ""
@@ -129,7 +147,7 @@ func (w *worker) startSingleBackup(ctx context.Context, chb *v1.ClickHouseBackup
 
 	if err := chb.WalkHost(func(host *v1.ChiHost, shardIndex, replicaIndex int) error {
 		hostname := model.CreatePodHostname(host)
-		backupname := chb.Name + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
+		backupname := backupName + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
 
 		if err := w.schemer.HostUploadBackup(ctx, host, backupname); err != nil {
 			w.a.V(1).M(chb).F().Error("error upload %s on %s: %v", backupname, hostname, err)
@@ -142,7 +160,7 @@ func (w *worker) startSingleBackup(ctx context.Context, chb *v1.ClickHouseBackup
 
 	if err := chb.WalkHost(func(host *v1.ChiHost, shardIndex, replicaIndex int) error {
 		hostname := model.CreatePodHostname(host)
-		backupname := chb.Name + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
+		backupname := backupName + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
 
 		count := 0
 		err := ""
@@ -248,6 +266,110 @@ func (w *worker) startRestore(ctx context.Context, chb *v1.ClickHouseBackup) err
 		return nil
 	}); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// addStrings calculate the sum of strings
+func addStrings(num1 string, num2 string) string {
+	add := 0
+	ans := ""
+	for i, j := len(num1) - 1, len(num2) - 1; i >= 0 || j >= 0 || add != 0; i, j = i - 1, j - 1 {
+		var x, y int
+		if i >= 0 {
+			x = int(num1[i] - '0')
+		}
+		if j >= 0 {
+			y = int(num2[j] - '0')
+		}
+		result := x + y + add
+		ans = strconv.Itoa(result%10) + ans
+		add = result / 10
+	}
+	return ans
+}
+
+// formatFileSize unit conversion, two decimal
+func formatFileSize(fileSize uint64) string {
+	var unit string
+	var size int
+
+	if fileSize < v1.KB {
+		unit, size = "B", v1.B
+	} else if fileSize < (v1.MB) {
+		unit, size = "KB", v1.KB
+	} else if fileSize < (v1.GB) {
+		unit, size = "MB", v1.MB
+	} else if fileSize < (v1.TB) {
+		unit, size = "GB", v1.GB
+	} else if fileSize < (v1.PB) {
+		unit, size = "TB", v1.TB
+	} else {
+		unit, size = "PB", v1.PB
+	}
+	return fmt.Sprintf("%.2f%s", float64(fileSize)/float64(size), unit)
+}
+
+// getBackupSize
+func (w *worker) getBackupSize(ctx context.Context, chb *v1.ClickHouseBackup, backupName string) string {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return ""
+	}
+
+	backupSize := "0"
+	// get backupup size
+	if err := chb.WalkHost(func(host *v1.ChiHost, shardIndex, replicaIndex int) error {
+		backupname := backupName + "-" + strconv.Itoa(shardIndex) + "-" + strconv.Itoa(replicaIndex)
+
+		created, size := w.schemer.HostGetBackupSize(ctx, host, backupname)
+
+		if created == "" {
+			w.a.V(1).M(chb).F().Error("backup %s does not exists", backupname)
+			return errors.New("backup does not exists")
+		}
+		backupSize = addStrings(backupSize, size)
+
+		return nil
+	}); err != nil {
+		return ""
+	}
+
+	size, _ := strconv.ParseUint(backupSize, 10, 64)
+	return formatFileSize(size)
+}
+
+func (w *worker) startBackupOrRestore(ctx context.Context, chb *v1.ClickHouseBackup, backupName string) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	if !chb.Spec.Restore.IsEmpty() {
+		if err := w.startRestore(ctx, chb); err != nil {
+			w.a.V(1).M(chb).A().Error("unable to start restore: %s/%v", chb.Name, err)
+			return err
+		}
+	} else if !chb.Spec.Backup.IsEmpty() {
+		switch chb.Spec.Backup.Kind {
+		case v1.ClickHouseBackupKindSingle:
+			if err := w.startSingleBackup(ctx, chb, backupName); err != nil {
+				w.a.V(1).M(chb).A().Error("unable to start backup: %s/%v", chb.Name, err)
+				return err
+			}
+		case v1.ClickHouseBackupKindSchedule:
+			if err := w.startCronBackup(ctx, chb); err != nil {
+				w.a.V(1).M(chb).A().Error("unable to start schedule backup: %s/%v", chb.Name, err)
+				return err
+			}
+		default:
+			w.a.V(1).F().Error("ClickHouseBackup backup kind %s do not support", chb.Spec.Backup.Kind)
+			(&chb.ChbStatus).ReconcileBackupUnknow(time.Now().Format(v1.TIME_LAYOUT))
+		}
+	} else {
+		w.a.V(1).F().Warning("Backup & restore is not specified, nothing to do.")
+		(&chb.ChbStatus).ReconcileBackupUnknow(time.Now().Format(v1.TIME_LAYOUT))
 	}
 
 	return nil

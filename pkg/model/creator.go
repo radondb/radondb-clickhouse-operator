@@ -755,12 +755,12 @@ func (c *Creator) NewPodDisruptionBudget() *v1beta1.PodDisruptionBudget {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            c.chi.Name,
 			Namespace:       c.chi.Namespace,
-			Labels:          c.labeler.getLabelsCHIScope(),
+			Labels:          c.labeler.GetSelectorCHIWithoutZookeeperScope(),
 			OwnerReferences: ownerReferences,
 		},
 		Spec: v1beta1.PodDisruptionBudgetSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: c.labeler.GetSelectorCHIScope(),
+				MatchLabels: c.labeler.GetSelectorCHIWithoutZookeeperScope(),
 			},
 			MaxUnavailable: &intstr.IntOrString{
 				Type:   intstr.Int,

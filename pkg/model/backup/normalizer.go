@@ -66,13 +66,13 @@ func (n *Normalizer) normalize() (*chiV1.ClickHouseBackup, error) {
 	n.chb.Spec.Backup = n.normalizeBackup(n.chb.Spec.Backup)
 	n.chb.Spec.Restore = n.normalizeRestore(n.chb.Spec.Restore)
 
-	cluster, err := n.normalizeCluster(n.chb.Cluster)
+	cluster, err := n.normalizeCluster(n.chb.ChbStatus.Cluster)
 
 	if err != nil {
 		return nil, err
 	}
 
-	n.chb.Cluster = cluster
+	n.chb.ChbStatus.Cluster = cluster
 
 	return n.chb, err
 }

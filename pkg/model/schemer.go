@@ -442,3 +442,18 @@ func (s *Schemer) HostGetBackup(ctx context.Context, host *chop.ChiHost, name st
 	}
 	return "", ""
 }
+
+// HostGetBackupSize get backup size
+func (s *Schemer) HostGetBackupSize(ctx context.Context, host *chop.ChiHost, name string) (string, string) {
+	sql := heredoc.Docf(
+		`SELECT created, size FROM system.backup_list WHERE name = '%s' and location = 'remote' order by created desc`,
+		name,
+	)
+
+	created, location, _ := s.QueryUnzip2Columns(ctx, CreateFQDNs(host, chop.ChiHost{}, false), sql)
+
+	if len(created) > 0 {
+		return created[0], location[0]
+	}
+	return "", ""
+}

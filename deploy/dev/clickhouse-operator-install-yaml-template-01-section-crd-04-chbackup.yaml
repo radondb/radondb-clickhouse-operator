@@ -20,7 +20,32 @@ spec:
           type: string
           description: Backup status
           priority: 0 # show in standard view
-          jsonPath: .status
+          jsonPath: .status.status
+        - name: starttime
+          type: string
+          description: Backup start time
+          priority: 0 # show in standard view
+          jsonPath: .status.startTime
+        - name: endtime
+          type: string
+          description: Backup end time
+          priority: 0 # show in standard view
+          jsonPath: .status.endTime
+        - name: backupname
+          type: string
+          description: Backup name
+          priority: 1 # show in wide view
+          jsonPath: .status.backupName
+        - name: backupsize
+          type: string
+          description: Backup size
+          priority: 1 # show in wide view
+          jsonPath: .status.backupSize
+        - name: schedule
+          type: string
+          description: Backup schedule
+          priority: 1 # show in wide view
+          jsonPath: .status.schedule
       schema:
         openAPIV3Schema:
           type: object
@@ -43,7 +68,8 @@ spec:
             metadata:
               type: object
             status:
-              type: string
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
               description: "Current ClickHouse Backup status."
             spec:
               type: object

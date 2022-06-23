@@ -2527,7 +2527,11 @@ func (w *worker) updateCHB(ctx context.Context, old, new *chiv1.ClickHouseBackup
 	}
 
 	if w.deleteCHB(ctx, new) {
-		// CHI is being deleted
+		// CHB is being deleted
+		return nil
+	}
+
+	if old == nil {
 		return nil
 	}
 
@@ -2539,29 +2543,34 @@ func (w *worker) updateCHB(ctx context.Context, old, new *chiv1.ClickHouseBackup
 		return nil
 	}
 
+	// init chb status
+	var backupName, schedule string
+	startTime := time.Now().Format(chiv1.TIME_LAYOUT)
+
 	if !new.Spec.Restore.IsEmpty() {
-		if err := w.startRestore(ctx, new); err != nil {
-			w.a.V(1).M(new).A().Error("unable to start restore: %s/%v", new.Name, err)
-			return err
-		}
+		backupName, schedule = "", ""
 	} else if !new.Spec.Backup.IsEmpty() {
 		switch new.Spec.Backup.Kind {
 		case chiv1.ClickHouseBackupKindSingle:
-			if err := w.startSingleBackup(ctx, new); err != nil {
-				w.a.V(1).M(new).A().Error("unable to start restore: %s/%v", new.Name, err)
-				return err
-			}
+			backupName = new.Name + "-" + startTime
 		case chiv1.ClickHouseBackupKindSchedule:
-			if err := w.startCronBackup(ctx, new); err != nil {
-				w.a.V(1).M(new).A().Error("unable to start restore: %s/%v", new.Name, err)
-				return err
-			}
-		default:
-			w.a.V(1).F().Error("ClickHouseBackup backup kind %s do not support", new.Spec.Backup.Kind)
+			schedule = new.Spec.Backup.Schedule
 		}
-	} else {
-		w.a.V(1).F().Warning("Backup & restore is not specified, nothing to do.")
 	}
+
+	(&new.ChbStatus).ReconcileBackupRunning(startTime)
+	_ = w.c.updateCHBObjectStatus(ctx, new, false)
+
+	if err := w.startBackupOrRestore(ctx, new, backupName); err != nil {
+		(&new.ChbStatus).ReconcileBackupFailed(time.Now().Format(chiv1.TIME_LAYOUT))
+		_ = w.c.updateCHBObjectStatus(ctx, new, false)
+		return err
+	}
+
+	if (&new.ChbStatus).Status != chiv1.StatusBackupUnknow {
+		(&new.ChbStatus).ReconcileBackupCompleted(backupName, schedule, time.Now().Format(chiv1.TIME_LAYOUT), w.getBackupSize(ctx, new, backupName))
+	}
+	_ = w.c.updateCHBObjectStatus(ctx, new, false)
 
 	return nil
 }
@@ -2574,7 +2583,7 @@ func (w *worker) deleteCHB(ctx context.Context, chb *chiv1.ClickHouseBackup) boo
 	}
 
 	if chb.ObjectMeta.DeletionTimestamp.IsZero() {
-		// CHI is not being deleted
+		// CHB is not being deleted
 		return false
 	}
 
