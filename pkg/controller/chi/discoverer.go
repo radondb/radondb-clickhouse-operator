@@ -24,13 +24,19 @@ import (
 	"github.com/radondb/clickhouse-operator/pkg/util"
 )
 
-func (c *Controller) discovery(ctx context.Context, chi *chop.ClickHouseInstallation) *chopmodel.Registry {
+func (c *Controller) discovery(ctx context.Context, chi *chop.ClickHouseInstallation, withoutZookeeper bool) *chopmodel.Registry {
 	if util.IsContextDone(ctx) {
 		log.V(2).Info("ctx is done")
 		return nil
 	}
 
-	opts := newListOptions(chopmodel.NewLabeler(chi).GetSelectorCHIScope())
+	var opts v1.ListOptions
+	if withoutZookeeper {
+		opts = newListOptions(chopmodel.NewLabeler(chi).GetSelectorCHIWithoutZookeeperScope())
+	} else {
+		opts = newListOptions(chopmodel.NewLabeler(chi).GetSelectorCHIScope())
+	}
+
 	r := chopmodel.NewRegistry()
 	c.discoveryStatefulSet(ctx, r, chi, opts)
 	c.discoveryConfigMap(ctx, r, chi, opts)

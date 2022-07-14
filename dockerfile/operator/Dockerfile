@@ -44,6 +44,10 @@ LABEL name="ClickHouse operator" \
 
 ADD LICENSE /licenses/
 
+# set timezone
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+ENV TZ=Asia/Shanghai
+
 WORKDIR /
 
 # Add config files from local source dir into image

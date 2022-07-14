@@ -33,6 +33,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/altinity/queue"
+	"github.com/robfig/cron/v3"
 
 	log "github.com/radondb/clickhouse-operator/pkg/announcer"
 	chi "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
@@ -543,8 +544,42 @@ func (c *Controller) enqueueObject(obj queue.PriorityQueueItem) {
 			log.V(1).Info("ENQUEUE new ReconcileCHI cmd=%s for %s/%s", command.cmd, namespace, name)
 		}
 
+	case *ReconcileCHB:
+		switch command.cmd {
+		case reconcileAdd:
+			newjs, _ := json.Marshal(command.new)
+			newchb := chi.ClickHouseBackup{
+				TypeMeta: meta.TypeMeta{
+					APIVersion: chi.SchemeGroupVersion.String(),
+					Kind:       chi.ClickHouseBackupCRDResourceKind,
+				},
+			}
+			_ = json.Unmarshal(newjs, &newchb)
+			command.new = &newchb
+		case reconcileUpdate:
+			old_chb := command.old
+			new_chb := command.new
+			enqueue = c.ChbHasActionsToDo(old_chb, new_chb)
+
+			if enqueue {
+				log.V(2).M(old_chb).Info("ClickHouseBackup reconcileUpdate enqueue.")
+
+				oldjs, _ := json.Marshal(command.old)
+				newjs, _ := json.Marshal(command.new)
+				oldchb := chi.ClickHouseBackup{}
+				newchb := chi.ClickHouseBackup{
+					TypeMeta: meta.TypeMeta{
+						APIVersion: chi.SchemeGroupVersion.String(),
+						Kind:       chi.ClickHouseBackupCRDResourceKind,
+					},
+				}
+				_ = json.Unmarshal(oldjs, &oldchb)
+				_ = json.Unmarshal(newjs, &newchb)
+				command.old = &oldchb
+				command.new = &newchb
+			}
+		}
 	case
-		*ReconcileCHB,
 		*ReconcileCHIT,
 		*ReconcileChopConfig,
 		*DropDns:
@@ -555,6 +590,38 @@ func (c *Controller) enqueueObject(obj queue.PriorityQueueItem) {
 		//c.queues[index].AddRateLimited(obj)
 		c.queues[index].Insert(obj)
 	}
+}
+
+// ChbHasActionsToDo checks whether there are any actions to do - meaning changes between states to reconcile
+func (c *Controller) ChbHasActionsToDo(old *chi.ClickHouseBackup, new *chi.ClickHouseBackup) bool {
+	specDiff, specEqual := messagediff.DeepDiff(old.Spec, new.Spec)
+	labelsDiff, labelsEqual := messagediff.DeepDiff(old.Labels, new.Labels)
+	_, deletionTimestampEqual := messagediff.DeepDiff(old.DeletionTimestamp, new.DeletionTimestamp)
+	_, finalizersEqual := messagediff.DeepDiff(old.Finalizers, new.Finalizers)
+
+	if specEqual && labelsEqual && deletionTimestampEqual && finalizersEqual {
+		// All is equal - no actions to do
+		return false
+	}
+
+	if (specDiff == nil) && (labelsDiff == nil) {
+		// No diffs available
+		return !deletionTimestampEqual || !finalizersEqual
+	}
+
+	// Looks like have some changes in diffs
+
+	if (specDiff != nil) && (len(specDiff.Added)+len(specDiff.Removed)+len(specDiff.Modified) > 0) {
+		// Has some modifications
+		return true
+	}
+
+	if (labelsDiff != nil) && (len(labelsDiff.Added)+len(labelsDiff.Removed)+len(labelsDiff.Modified) > 0) {
+		// Has some modifications
+		return true
+	}
+
+	return !deletionTimestampEqual || !finalizersEqual
 }
 
 // updateWatch
@@ -831,6 +898,123 @@ func (c *Controller) handleObject(obj interface{}) {
 	// TODO c.enqueueObject(chi.Namespace, chi.Name, chi)
 }
 
+// updateCHBObject updates ClickHouseBackup object
+func (c *Controller) updateCHBObject(ctx context.Context, chb *chi.ClickHouseBackup) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	// Start Debug object
+	js, err := json.MarshalIndent(chb, "", "  ")
+	if err != nil {
+		log.V(1).M(chb).A().Error("%q", err)
+	}
+	log.V(3).M(chb).F().Info("\n%s\n", js)
+	// End Debug object
+
+	_new, err := c.chopClient.ClickhouseV1().ClickHouseBackups(chb.Namespace).Update(ctx, chb, newUpdateOptions())
+	if err != nil {
+		// Error update
+		log.V(1).M(chb).A().Error("%q", err)
+		return err
+	}
+
+	if chb.ObjectMeta.ResourceVersion != _new.ObjectMeta.ResourceVersion {
+		// Updated
+		log.V(2).M(chb).F().Info("ResourceVersion change: %s to %s", chb.ObjectMeta.ResourceVersion, _new.ObjectMeta.ResourceVersion)
+		chb.ObjectMeta.ResourceVersion = _new.ObjectMeta.ResourceVersion
+		return nil
+	}
+
+	// ResourceVersion not changed - no update performed?
+
+	return nil
+}
+
+// updateCHBObjectStatus updates ClickHouseBackup object's Status
+func (c *Controller) updateCHBObjectStatus(ctx context.Context, chb *chi.ClickHouseBackup, tolerateAbsence bool) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	namespace, name := util.NamespaceName(chb.ObjectMeta)
+	log.V(2).M(chb).F().Info("Update CHB status")
+
+	cur, err := c.chopClient.ClickhouseV1().ClickHouseBackups(namespace).Get(ctx, name, newGetOptions())
+	if err != nil {
+		if tolerateAbsence {
+			return nil
+		}
+		log.V(1).M(chb).A().Error("%q", err)
+		return err
+	}
+	if cur == nil {
+		if tolerateAbsence {
+			return nil
+		}
+		log.V(1).M(chb).A().Error("NULL returned")
+		return fmt.Errorf("ERROR GetCHB (%s/%s): NULL returned", namespace, name)
+	}
+
+	// Update status of a real object.
+	// TODO DeepCopy depletes stack here
+	cur.ChbStatus = chb.ChbStatus
+	return c.updateCHBObject(ctx, cur)
+}
+
+// installFinalizerCHB
+func (c *Controller) installFinalizerCHB(ctx context.Context, chb *chi.ClickHouseBackup) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	log.V(2).M(chb).S().P()
+	defer log.V(2).M(chb).E().P()
+
+	cur, err := c.chopClient.ClickhouseV1().ClickHouseBackups(chb.Namespace).Get(ctx, chb.Name, newGetOptions())
+	if err != nil {
+		return err
+	}
+	if cur == nil {
+		return fmt.Errorf("ERROR GetCHB (%s/%s): NULL returned", chb.Namespace, chb.Name)
+	}
+
+	if util.InArray(FinalizerName, cur.ObjectMeta.Finalizers) {
+		// Already installed
+		return nil
+	}
+	log.V(3).M(chb).F().Info("no finalizer found, need to install one")
+
+	cur.ObjectMeta.Finalizers = append(cur.ObjectMeta.Finalizers, FinalizerName)
+	return c.updateCHBObject(ctx, cur)
+}
+
+// uninstallFinalizerCHB
+func (c *Controller) uninstallFinalizerCHB(ctx context.Context, chb *chi.ClickHouseBackup) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return nil
+	}
+
+	log.V(2).M(chb).S().P()
+	defer log.V(2).M(chb).E().P()
+
+	cur, err := c.chopClient.ClickhouseV1().ClickHouseBackups(chb.Namespace).Get(ctx, chb.Name, newGetOptions())
+	if err != nil {
+		return err
+	}
+	if cur == nil {
+		return fmt.Errorf("ERROR GetCHB (%s/%s): NULL returned", chb.Namespace, chb.Name)
+	}
+
+	cur.ObjectMeta.Finalizers = util.RemoveFromArray(FinalizerName, cur.ObjectMeta.Finalizers)
+
+	return c.updateCHBObject(ctx, cur)
+}
+
 // waitForCacheSync is a logger-wrapper over cache.WaitForCacheSync() and it waits for caches to populate
 func waitForCacheSync(ctx context.Context, name string, cacheSyncs ...cache.InformerSynced) bool {
 	log.V(1).F().Info("Syncing caches for %s controller", name)
@@ -839,5 +1023,37 @@ func waitForCacheSync(ctx context.Context, name string, cacheSyncs ...cache.Info
 		return false
 	}
 	log.V(1).F().Info("Caches are synced for %s controller", name)
+	return true
+}
+
+func (c *Controller) AddCron(name string, cron *cron.Cron) bool {
+	if value := c.GetCron(name); value != nil {
+		return false
+	}
+	c.crons = append(c.crons, CronWithName{
+		name: name,
+		cron: cron,
+	})
+	return true
+}
+
+func (c *Controller) GetCron(name string) *cron.Cron {
+	for index, _ := range c.crons {
+		value := &c.crons[index]
+		if value.name == name {
+			return value.cron
+		}
+	}
+
+	return nil
+}
+
+func (c *Controller) DeleteCron(name string) bool {
+	for index, value := range c.crons {
+		if value.name == name {
+			c.crons = append(c.crons[:index], c.crons[index+1:]...)
+		}
+	}
+
 	return true
 }

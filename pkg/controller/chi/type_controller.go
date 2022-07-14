@@ -26,6 +26,7 @@ import (
 	//"k8s.io/client-go/util/workqueue"
 
 	"github.com/altinity/queue"
+	"github.com/robfig/cron/v3"
 
 	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
 	choplisters "github.com/radondb/clickhouse-operator/pkg/client/listers/clickhouse.radondb.com/v1"
@@ -72,6 +73,7 @@ type Controller struct {
 	// podListerSynced used in waitForCacheSync()
 	podListerSynced cache.InformerSynced
 
+	crons []CronWithName
 	// queues used to organize events queue processed by operator
 	queues []queue.PriorityQueue
 	// not used explicitly
@@ -87,3 +89,8 @@ const (
 	messageUnableToDecode = "unable to decode object (invalid type)"
 	messageUnableToSync   = "unable to sync caches for %s controller"
 )
+
+type CronWithName struct {
+	name string
+	cron *cron.Cron
+}

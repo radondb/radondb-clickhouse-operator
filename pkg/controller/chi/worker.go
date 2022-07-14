@@ -57,7 +57,6 @@ type worker struct {
 	schemer       *chopmodel.Schemer
 	creator       *chopmodel.Creator
 	zkCreator     *zookeepermodel.Creator
-	chbCreator    *backupmodel.Creator
 	start         time.Time
 
 	registryReconciled *chopmodel.Registry
@@ -79,10 +78,9 @@ func (c *Controller) newWorker(q queue.PriorityQueue) *worker {
 			chop.Config().CHPassword,
 			chop.Config().CHPort,
 		),
-		creator:    nil,
-		zkCreator:  nil,
-		chbCreator: nil,
-		start:      time.Now().Add(chiv1.DefaultReconcileThreadsWarmup),
+		creator:   nil,
+		zkCreator: nil,
+		start:     time.Now().Add(chiv1.DefaultReconcileThreadsWarmup),
 	}
 }
 
@@ -143,10 +141,11 @@ func (w *worker) processReconcileCHI(ctx context.Context, cmd *ReconcileCHI) err
 func (w *worker) processReconcileCHB(ctx context.Context, cmd *ReconcileCHB) error {
 	switch cmd.cmd {
 	case reconcileAdd:
-		return w.createCHB(ctx, cmd.new)
-	case reconcileDelete:
+		return w.updateCHB(ctx, nil, cmd.new)
 	case reconcileUpdate:
-		return nil
+		return w.updateCHB(ctx, cmd.old, cmd.new)
+	case reconcileDelete:
+		return w.discoveryAndDeleteCHB(ctx, cmd.old)
 	}
 
 	// Unknown item type, don't know what to do with it
@@ -268,6 +267,35 @@ func (w *worker) ensureFinalizer(ctx context.Context, chi *chiv1.ClickHouseInsta
 	}
 
 	w.a.V(3).M(chi).F().Info("finalizer installed")
+	return true
+}
+
+// ensureFinalizerCHB
+func (w *worker) ensureFinalizerCHB(ctx context.Context, chb *chiv1.ClickHouseBackup) bool {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return false
+	}
+
+	// In case CHI is being deleted already, no need to meddle with finalizers
+	if !chb.ObjectMeta.DeletionTimestamp.IsZero() {
+		return false
+	}
+
+	// Check whether finalizer is already listed in CHI
+	if util.InArray(FinalizerName, chb.ObjectMeta.Finalizers) {
+		w.a.V(2).M(chb).F().Info("finalizer already installed")
+		return false
+	}
+
+	// No finalizer found - need to install it
+
+	if err := w.c.installFinalizerCHB(ctx, chb); err != nil {
+		w.a.V(1).M(chb).A().Error("unable to install finalizer. err: %v", err)
+		return false
+	}
+
+	w.a.V(3).M(chb).F().Info("finalizer installed")
 	return true
 }
 
@@ -393,7 +421,7 @@ func (w *worker) includeStopped(chi *chiv1.ClickHouseInstallation) {
 
 func (w *worker) clear(ctx context.Context, chi *chiv1.ClickHouseInstallation) {
 	// Remove deleted items
-	objs := w.c.discovery(ctx, chi)
+	objs := w.c.discovery(ctx, chi, true)
 	need := w.registryReconciled
 	w.a.V(1).M(chi).F().Info("Reconciled objects:\n%s", w.registryReconciled)
 	w.a.V(1).M(chi).F().Info("Existing objects:\n%s", objs)
@@ -1466,7 +1494,7 @@ func (w *worker) discoveryAndDeleteCHI(ctx context.Context, chi *chiv1.ClickHous
 		return nil
 	}
 
-	objs := w.c.discovery(ctx, chi)
+	objs := w.c.discovery(ctx, chi, false)
 	if objs.NumStatefulSet() > 0 {
 		chi.WalkHosts(func(host *chiv1.ChiHost) error {
 			_ = w.schemer.HostSyncTables(ctx, host)
@@ -2476,63 +2504,143 @@ func (w *worker) applyResource(
 }
 
 // updateCHB sync CHB which was already created earlier
-func (w *worker) createCHB(ctx context.Context, chb *chiv1.ClickHouseBackup) error {
+func (w *worker) updateCHB(ctx context.Context, old, new *chiv1.ClickHouseBackup) error {
 	if util.IsContextDone(ctx) {
 		log.V(2).Info("ctx is done")
 		return nil
 	}
 
+	w.a.V(3).M(new).S().P()
+	defer w.a.V(3).M(new).E().P()
+
+	update := (old != nil) && (new != nil)
+
+	if update && (old.ObjectMeta.ResourceVersion == new.ObjectMeta.ResourceVersion) {
+		// No need to react
+		w.a.V(3).M(new).F().Info("ResourceVersion did not change: %s", new.ObjectMeta.ResourceVersion)
+		return nil
+	}
+
+	if w.ensureFinalizerCHB(ctx, new) {
+		// Finalizer installed, let's restart reconcile cycle
+		return nil
+	}
+
+	if w.deleteCHB(ctx, new) {
+		// CHB is being deleted
+		return nil
+	}
+
+	if old == nil {
+		return nil
+	}
+
+	if old != nil && util.InArray(FinalizerName, old.ObjectMeta.Finalizers) {
+		return nil
+	}
+
+	if new = w.normalizeClickHouseBackup(new); new == nil {
+		return nil
+	}
+
+	// init chb status
+	var backupName, schedule string
+	startTime := time.Now().Format(chiv1.TIME_LAYOUT)
+
+	if !new.Spec.Restore.IsEmpty() {
+		backupName, schedule = "", ""
+	} else if !new.Spec.Backup.IsEmpty() {
+		switch new.Spec.Backup.Kind {
+		case chiv1.ClickHouseBackupKindSingle:
+			backupName = new.Name + "-" + startTime
+		case chiv1.ClickHouseBackupKindSchedule:
+			schedule = new.Spec.Backup.Schedule
+		}
+	}
+
+	(&new.ChbStatus).ReconcileBackupRunning(startTime)
+	_ = w.c.updateCHBObjectStatus(ctx, new, false)
+
+	if err := w.startBackupOrRestore(ctx, new, backupName); err != nil {
+		(&new.ChbStatus).ReconcileBackupFailed(time.Now().Format(chiv1.TIME_LAYOUT))
+		_ = w.c.updateCHBObjectStatus(ctx, new, false)
+		return err
+	}
+
+	if (&new.ChbStatus).Status != chiv1.StatusBackupUnknow {
+		(&new.ChbStatus).ReconcileBackupCompleted(backupName, schedule, time.Now().Format(chiv1.TIME_LAYOUT), w.getBackupSize(ctx, new, backupName))
+	}
+	_ = w.c.updateCHBObjectStatus(ctx, new, false)
+
+	return nil
+}
+
+// deleteCHB
+func (w *worker) deleteCHB(ctx context.Context, chb *chiv1.ClickHouseBackup) bool {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
+		return false
+	}
+
+	if chb.ObjectMeta.DeletionTimestamp.IsZero() {
+		// CHB is not being deleted
+		return false
+	}
+
 	w.a.V(3).M(chb).S().P()
 	defer w.a.V(3).M(chb).E().P()
 
-	if chb == nil {
-		w.a.V(3).M(chb).F().Info("ClickHouseBackup is nil")
+	cur, err := w.c.chopClient.ClickhouseV1().ClickHouseBackups(chb.Namespace).Get(ctx, chb.Name, newGetOptions())
+	if cur == nil {
+		return false
+	}
+	if err != nil {
+		return false
+	}
+
+	if !util.InArray(FinalizerName, chb.ObjectMeta.Finalizers) {
+		// No finalizer found, unexpected behavior
+		return false
+	}
+
+	if !chb.Spec.Backup.IsEmpty() && chb.Spec.Backup.Kind == chiv1.ClickHouseBackupKindSchedule {
+		_ = w.stopCronBackup(ctx, chb)
+	}
+
+	// Uninstall finalizer
+	w.a.V(2).M(chb).F().Info("uninstall finalizer")
+	if err := w.c.uninstallFinalizerCHB(ctx, chb); err != nil {
+		w.a.V(1).M(chb).A().Error("unable to uninstall finalizer: %v", err)
+	}
+
+	return true
+}
+
+// discoveryAndDeleteCHB deletes all kubernetes resources related to chb *chop.ClickHouseBackup
+func (w *worker) discoveryAndDeleteCHB(ctx context.Context, chb *chiv1.ClickHouseBackup) error {
+	if util.IsContextDone(ctx) {
+		log.V(2).Info("ctx is done")
 		return nil
 	}
 
-	if c, err := w.normalizeClickHouseBackup(chb); err != nil {
-		w.a.V(1).M(chb).F().Error("ERROR %v", err)
-		return nil
-	} else {
-		chb = c
-	}
-
-	w.chbCreator = backupmodel.NewCreator(chb)
-
-	if !chb.Spec.Restore.IsEmpty() {
-		if restoreJob := w.chbCreator.CreateJobCHBRestore(); restoreJob != nil {
-			if err := w.c.createJob(ctx, restoreJob); err != nil {
-				w.a.V(1).M(chb).F().Error("ERROR: %v", err)
-			}
-		}
-	} else if !chb.Spec.Backup.IsEmpty() {
-		switch chb.Spec.Backup.Kind {
-		case chiv1.ClickHouseBackupKindSingle:
-			if backupJob := w.chbCreator.CreateJobCHBBackup(); backupJob != nil {
-				if err := w.c.createJob(ctx, backupJob); err != nil {
-					w.a.V(1).M(chb).F().Error("ERROR: %v", err)
-				}
-			}
-		case chiv1.ClickHouseBackupKindSchedule:
-			if backupCronJob := w.chbCreator.CreateCronJobCHBBackup(); backupCronJob != nil {
-				if err := w.c.createCronJob(ctx, backupCronJob); err != nil {
-					w.a.V(1).M(chb).F().Error("ERROR: %v", err)
-				}
-			}
-		default:
-			w.a.V(1).F().Error("ClickHouseBackup backup kind %s do not support", chb.Spec.Backup.Kind)
-		}
-	} else {
-		w.a.V(1).F().Warning("Backup & restore is not specified, nothing to do.")
+	if !chb.Spec.Backup.IsEmpty() && chb.Spec.Backup.Kind == chiv1.ClickHouseBackupKindSchedule {
+		_ = w.stopCronBackup(ctx, chb)
 	}
 
 	return nil
 }
 
 // normalize
-func (w *worker) normalizeClickHouseBackup(c *chiv1.ClickHouseBackup) (*chiv1.ClickHouseBackup, error) {
+func (w *worker) normalizeClickHouseBackup(c *chiv1.ClickHouseBackup) *chiv1.ClickHouseBackup {
 	w.a.V(3).M(c).S().P()
 	defer w.a.V(3).M(c).E().P()
 
-	return w.chbNormalizer.CreateTemplatedCHB(c)
+	chb, err := w.chbNormalizer.CreateTemplatedCHB(c)
+
+	if err != nil {
+		w.a.V(1).M(chb).A().Error("FAILED to normalize CHB : %v", err)
+		return nil
+	}
+
+	return chb
 }

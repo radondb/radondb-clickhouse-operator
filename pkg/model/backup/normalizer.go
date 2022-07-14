@@ -17,7 +17,6 @@ package backup
 import (
 	"context"
 	"errors"
-	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
@@ -27,6 +26,7 @@ import (
 	log "github.com/radondb/clickhouse-operator/pkg/announcer"
 	chiV1 "github.com/radondb/clickhouse-operator/pkg/apis/clickhouse.radondb.com/v1"
 	chopclientset "github.com/radondb/clickhouse-operator/pkg/client/clientset/versioned"
+	chopmodel "github.com/radondb/clickhouse-operator/pkg/model"
 )
 
 // Normalizer specifies structures normalizer
@@ -63,19 +63,16 @@ func (n *Normalizer) normalize() (*chiV1.ClickHouseBackup, error) {
 	n.chb.Spec.CHIName = n.normalizeCHIName(n.chb.Spec.CHIName)
 	n.chb.Spec.ClusterName = n.normalizeClusterName(n.chb.Spec.ClusterName)
 	n.chb.Spec.Namespace = n.normalizeNamespace(n.chb.Spec.Namespace)
-	n.chb.Spec.TCPPort = n.normalizeTCPPort(n.chb.Spec.TCPPort)
-	n.chb.Spec.Image = n.normalizeImage(n.chb.Spec.Image)
-	n.chb.Spec.ImagePullPolicy = n.normalizeImagePullPolicy(n.chb.Spec.ImagePullPolicy)
 	n.chb.Spec.Backup = n.normalizeBackup(n.chb.Spec.Backup)
 	n.chb.Spec.Restore = n.normalizeRestore(n.chb.Spec.Restore)
 
-	cluster, err := n.normalizeCluster(n.chb.Cluster)
+	cluster, err := n.normalizeCluster(n.chb.ChbStatus.Cluster)
 
 	if err != nil {
 		return nil, err
 	}
 
-	n.chb.Cluster = cluster
+	n.chb.ChbStatus.Cluster = cluster
 
 	return n.chb, err
 }
@@ -97,34 +94,6 @@ func (n *Normalizer) normalizeNamespace(namespace string) string {
 	}
 
 	return namespace
-}
-
-// normalizeTCPPort normalizes .spec.tcpPort
-func (n *Normalizer) normalizeTCPPort(tcpPort int32) int32 {
-	if tcpPort < 1 || tcpPort > 65535 {
-		return chDefaultTCPPortNumber
-	}
-	return tcpPort
-}
-
-// normalizeImage normalizes .spec.image
-func (n *Normalizer) normalizeImage(image string) string {
-	if image == "" {
-		return defaultClickHouseClientDockerImage
-	}
-	return image
-}
-
-// normalizeImagePullPolicy normalizes .spec.imagePullPolicy
-func (n *Normalizer) normalizeImagePullPolicy(imagePullPolicy string) string {
-	if strings.EqualFold(imagePullPolicy, imagePullPolicyPullNever) ||
-		strings.EqualFold(imagePullPolicy, imagePullPolicyIfNotPresent) ||
-		strings.EqualFold(imagePullPolicy, imagePullPolicyAlways) {
-		// It is bool, use as it is
-		return imagePullPolicy
-	}
-
-	return imagePullPolicyAlways
 }
 
 // normalizeBackup normalizes .spec.backupConfig

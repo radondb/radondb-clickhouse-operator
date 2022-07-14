@@ -19,7 +19,7 @@ apiVersion: v2
 appVersion: "21.1"
 name: clickhouse-cluster
 type: application
-version: v2.1.1
+version: v2.2.0
 description: Helm Chart for deploying a sharded and replicated ClickHouse cluster on Kubernetes
 home: https://github.com/radondb/radondb-clickhouse-kubernetes
 icon: https://xenondb.pek3b.qingstor.com/icons/radondb.svg
@@ -37,6 +37,8 @@ maintainers:
   - name: su-houzhen
     email: suhouzhen2020@gmail.com
     url: https://su-houzhen.github.io/
+  - name: yanboer
+    email: yanbo2695388808@gmail.com
 
 # Chart.yaml reference:
 # https://helm.sh/docs/topics/charts/#the-chart-yaml-file

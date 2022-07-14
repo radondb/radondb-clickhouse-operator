@@ -48,7 +48,7 @@ zookeeper:
   replicas: 3
 
   # ZooKeeper image configuration
-  image: radondb/zookeeper:3.6.1
+  image: radondb/zookeeper:3.7.0
   imagePullPolicy: IfNotPresent
 
   resources:
@@ -101,7 +101,8 @@ backup:
   s3SecretKey: ""
 
   # The number of backups to keep, beyond which stale backups will be deleted
-  backupKeep: 3
+  localBackupKeep: 3
+  remoteBackupKeep: 0
 
 # Configuration for the busybox container
 busybox:

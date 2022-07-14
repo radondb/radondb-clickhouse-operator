@@ -2662,88 +2662,108 @@ metadata:
   name: clickhousebackups.clickhouse.radondb.com
 spec:
   group: clickhouse.radondb.com
-  scope: Cluster
+  scope: Namespaced
   names:
     kind: ClickHouseBackup
     singular: clickhousebackup
     plural: clickhousebackups
     shortNames:
       - chbackup
-  version: v1
-  additionalPrinterColumns:
-    - name: status
-      type: string
-      description: Backup status
-      priority: 0 # show in standard view
-      JSONPath: .status
-  validation:
-    openAPIV3Schema:
-      type: object
-      required:
-        - spec
-      description: |
-        define Kubernetes Job/CronJob for clickhouse backup or Job for clickhouse restore via `ClickHouse-Backup`.
-        More info: https://github.com/RadonDB/radondb-clickhouse-operator/blob/master/docs/clickhouse_backup_and_restore.md
-      properties:
-        apiVersion:
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      additionalPrinterColumns:
+        - name: status
           type: string
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-        kind:
+          description: Backup status
+          priority: 0 # show in standard view
+          jsonPath: .status.status
+        - name: starttime
           type: string
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-        metadata:
+          description: Backup start time
+          priority: 0 # show in standard view
+          jsonPath: .status.startTime
+        - name: endtime
+          type: string
+          description: Backup end time
+          priority: 0 # show in standard view
+          jsonPath: .status.endTime
+        - name: backupname
+          type: string
+          description: Backup name
+          priority: 1 # show in wide view
+          jsonPath: .status.backupName
+        - name: backupsize
+          type: string
+          description: Backup size
+          priority: 1 # show in wide view
+          jsonPath: .status.backupSize
+        - name: schedule
+          type: string
+          description: Backup schedule
+          priority: 1 # show in wide view
+          jsonPath: .status.schedule
+      schema:
+        openAPIV3Schema:
           type: object
-        status:
-          type: string
-          description: "Current ClickHouse Backup status."
-        spec:
-          type: object
+          required:
+            - spec
           description: |
-            allows define some of settings for `clickhouse-operator` itself,
-            More info: https://github.com/RadonDB/radondb-clickhouse-operator/blob/master/config/config.yaml
-            look to etc-clickhouse-operator* ConfigMaps if you need more control.
+            define Kubernetes Job/CronJob for clickhouse backup or Job for clickhouse restore via `ClickHouse-Backup`.
+            More info: https://github.com/RadonDB/radondb-clickhouse-operator/blob/master/docs/clickhouse_backup_and_restore.md
           properties:
-            chiName:
+            apiVersion:
               type: string
-              description: "The name of the CHI to which the cluster to be backed up belongs."
-            clusterName:
+              description: 'APIVersion defines the versioned schema of this representation
+                of an object. Servers should convert recognized schemas to the latest
+                internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            kind:
               type: string
-              description: "The name of the cluster to be backed up."
-            namespace:
-              type: string
-              description: "The namespace of the cluster to be backed up."
-            tcpPort:
-              type: integer
-              description: "The tcp port of the cluster to be backed up."
-            image:
-              type: string
-              description: "The image of clickhouse-client, is used to send backup commands to clickhouse-server and monitor the backup situation, default `radondb/clickhouse-client:21.1.3.32`"
-            imagePullPolicy:
-              type: string
-              description: "The image pull policy of clickhouse-client, default `IfNotPresent`."
-              enum:
-                - Always
-                - IfNotPresent
-                - Never
-            backup:
+              description: 'Kind is a string value representing the REST resource this
+                object represents. Servers may infer this from the endpoint the client
+                submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            metadata:
               type: object
-              description: "Backup related settings, allowing you to specify whether it is a single backup or a scheduled backup."
-              properties:
-                kind:
-                  type: string
-                  description: "The type of backup, single backup or scheduled backup, default `single` unless backup.schedule is not empty."
-                  enum:
-                    - single
-                    - schedule
-                schedule:
-                  type: string
-                  description: "Rules for scheduled backup, can be `single` or `schedule`."
-            restore:
+            status:
               type: object
-              description: "Restore related settings, specify which backup you need to restore from."
+              x-kubernetes-preserve-unknown-fields: true
+              description: "Current ClickHouse Backup status."
+            spec:
+              type: object
+              description: |
+                allows define some of settings for `clickhouse-operator` itself,
+                More info: https://github.com/RadonDB/radondb-clickhouse-operator/blob/master/config/config.yaml
+                look to etc-clickhouse-operator* ConfigMaps if you need more control.
               properties:
-                backupName:
+                chiName:
                   type: string
+                  description: "The name of the CHI to which the cluster to be backed up belongs."
+                clusterName:
+                  type: string
+                  description: "The name of the cluster to be backed up."
+                namespace:
+                  type: string
+                  description: "The namespace of the cluster to be backed up."
+                backup:
+                  type: object
+                  description: "Backup related settings, allowing you to specify whether it is a single backup or a scheduled backup."
+                  properties:
+                    kind:
+                      type: string
+                      description: "The type of backup, single backup or scheduled backup, default `single` unless backup.schedule is not empty."
+                      enum:
+                        - single
+                        - schedule
+                    schedule:
+                      type: string
+                      description: "Rules for scheduled backup, can be `single` or `schedule`."
+                restore:
+                  type: object
+                  description: "Restore related settings, specify which backup you need to restore from."
+                  properties:
+                    backupName:
+                      type: string
 ---
 # Possible Template Parameters:
 #
@@ -3099,6 +3119,9 @@ data:
     #  LabelClusterScopeCycleIndex
     #  LabelClusterScopeCycleOffset
     appendScopeLabels: "no"
+
+    imagePrefix: docker.io
+
 ---
 # Possible Template Parameters:
 #

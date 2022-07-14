@@ -2669,7 +2669,7 @@ metadata:
   name: clickhousebackups.clickhouse.radondb.com
 spec:
   group: clickhouse.radondb.com
-  scope: Cluster
+  scope: Namespaced
   names:
     kind: ClickHouseBackup
     singular: clickhousebackup
@@ -2682,7 +2682,32 @@ spec:
       type: string
       description: Backup status
       priority: 0 # show in standard view
-      JSONPath: .status
+      JSONPath: .status.status
+    - name: starttime
+      type: string
+      description: Backup start time
+      priority: 0 # show in standard view
+      JSONPath: .status.startTime
+    - name: endtime
+      type: string
+      description: Backup end time
+      priority: 0 # show in standard view
+      JSONPath: .status.endTime
+    - name: backupname
+      type: string
+      description: Backup name
+      priority: 1 # show in wide view
+      JSONPath: .status.backupName
+    - name: backupsize
+      type: string
+      description: Backup size
+      priority: 1 # show in wide view
+      JSONPath: .status.backupSize
+    - name: schedule
+      type: string
+      description: Backup schedule
+      priority: 1 # show in wide view
+      JSONPath: .status.schedule
   validation:
     openAPIV3Schema:
       type: object
@@ -2701,7 +2726,8 @@ spec:
         metadata:
           type: object
         status:
-          type: string
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
           description: "Current ClickHouse Backup status."
         spec:
           type: object
@@ -2719,19 +2745,6 @@ spec:
             namespace:
               type: string
               description: "The namespace of the cluster to be backed up."
-            tcpPort:
-              type: integer
-              description: "The tcp port of the cluster to be backed up."
-            image:
-              type: string
-              description: "The image of clickhouse-client, is used to send backup commands to clickhouse-server and monitor the backup situation, default `radondb/clickhouse-client:21.1.3.32`"
-            imagePullPolicy:
-              type: string
-              description: "The image pull policy of clickhouse-client, default `IfNotPresent`."
-              enum:
-                - Always
-                - IfNotPresent
-                - Never
             backup:
               type: object
               description: "Backup related settings, allowing you to specify whether it is a single backup or a scheduled backup."
@@ -2939,7 +2952,7 @@ subjects:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.2.0
+# radondb/clickhouse-operator
 # etc-clickhouse-operator-files
 #
 apiVersion: v1
@@ -3107,12 +3120,12 @@ data:
     #  LabelClusterScopeCycleOffset
     appendScopeLabels: "no"
 
-    imagePrefix: docker.ioo
+    imagePrefix: docker.io
 ---
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.2.0
+# radondb/clickhouse-operator
 # etc-clickhouse-operator-confd-files
 #
 apiVersion: v1
@@ -3127,7 +3140,7 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.2.0
+# radondb/clickhouse-operator
 # etc-clickhouse-operator-configd-files
 #
 apiVersion: v1
@@ -3181,7 +3194,7 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.2.0
+# radondb/clickhouse-operator
 # etc-clickhouse-operator-templatesd-files
 #
 apiVersion: v1
@@ -3278,7 +3291,7 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.2.0
+# radondb/clickhouse-operator
 # etc-clickhouse-operator-usersd-files
 #
 apiVersion: v1
@@ -3335,8 +3348,8 @@ data:
 # Possible Template Parameters:
 #
 # kube-system
-# radondb/chronus-operator:2.2.0
-# radondb/chronus-metrics-operator:2.2.0
+# radondb/clickhouse-operator
+# radondb/clickhouse-metrics-exporter
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -3379,7 +3392,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: radondb/chronus-operator:2.2.0
+          image: radondb/clickhouse-operator:2.2.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -3442,7 +3455,7 @@ spec:
                   containerName: clickhouse-operator
                   resource: limits.memory
         - name: metrics-exporter
-          image: radondb/chronus-metrics-operator:2.2.0
+          image: radondb/clickhouse-metrics-exporter:2.2.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: etc-clickhouse-operator-folder

@@ -2682,7 +2682,7 @@ metadata:
   name: clickhousebackups.clickhouse.radondb.com
 spec:
   group: clickhouse.radondb.com
-  scope: Cluster
+  scope: Namespaced
   names:
     kind: ClickHouseBackup
     singular: clickhousebackup
@@ -2698,7 +2698,32 @@ spec:
           type: string
           description: Backup status
           priority: 0 # show in standard view
-          jsonPath: .status
+          jsonPath: .status.status
+        - name: starttime
+          type: string
+          description: Backup start time
+          priority: 0 # show in standard view
+          jsonPath: .status.startTime
+        - name: endtime
+          type: string
+          description: Backup end time
+          priority: 0 # show in standard view
+          jsonPath: .status.endTime
+        - name: backupname
+          type: string
+          description: Backup name
+          priority: 1 # show in wide view
+          jsonPath: .status.backupName
+        - name: backupsize
+          type: string
+          description: Backup size
+          priority: 1 # show in wide view
+          jsonPath: .status.backupSize
+        - name: schedule
+          type: string
+          description: Backup schedule
+          priority: 1 # show in wide view
+          jsonPath: .status.schedule
       schema:
         openAPIV3Schema:
           type: object
@@ -2721,7 +2746,8 @@ spec:
             metadata:
               type: object
             status:
-              type: string
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
               description: "Current ClickHouse Backup status."
             spec:
               type: object
@@ -2739,19 +2765,6 @@ spec:
                 namespace:
                   type: string
                   description: "The namespace of the cluster to be backed up."
-                tcpPort:
-                  type: integer
-                  description: "The tcp port of the cluster to be backed up."
-                image:
-                  type: string
-                  description: "The image of clickhouse-client, is used to send backup commands to clickhouse-server and monitor the backup situation, default `radondb/clickhouse-client:21.1.3.32`"
-                imagePullPolicy:
-                  type: string
-                  description: "The image pull policy of clickhouse-client, default `IfNotPresent`."
-                  enum:
-                    - Always
-                    - IfNotPresent
-                    - Never
                 backup:
                   type: object
                   description: "Backup related settings, allowing you to specify whether it is a single backup or a scheduled backup."
@@ -3126,6 +3139,8 @@ data:
     #  LabelClusterScopeCycleIndex
     #  LabelClusterScopeCycleOffset
     appendScopeLabels: "no"
+
+    imagePrefix: docker.io
 
 ---
 # Possible Template Parameters:
