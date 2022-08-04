@@ -169,7 +169,7 @@ data:
     #  LabelClusterScopeCycleOffset
     appendScopeLabels: "no"
     
-    imagePrefix: docker.ioo
+    imagePrefix: docker.io
 
 ---
 # Possible Template Parameters:

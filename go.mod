@@ -16,6 +16,7 @@ require (
 	github.com/mailru/go-clickhouse v1.6.0
 	github.com/prometheus/client_golang v1.7.1
 	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/sanity-io/litter v1.3.0
 	github.com/securego/gosec/v2 v2.8.1
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect

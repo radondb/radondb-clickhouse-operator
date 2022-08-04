@@ -327,3 +327,133 @@ func (s *Schemer) HostActiveQueriesNum(ctx context.Context, host *chop.ChiHost) 
 	sql := `SELECT count() FROM system.processes`
 	return s.QueryHostInt(ctx, host, sql)
 }
+
+// HostCreateBackup create backup
+func (s *Schemer) HostCreateBackup(ctx context.Context, host *chop.ChiHost, name, flag string) error {
+	sql := heredoc.Docf(
+		`INSERT INTO system.backup_actions(command) VALUES('create %s %s')`,
+		name,
+		flag,
+	)
+
+	return s.ExecHost(ctx, host, []string{sql}, clickhouse.NewQueryOptions().SetRetry(true))
+}
+
+// HostGetCreateBackupStatus get backup status
+func (s *Schemer) HostGetCreateBackupStatus(ctx context.Context, host *chop.ChiHost, name, flag string) (string, string) {
+	sql := heredoc.Docf(
+		`SELECT status, error FROM system.backup_actions WHERE command = 'create %s %s' order by start desc`,
+		name,
+		flag,
+	)
+	status, errors, _ := s.QueryUnzip2Columns(ctx, CreateFQDNs(host, chop.ChiHost{}, false), sql)
+	if len(status) > 0 {
+		return status[0], errors[0]
+	}
+	return "", ""
+}
+
+// HostRestoreBackup restore backup
+func (s *Schemer) HostRestoreBackup(ctx context.Context, host *chop.ChiHost, name, flag string) error {
+	sql := heredoc.Docf(
+		`INSERT INTO system.backup_actions(command) VALUES('restore %s %s')`,
+		name,
+		flag,
+	)
+
+	return s.ExecHost(ctx, host, []string{sql}, clickhouse.NewQueryOptions().SetRetry(true))
+}
+
+// HostGetRestoreBackupStatus get restore status
+func (s *Schemer) HostGetRestoreBackupStatus(ctx context.Context, host *chop.ChiHost, name, flag string) (string, string) {
+	sql := heredoc.Docf(
+		`SELECT status, error FROM system.backup_actions WHERE command = 'restore %s %s' order by start desc`,
+		name,
+		flag,
+	)
+	status, errors, _ := s.QueryUnzip2Columns(ctx, CreateFQDNs(host, chop.ChiHost{}, false), sql)
+	if len(status) > 0 {
+		return status[0], errors[0]
+	}
+	return "", ""
+}
+
+// HostUploadBackup upload backup
+func (s *Schemer) HostUploadBackup(ctx context.Context, host *chop.ChiHost, name string) error {
+	sql := heredoc.Docf(
+		`INSERT INTO system.backup_actions(command) VALUES('upload %s')`,
+		name,
+	)
+
+	return s.ExecHost(ctx, host, []string{sql}, clickhouse.NewQueryOptions().SetRetry(true))
+}
+
+// HostGetUploadBackupStatus get backup status
+func (s *Schemer) HostGetUploadBackupStatus(ctx context.Context, host *chop.ChiHost, name string) (string, string) {
+	sql := heredoc.Docf(
+		`SELECT status, error FROM system.backup_actions WHERE command = 'upload %s' order by start desc`,
+		name,
+	)
+
+	status, errors, _ := s.QueryUnzip2Columns(ctx, CreateFQDNs(host, chop.ChiHost{}, false), sql)
+
+	if len(status) > 0 {
+		return status[0], errors[0]
+	}
+	return "", ""
+}
+
+// HostDownloadBackup download backup
+func (s *Schemer) HostDownloadBackup(ctx context.Context, host *chop.ChiHost, name string) error {
+	sql := heredoc.Docf(
+		`INSERT INTO system.backup_actions(command) VALUES('download %s')`,
+		name,
+	)
+
+	return s.ExecHost(ctx, host, []string{sql}, clickhouse.NewQueryOptions().SetRetry(true))
+}
+
+// HostGetDownloadBackupStatus get backup status
+func (s *Schemer) HostGetDownloadBackupStatus(ctx context.Context, host *chop.ChiHost, name string) (string, string) {
+	sql := heredoc.Docf(
+		`SELECT status, error FROM system.backup_actions WHERE command = 'download %s' order by start desc`,
+		name,
+	)
+
+	status, errors, _ := s.QueryUnzip2Columns(ctx, CreateFQDNs(host, chop.ChiHost{}, false), sql)
+
+	if len(status) > 0 {
+		return status[0], errors[0]
+	}
+	return "", ""
+}
+
+// HostGetBackup get backup status
+func (s *Schemer) HostGetBackup(ctx context.Context, host *chop.ChiHost, name string) (string, string) {
+	sql := heredoc.Docf(
+		`SELECT created, location FROM system.backup_list WHERE name = '%s' order by created desc`,
+		name,
+	)
+
+	created, location, _ := s.QueryUnzip2Columns(ctx, CreateFQDNs(host, chop.ChiHost{}, false), sql)
+
+	if len(created) > 0 {
+		return created[0], location[0]
+	}
+	return "", ""
+}
+
+// HostGetBackupSize get backup size
+func (s *Schemer) HostGetBackupSize(ctx context.Context, host *chop.ChiHost, name string) (string, string) {
+	sql := heredoc.Docf(
+		`SELECT created, size FROM system.backup_list WHERE name = '%s' and location = 'remote' order by created desc`,
+		name,
+	)
+
+	created, location, _ := s.QueryUnzip2Columns(ctx, CreateFQDNs(host, chop.ChiHost{}, false), sql)
+
+	if len(created) > 0 {
+		return created[0], location[0]
+	}
+	return "", ""
+}

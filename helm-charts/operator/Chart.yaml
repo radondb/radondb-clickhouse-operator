@@ -1,8 +1,8 @@
 apiVersion: v2
-appVersion: "v2.1"
+appVersion: "v2.2"
 name: clickhouse-operator
 type: application
-version: v2.1.1
+version: v2.2.0
 description: Helm chart for deploying ClickHouse Operator on Kubernetes
 home: https://github.com/radondb/radondb-clickhouse-kubernetes
 
@@ -23,3 +23,5 @@ maintainers:
   - name: su-houzhen
     email: suhouzhen2020@gmail.com
     url: https://su-houzhen.github.io/
+  - name: yanboer
+    email: yanbo2695388808@gmail.com

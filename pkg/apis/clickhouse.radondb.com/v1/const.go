@@ -32,6 +32,7 @@ const (
 // Possible kinds of CRDs
 const (
 	ClickHouseInstallationCRDResourceKind         = "ClickHouseInstallation"
+	ClickHouseBackupCRDResourceKind				  = "ClickHouseBackup"
 	ClickHouseInstallationTemplateCRDResourceKind = "ClickHouseInstallationTemplate"
 	ClickHouseOperatorCRDResourceKind             = "ClickHouseOperator"
 )
@@ -120,4 +121,22 @@ const (
 
 	ClickHouseBackupKindSingle   = "single"
 	ClickHouseBackupKindSchedule = "schedule"
+
+	StatusBackupRunning      = "Running"
+	StatusBackupCompleted    = "Completed"
+	StatusBackupFailed 		 = "Failed"
+	StatusBackupUnknow 		 = "Unknow"
+)
+
+const (
+	TIME_LAYOUT = "2006-01-02-15:04:05"
+)
+
+const (
+	B  = 1 << (iota * 10)
+	KB = 1 << (iota * 10)
+	MB = 1 << (iota * 10)
+	GB = 1 << (iota * 10)
+	TB = 1 << (iota * 10)
+	PB = 1 << (iota * 10)
 )
