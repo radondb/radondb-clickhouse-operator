@@ -123,6 +123,7 @@ func (n *Normalizer) normalize() (*chiV1.ClickHouseInstallation, error) {
 	n.chi.Spec.Stop = n.normalizeStop(n.chi.Spec.Stop)
 	n.chi.Spec.Restart = n.normalizeRestart(n.chi.Spec.Restart)
 	n.chi.Spec.ImagePrefix = n.normalizeImagePrefix(n.chi.Spec.ImagePrefix)
+	n.chi.Spec.NamespaceOverride = n.normalizeNamespaceOverride(n.chi.Spec.NamespaceOverride)
 	n.chi.Spec.Troubleshoot = n.normalizeTroubleshoot(n.chi.Spec.Troubleshoot)
 	n.chi.Spec.MetricsExporter = n.normalizeMetricsExporter(n.chi.Spec.MetricsExporter)
 	n.chi.Spec.NamespaceDomainPattern = n.normalizeNamespaceDomainPattern(n.chi.Spec.NamespaceDomainPattern)
@@ -400,6 +401,14 @@ func (n *Normalizer) normalizeImagePrefix(imagePrefix string) string {
 		return chop.Config().ImagePrefix
 	}
 	return imagePrefix
+}
+
+// normalizeImagePrefix normalizes .spec.ImagePrefix
+func (n *Normalizer) normalizeNamespaceOverride(namespaceOverride string) string {
+	if namespaceOverride == "" {
+		return chop.Config().NamespaceOverride
+	}
+	return namespaceOverride
 }
 
 // normalizeDefaults normalizes .spec.defaults

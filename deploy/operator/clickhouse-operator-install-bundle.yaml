@@ -204,6 +204,9 @@ spec:
                 imagePrefix:
                   type: string
                   description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
+                namespaceOverride:
+                  type: string
+                  description: "custom namespace which will add to the front of the image used by the clickhouse cluster"
                 namespaceDomainPattern:
                   type: string
                   description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -1503,6 +1506,9 @@ spec:
                 imagePrefix:
                   type: string
                   description: "custom image prefix which will add to the front of the image used by the clickhouse cluster"
+                namespaceOverride:
+                  type: string
+                  description: "custom namespace which will add to the front of the image used by the clickhouse cluster"
                 namespaceDomainPattern:
                   type: string
                   description: "custom domain suffix which will add to end of `Service` or `Pod` name, use it when you use custom cluster domain in your Kubernetes cluster"
@@ -2795,6 +2801,9 @@ spec:
                 imagePrefix:
                   type: string
                   description: "custom image prefix which will add to the front of the image used by the clickhouse cluster, if the parameter is also defined in CHI, CHI has higher priority"
+                namespaceOverride:
+                  type: string
+                  description: "custom namespace which will add to the front of the image used by the clickhouse cluster, if the parameter is also defined in CHI, CHI has higher priority"
 ---
 # Possible Template Parameters:
 #
@@ -3133,6 +3142,7 @@ data:
     defaultMetricsExporterContainerImagePullPolicy: "IfNotPresent"
     
     imagePrefix: docker.io
+    namespaceOverride: ""
 ---
 # Possible Template Parameters:
 #
