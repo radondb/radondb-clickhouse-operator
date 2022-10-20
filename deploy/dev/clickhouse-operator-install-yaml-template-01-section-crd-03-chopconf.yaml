@@ -195,3 +195,6 @@ spec:
                 imagePrefix:
                   type: string
                   description: "custom image prefix which will add to the front of the image used by the clickhouse cluster, if the parameter is also defined in CHI, CHI has higher priority"
+                namespaceOverride:
+                  type: string
+                  description: "custom namespace which will add to the front of the image used by the clickhouse cluster, if the parameter is also defined in CHI, CHI has higher priority"

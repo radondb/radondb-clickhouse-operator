@@ -179,6 +179,9 @@ type OperatorConfig struct {
 
 	// custom image prefix which will add to the front of the image used by the clickhouse cluster
 	ImagePrefix string `json:"imagePrefix,omitempty" yaml:"ImagePrefix,omitempty"`
+
+	// custom namespaceOverride which will add to the front of the image used by the clickhouse cluster
+	NamespaceOverride string `json:"namespaceOverride,omitempty" yaml:"namespaceOverride,omitempty"`
 	//
 	// The end of OperatorConfig
 	//
@@ -641,6 +644,7 @@ func (config *OperatorConfig) String(hideCredentials bool) string {
 	util.Fprintf(b, "DefaultMetricsExporterContainerImagePullPolicy: %s", config.DefaultMetricsExporterContainerImagePullPolicy)
 
 	util.Fprintf(b, "ImagePrefix: %s", config.ImagePrefix)
+	util.Fprintf(b, "NamespaceOverride: %s", config.NamespaceOverride)
 
 	return b.String()
 }

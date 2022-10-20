@@ -160,3 +160,4 @@ defaultMetricsExporterContainerImage: "radondb/chronus-metrics-operator:dmp"
 defaultMetricsExporterContainerImagePullPolicy: "IfNotPresent"
 
 imagePrefix: docker.io
+namespaceOverride: ""

@@ -18,6 +18,8 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
+
 	// "net/url"
 
 	apps "k8s.io/api/apps/v1"
@@ -424,9 +426,23 @@ func (c *Creator) CreateStatefulSet(host *chiv1.ChiHost, shutdown bool) *apps.St
 	host.StatefulSet = statefulSet
 	host.DesiredStatefulSet = statefulSet
 
+	// imagePrefix and namespaceOverride override
 	for index, _ := range statefulSet.Spec.Template.Spec.Containers {
 		container := &statefulSet.Spec.Template.Spec.Containers[index]
-		container.Image = host.CHI.Spec.ImagePrefix + "/" + container.Image
+		imagePrefix := host.CHI.Spec.ImagePrefix
+		namespaceOverride := host.CHI.Spec.NamespaceOverride
+		image := strings.Split(container.Image, "/")
+		realImage := ""
+		if namespaceOverride == "" {
+			if len(image) == 2 {
+				realImage = imagePrefix + "/" + container.Image
+			} else {
+				realImage = imagePrefix + "/library/" + container.Image
+			}
+		} else {
+			realImage = imagePrefix + "/" + namespaceOverride + "/" + image[len(image)-1]
+		}
+		container.Image = realImage
 	}
 
 	return statefulSet
@@ -498,9 +514,23 @@ func (c *Creator) CreateStatefulSetZooKeeper(chi *chiv1.ClickHouseInstallation) 
 	c.setupStatefulSetZooKeeperPodTemplate(statefulSet, chi)
 	c.setupStatefulSetZooKeeperVolumeClaimTemplates(statefulSet)
 
+	// imagePrefix and namespaceOverride override
 	for index, _ := range statefulSet.Spec.Template.Spec.Containers {
 		container := &statefulSet.Spec.Template.Spec.Containers[index]
-		container.Image = chi.Spec.ImagePrefix + "/" + container.Image
+		imagePrefix := chi.Spec.ImagePrefix
+		namespaceOverride := chi.Spec.NamespaceOverride
+		image := strings.Split(container.Image, "/")
+		realImage := ""
+		if namespaceOverride == "" {
+			if len(image) == 2 {
+				realImage = imagePrefix + "/" + container.Image
+			} else {
+				realImage = imagePrefix + "/library/" + container.Image
+			}
+		} else {
+			realImage = imagePrefix + "/" + namespaceOverride + "/" + image[len(image)-1]
+		}
+		container.Image = realImage
 	}
 
 	return statefulSet

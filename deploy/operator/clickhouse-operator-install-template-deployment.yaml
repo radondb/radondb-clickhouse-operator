@@ -175,6 +175,7 @@ data:
     defaultMetricsExporterContainerImagePullPolicy: "IfNotPresent"
     
     imagePrefix: docker.io
+    namespaceOverride: ""
 ---
 # Possible Template Parameters:
 #
