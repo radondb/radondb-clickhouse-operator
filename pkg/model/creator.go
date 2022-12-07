@@ -807,24 +807,37 @@ func (c *Creator) setupStatefulSetZooKeeperVolumeClaimTemplates(statefulSet *app
 		}
 	}
 
-	// applies Data VolumeClaimTemplates on all containers
-	// c.setupStatefulSetApplyVolumeClaimTemplates(statefulSet, host)
-	statefulSet.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "data",
-			},
-			Spec: corev1.PersistentVolumeClaimSpec{
-				AccessModes: []corev1.PersistentVolumeAccessMode{
-					corev1.ReadWriteOnce,
-				},
-				Resources: corev1.ResourceRequirements{
-					Requests: corev1.ResourceList{
-						corev1.ResourceStorage: *resource.NewScaledQuantity(10, resource.Giga),
+	// Set ZooKeeper StatefulSet VolumeClaimTemplates
+	for i := range statefulSet.Spec.Template.Spec.Containers {
+		// Convenience wrapper
+		container := &statefulSet.Spec.Template.Spec.Containers[i]
+		for j := range container.VolumeMounts {
+			// Convenience wrapper
+			volumeMount := &container.VolumeMounts[j]
+			if volumeClaimTemplate, ok := c.chi.GetVolumeClaimTemplate(volumeMount.Name); ok {
+				// Found VolumeClaimTemplate to mount by VolumeMount
+				// applies Data VolumeClaimTemplates on all containers
+				// c.setupStatefulSetApplyVolumeClaimTemplates(statefulSet, host)
+				statefulSet.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{
+					{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "data",
+						},
+						Spec: corev1.PersistentVolumeClaimSpec{
+							AccessModes: []corev1.PersistentVolumeAccessMode{
+								corev1.ReadWriteOnce,
+							},
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceStorage: *resource.NewScaledQuantity(10, resource.Giga),
+								},
+							},
+							StorageClassName: volumeClaimTemplate.Spec.StorageClassName,
+						},
 					},
-				},
-			},
-		},
+				}
+			}
+		}
 	}
 }
 
