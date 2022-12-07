@@ -805,6 +805,17 @@ func (c *Creator) setupStatefulSetZooKeeperVolumeClaimTemplates(statefulSet *app
 				MountPath: "/var/lib/zookeeper",
 			},
 		}
+
+		container.Resources = corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: resource.MustParse("0.5"),
+				corev1.ResourceMemory: resource.MustParse("500Mi"),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU: resource.MustParse("0.5"),
+				corev1.ResourceMemory: resource.MustParse("500Mi"),
+			},
+		}
 	}
 
 	// Set ZooKeeper StatefulSet VolumeClaimTemplates
