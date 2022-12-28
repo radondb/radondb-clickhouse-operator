@@ -24,7 +24,8 @@ RUN OPERATOR_BIN=/tmp/clickhouse-operator ./dev/go_build_operator.sh
 # ===== Operator =====
 # ====================
 
-FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
+#FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
+FROM --platform=${BUILDPLATFORM} registry.access.redhat.com/ubi8/ubi-minimal AS image-base
 RUN microdnf update && microdnf clean all
 
 MAINTAINER "RadonDB <support@radondb.com>"
