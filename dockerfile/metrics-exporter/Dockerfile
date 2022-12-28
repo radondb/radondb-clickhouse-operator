@@ -2,7 +2,13 @@
 # ===== Builder =====
 # ====================
 
-FROM golang:1.13 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.17 AS builder
+
+ARG VERSION
+ARG RELEASE
+ARG GCFLAGS
+ARG TARGETOS
+ARG TARGETARCH
 
 # Install required packages
 RUN sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
@@ -12,6 +18,10 @@ RUN sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
 WORKDIR /clickhouse-operator
 ADD . .
 
+ENV GCFLAGS="${GCFLAGS}"
+ENV GOOS="${TARGETOS}"
+ENV GOARCH="${TARGETARCH}"
+
 # ./vendor is excluded in .dockerignore, reconstruct it with 'mod' tool
 ENV GOPROXY=https://goproxy.cn,direct
 RUN GO111MODULE=on go mod tidy
@@ -20,11 +30,11 @@ RUN GO111MODULE=on go mod vendor
 # Build operator binary with explicitly specified output
 RUN METRICS_EXPORTER_BIN=/tmp/metrics-exporter ./dev/go_build_metrics_exporter.sh
 
-# ============================
-# ===== Metrics exporter =====
-# ============================
+# ======================
+# ===== Image Base =====
+# ======================
 
-FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
+FROM --platform=${BUILDPLATFORM} registry.access.redhat.com/ubi8/ubi-minimal AS image-base
 RUN microdnf update && microdnf clean all
 
 MAINTAINER "RadonDB <support@radondb.com>"
@@ -32,8 +42,8 @@ MAINTAINER "RadonDB <support@radondb.com>"
 LABEL name="ClickHouse operator. Metrics exporter" \
       maintainer="support@radondb.com" \
       vendor="RadonDB" \
-      version="2.1.1" \
-      release="1" \
+      version="${VERSION:-dev}" \
+      release="${RELEASE:-1}" \
       summary="Metrics Exporter" \
       description="Metrics exporter for RadonDB ClickHouse operator"
 
