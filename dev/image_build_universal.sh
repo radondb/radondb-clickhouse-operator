@@ -3,7 +3,6 @@
 # Universal docker image builder.
 # Should be called from image_build_operator.sh or image_build_metrics_exporter.sh
 
-set -x
 set -e
 
 # Declared from the called script:
@@ -13,11 +12,10 @@ set -e
 
 MINIKUBE="${MINIKUBE:-no}"
 DOCKERHUB_LOGIN="${DOCKERHUB_LOGIN}"
+DOCKERFILE="${DOCKERFILE_DIR}/Dockerfile"
 DOCKERHUB_PUBLISH="${DOCKERHUB_PUBLISH:-no}"
 CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 SRC_ROOT="$(realpath "${CUR_DIR}/..")"
-DOCKERFILE_DIR="${SRC_ROOT}/dockerfile/operator"
-DOCKERFILE="${DOCKERFILE_DIR}/Dockerfile"
 
 # Source-dependent options
 source "${CUR_DIR}/go_build_config.sh"
@@ -37,7 +35,7 @@ if [[ "0" == $(docker buildx ls | grep -E 'linux/arm.+\*' | grep -E 'running|ina
     docker buildx create --use --name multi-platform --platform=linux/amd64,linux/arm64
 fi
 
-DOCKER_CMD="docker buildx build --progress plain --no-cache"
+DOCKER_CMD="docker buildx build --progress plain"
 if [[ "${DOCKER_IMAGE}" =~ ":dev" || "yes" == "${MINIKUBE}" ]]; then
     DOCKER_CMD="${DOCKER_CMD} --output type=image,name=${DOCKER_IMAGE} --platform=linux/amd64"
 else
@@ -54,8 +52,7 @@ if [[ "${DOCKERHUB_PUBLISH}" == "yes" ]]; then
     DOCKER_CMD="${DOCKER_CMD} --push"
 fi
 
-#DOCKER_CMD="${DOCKER_CMD} -t ${DOCKER_IMAGE} -f ${DOCKERFILE} ${SRC_ROOT}"
-DOCKER_CMD="${DOCKER_CMD} -t ${TAG} -f ${DOCKERFILE} ${SRC_ROOT}"
+DOCKER_CMD="${DOCKER_CMD} -t ${DOCKER_IMAGE} -f ${DOCKERFILE} ${SRC_ROOT}"
 
 if [[ "${DOCKERHUB_PUBLISH}" == "yes" ]]; then
     if [[ -n "${DOCKERHUB_LOGIN}" ]]; then

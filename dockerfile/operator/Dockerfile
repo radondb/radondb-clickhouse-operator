@@ -2,7 +2,13 @@
 # ===== Builder =====
 # ===================
 
-FROM golang:1.13 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.17 AS builder
+
+ARG VERSION
+ARG RELEASE
+ARG GCFLAGS
+ARG TARGETOS
+ARG TARGETARCH
 
 # Install required packages
 RUN sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
@@ -12,19 +18,17 @@ RUN sed -i s@/deb.debian.org/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
 WORKDIR /clickhouse-operator
 ADD . .
 
-# ./vendor is excluded in .dockerignore, reconstruct it with 'mod' tool
-ENV GOPROXY=https://goproxy.cn,direct
-RUN GO111MODULE=on go mod tidy
-RUN GO111MODULE=on go mod vendor
+ENV GCFLAGS="${GCFLAGS}"
+ENV GOOS="${TARGETOS}"
+ENV GOARCH="${TARGETARCH}"
 
 # Build operator binary with explicitly specified output
-RUN OPERATOR_BIN=/tmp/clickhouse-operator ./dev/go_build_operator.sh
+RUN OPERATOR_BIN=/tmp/clickhouse-operator bash -xe ./dev/go_build_operator.sh
 
-# ====================
-# ===== Operator =====
-# ====================
+# ======================
+# ===== Image Base =====
+# ======================
 
-#FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
 FROM --platform=${BUILDPLATFORM} registry.access.redhat.com/ubi8/ubi-minimal AS image-base
 RUN microdnf update && microdnf clean all
 
@@ -33,12 +37,16 @@ MAINTAINER "RadonDB <support@radondb.com>"
 LABEL name="ClickHouse operator" \
       maintainer="support@radondb.com" \
       vendor="RadonDB" \
-      version="2.1.1" \
-      release="1" \
+      version="${VERSION:-dev}" \
+      release="${RELEASE:-1}" \
       summary="ClickHouse operator" \
       description="ClickHouse operator operates ClickHouse clusters in kubernetes"
 
 ADD LICENSE /licenses/
+
+# set timezone
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+ENV TZ=Asia/Shanghai
 
 WORKDIR /
 
@@ -56,7 +64,7 @@ USER nobody
 
 # Run /clickhouse-operator -alsologtostderr=true -v=1
 # We can specify additional options, such as:
-#   --config=/path/to/confi g
+#   --config=/path/to/config
 #   --kube-config=/path/to/kubeconf
 ENTRYPOINT ["/clickhouse-operator"]
 CMD ["-logtostderr=true", "-v=1"]
