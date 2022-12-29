@@ -22,11 +22,6 @@ ENV GCFLAGS="${GCFLAGS}"
 ENV GOOS="${TARGETOS}"
 ENV GOARCH="${TARGETARCH}"
 
-# ./vendor is excluded in .dockerignore, reconstruct it with 'mod' tool
-ENV GOPROXY=https://goproxy.cn,direct
-RUN GO111MODULE=on go mod tidy
-RUN GO111MODULE=on go mod vendor
-
 # Build operator binary with explicitly specified output
 RUN METRICS_EXPORTER_BIN=/tmp/metrics-exporter ./dev/go_build_metrics_exporter.sh
 
